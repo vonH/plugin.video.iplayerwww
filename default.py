@@ -781,8 +781,11 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
 
 def OpenURL(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/41.0'}
-    r = requests.get(url, headers=headers)
-    return r.content
+    try:
+        r = requests.get(url, headers=headers)
+        return r.content
+    except:
+        return ''
 
 
 def PlayStream(name, url, iconimage, description, subtitles_url):
