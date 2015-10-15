@@ -59,13 +59,13 @@ def ListLive():
         ('bbc_parliament', 'bbc_parliament', 'BBC Parliament'),
         ('bbc_alba', 'bbc_alba', 'Alba'),
         ('s4cpbs', 's4c', 'S4C'),
+        ('bbc_one_london', 'bbc_one', 'BBC One London'),
         ('bbc_one_scotland_hd', 'bbc_one', 'BBC One Scotland'),
         ('bbc_one_northern_ireland_hd', 'bbc_one', 'BBC One Northern Ireland'),
         ('bbc_one_wales_hd', 'bbc_one', 'BBC One Wales'),
         ('bbc_two_scotland', 'bbc_two', 'BBC Two Scotland'),
         ('bbc_two_northern_ireland_digital', 'bbc_two', 'BBC Two Northern Ireland'),
         ('bbc_two_wales_digital', 'bbc_two', 'BBC Two Wales'),
-        ('bbc_one_london', 'bbc_one', 'BBC One London'),
     ]
     for id, img, name in channel_list:
         iconimage = xbmc.translatePath(
@@ -355,7 +355,8 @@ def ListHighlights():
             re.DOTALL).findall(more)
         try:
             # Need to use equivelent for datetime.strptime() due to weird TypeError.
-            aired = datetime.datetime(*(time.strptime(aired[0], '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
+            if aired:
+                aired = datetime.datetime(*(time.strptime(aired[0], '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
         except ValueError:
             aired = ''
         sub_match = re.compile(
