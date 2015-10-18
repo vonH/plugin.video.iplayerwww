@@ -11,6 +11,11 @@ import urllib
 from operator import itemgetter
 
 import requests
+import requests.packages.urllib3
+
+import cookielib
+
+import json
 
 import xbmc
 import xbmcaddon
@@ -20,6 +25,8 @@ import xbmcplugin
 __addonid__ = "plugin.video.iplayerwww"
 __plugin_handle__ = int(sys.argv[1])
 
+def translation(id):
+    return xbmcaddon.Addon(__addonid__).getLocalizedString(id)
 
 def GetAddonInfo():
     addon_info = {}
@@ -38,12 +45,14 @@ DIR_USERDATA = xbmc.translatePath(__addoninfo__["profile"])
 
 
 def CATEGORIES():
-    AddMenuEntry('Highlights', 'url', 106, '', '', '')
-    AddMenuEntry('Most Popular', 'url', 105, '', '', '')
-    AddMenuEntry('Programme List A-Z', 'url', 102, '', '', '')
-    AddMenuEntry('Categories', 'url', 103, '', '', '')
-    AddMenuEntry('Search', 'url', 104, '', '', '')
-    AddMenuEntry('Watch Live', 'url', 101, '', '', '')
+    AddMenuEntry(translation(31000), 'url', 106, '', '', '')
+    AddMenuEntry(translation(31001), 'url', 105, '', '', '')
+    AddMenuEntry(translation(31002), 'url', 102, '', '', '')
+    AddMenuEntry(translation(31003), 'url', 103, '', '', '')
+    AddMenuEntry(translation(31004), 'url', 104, '', '', '')
+    AddMenuEntry(translation(31005), 'url', 101, '', '', '')
+    AddMenuEntry(translation(31006), 'url', 107, '', '', '')
+    AddMenuEntry(translation(31007), 'url', 108, '', '', '')
 
 
 # ListLive creates menu entries for all live channels.
@@ -130,8 +139,8 @@ def ScrapeSearchEpisodes(url):
                 '<a class="view-more-container avail stat" href="/iplayer/episodes/%s".+?'
                 '<em class="view-more-heading">(.+?)<' % programme_id,
                 re.DOTALL).findall(html)
-            AddMenuEntry("%s - %s available episodes" % (
-                name, num_episodes[0]), programme_id, 121, iconimage, plot, '')
+            AddMenuEntry("%s - %s %s" % (
+                name, num_episodes[0], translation(31013)), programme_id, 121, iconimage, plot, '')
         else:
             episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % programme_id
             CheckAutoplay(name, episode_url, iconimage, plot)
@@ -245,8 +254,8 @@ def ScrapeCategoryEpisodes(url):
                 'href="/iplayer/episodes/%s".+?<em '
                 'class="view-more-heading">(.+?)<' % programme_id,
                 re.DOTALL).findall(html)
-            AddMenuEntry("%s - %s available episodes" % (
-                name, num_episodes[0]), programme_id, 121, iconimage, plot, '')
+            AddMenuEntry("%s - %s %s" % (
+                name, num_episodes[0], translation(31013)), programme_id, 121, iconimage, plot, '')
         # If only one episode is found, the episode_id is suitable to add a directory or stream.
         # This is required because some programmes which have their own page will redirect
         # the programme_id to the program page which may look entirely different from
@@ -291,8 +300,8 @@ def ListHighlights():
         '<em>(.+?)</em>',
         re.DOTALL).findall(html.replace('amp;', ''))
     for name, episode_id, num_episodes in match1:
-        AddMenuEntry(' Collection: %s - %s available programmes' % (
-            name, num_episodes), episode_id, 127, '', '', '')
+        AddMenuEntry(' %s: %s - %s %s' % (
+            translation(31014), name, num_episodes, translation(31015)), episode_id, 127, '', '', '')
     # Match special groups. Usually this is just Exclusive content.
     match1 = re.compile(
         'href="http://www.bbc.co.uk/iplayer/group/(.+?)"\n'
@@ -301,7 +310,7 @@ def ListHighlights():
         'typo--canary">(.+?)<',
         re.DOTALL).findall(html)
     for episode_id, name, plot in match1:
-        AddMenuEntry(' Collection: %s' % (name), episode_id, 127, '', plot, '')
+        AddMenuEntry(' %s: %s' % (translation(31014), name), episode_id, 127, '', plot, '')
     # Match groups again
     # We need to do this to get the previewed episodes for groups.
     match1 = re.compile(
@@ -320,7 +329,7 @@ def ListHighlights():
             # The next two lines require verification.
             # At the time of writing these lines, no series-catchup group was available to test.
             if group_type == 'series-catchup':
-                name = "%s, %s" % (group_name, name)
+                name = "%s: %s" % (group_name, name)
             match3 = re.compile(
                 'typo--canary">(.+?)<',
                 re.DOTALL).findall(evenmore)
@@ -334,7 +343,7 @@ def ListHighlights():
                 episodelist.append(
                     [episode_id,
                     name,
-                    'This programme is part of the collection: %s' % group_name,
+                    '%s: %s' % (translation(31016), group_name),
                     'DefaultVideo.png',
                     '']
                     )
@@ -443,6 +452,21 @@ def Search():
     NEW_URL = 'http://www.bbc.co.uk/iplayer/search?q=%s' % search_entered
     EvaluateSearch(NEW_URL)
 
+
+def ParseAired(aired):
+    if aired:
+        try:
+            # Need to use equivelent for datetime.strptime() due to weird TypeError.
+            aired = datetime.datetime(*(time.strptime(aired, '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
+        except ValueError:
+            aired = ''
+    else:
+        aired = ''
+    return aired
+
+
+def ParseImageUrl(url):
+    return url.replace("{recipe}", "288x162")
 
 def GetEpisodes(programme_id):
     """Gets all programmes corresponding to a certain programme ID."""
@@ -596,7 +620,7 @@ def ParseStreams(stream_id):
         if check_geo:
             # print "Geoblock detected, raising error message"
             dialog = xbmcgui.Dialog()
-            dialog.ok("Error", "BBC iPlayer TV programmes are available to play in the UK only.")
+            dialog.ok(translation(32000), translation(32001))
             raise
     return retlist, match
 
@@ -714,8 +738,12 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
     bitrate_selected = int(ADDON.getSetting('live_bitrate'))
     for provider_url, provider_name in providers:
         # First we query the available streams from this website
-        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
-            provider_url, channelname)
+        if channelname == 's4cpbs':
+            url = 'http://a.files.bbci.co.uk/media/live/manifests/hds/pc/%s/%s.f4m' % (
+                provider_url, channelname)
+        else:
+            url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
+                provider_url, channelname)
         html = OpenURL(url)
         # Use regexp to get the different versions using various bitrates
         match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html.replace('amp;', ''))
@@ -753,8 +781,12 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     streams = []
     for provider_url, provider_name in providers:
         # First we query the available streams from this website
-        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
-            provider_url, channelname)
+        if channelname == 's4cpbs':
+            url = 'http://a.files.bbci.co.uk/media/live/manifests/hds/pc/%s/%s.f4m' % (
+                provider_url, channelname)
+        else:
+            url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
+                provider_url, channelname)
         html = OpenURL(url)
         # Use regexp to get the different versions using various bitrates
         match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html.replace('amp;', ''))
@@ -781,13 +813,54 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
+def GetCookies():
+    cookie_file = os.path.join(DIR_USERDATA,'iplayer.cookies')
+    cj = cookielib.LWPCookieJar(cookie_file)
+
+    if(os.path.exists(cookie_file)):
+        try:
+            cj.load(ignore_discard=True, ignore_expires=True)
+        except:
+            xbmcgui.Dialog().notification(translation(32000), translation(32002), xbmcgui.NOTIFICATION_ERROR)
+    else:
+        xbmcgui.Dialog().notification(translation(32000), translation(32003), xbmcgui.NOTIFICATION_ERROR)
+    
+    return cj
+
+
 def OpenURL(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/41.0'}
+    cookies = GetCookies()
     try:
-        r = requests.get(url, headers=headers)
-        return r.content
-    except:
-        return ''
+        r = requests.get(url, headers=headers, cookies=cookies)
+    except requests.exceptions.RequestException as e:
+        dialog = xbmcgui.Dialog()
+        dialog.ok(translation(32000), "%s" % e)
+        sys.exit(1)
+    for cookie in r.cookies:
+        cookies.set_cookie(cookie)
+    cookies.save(ignore_discard=True, ignore_expires=True)
+    return r.content
+
+
+def OpenURLPost(url, post_data):
+    headers = {
+               'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/41.0',
+               'Host':'ssl.bbc.co.uk',
+               'Accept':'*/*',
+               'Referer':'https://ssl.bbc.co.uk/id/signin',
+               'Content-Type':'application/x-www-form-urlencoded'}
+    cookies = GetCookies()
+    try:
+        r = requests.post(url, headers=headers, data=post_data, allow_redirects=False, cookies=cookies)
+    except requests.exceptions.RequestException as e:
+        dialog = xbmcgui.Dialog()
+        dialog.ok(translation(32000), "%s" % e)
+        sys.exit(1)
+    for cookie in r.cookies:
+        cookies.set_cookie(cookie)
+    cookies.save(ignore_discard=True, ignore_expires=True)
+    return r
 
 
 def PlayStream(name, url, iconimage, description, subtitles_url):
@@ -797,7 +870,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     if check_geo or not html:
         # print "Geoblock detected, raising error message"
         dialog = xbmcgui.Dialog()
-        dialog.ok("Error", "BBC iPlayer TV programmes are available to play in the UK only.")
+        dialog.ok(translation(32000), translation(32001))
         raise
     liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
     liz.setInfo(type='Video', infoLabels={'Title': name})
@@ -842,7 +915,7 @@ def get_params():
     return param
 
 
-def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None):
+def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None, logged_in=False):
     """Adds a new line to the Kodi list of playables.
 
     It is used in multiple ways in the plugin, which are distinguished by modes.
@@ -850,8 +923,9 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     listitem_url = (sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) +
                     "&name=" + urllib.quote_plus(name) +
                     "&iconimage=" + urllib.quote_plus(iconimage) +
-                    "&description=" + urllib.quote_plus(description) +
-                    "&subtitles_url=" + urllib.quote_plus(subtitles_url))
+                    "&description=" + urllib.quote_plus(description) + 
+                    "&subtitles_url=" + urllib.quote_plus(subtitles_url) +
+                    "&logged_in=" + str(logged_in))
 
     # Try to extract the date from the title and add it as an InfoLabel to allow sorting by date.
     match = re.search(r'\d{1,2}/\d{1,2}/\d{4}', name)
@@ -990,6 +1064,112 @@ def download_subtitles(url):
     return outfile
 
 
+def SignInBBCiD():
+    #Below is required to get around an ssl issue
+    requests.packages.urllib3.disable_warnings()
+    sign_in_url="https://ssl.bbc.co.uk/id/signin"
+    
+    username=ADDON.getSetting('bbc_id_username')
+    password=ADDON.getSetting('bbc_id_password')
+    
+    post_data={
+               'unique': username, 
+               'password': password, 
+               'rememberme':'0'}
+    r = OpenURLPost(sign_in_url, post_data)
+    if (r.status_code == 302):
+        xbmcgui.Dialog().notification(translation(31008), translation(31009))
+    else:
+        xbmcgui.Dialog().notification(translation(31008), translation(31010))
+
+
+def SignOutBBCiD():
+    sign_out_url="https://ssl.bbc.co.uk/id/signout"
+    OpenURL(sign_out_url)
+
+
+def StatusBBCiD():
+    status_url="https://ssl.bbc.co.uk/id/status"
+    html=OpenURL(status_url)
+    if("You are signed in." in html):
+        return True
+    return False
+
+
+def CheckLogin(logged_in):
+    if(logged_in == True or StatusBBCiD() == True):
+        logged_in = True
+        return True
+    elif ADDON.getSetting('bbc_id_enabled') != 'true':
+        xbmcgui.Dialog().ok(translation(31008), translation(31011))
+    else:
+        attemptLogin = xbmcgui.Dialog().yesno(translation(31008), translation(31012))
+        if attemptLogin:
+            SignInBBCiD()
+            if(StatusBBCiD()):
+                xbmcgui.Dialog().notification(translation(31008), translation(31009))
+                logged_in = True;
+                return True;
+            else:
+                xbmcgui.Dialog().notification(translation(31008), translation(31010))
+    
+    return False
+
+def ListWatching(logged_in):
+
+    if(CheckLogin(logged_in) == False):
+        CATEGORIES()
+        return
+
+    identity_cookie = None
+    for cookie in GetCookies():
+        if (cookie.name == 'IDENTITY'):
+            identity_cookie = cookie.value
+            break
+    url = "https://ibl.api.bbci.co.uk/ibl/v1/user/watching?identity_cookie=%s" % identity_cookie
+    html = OpenURL(url)
+    json_data = json.loads(html)
+    watching_list = json_data.get('watching').get('elements')
+    for watching in watching_list:
+        programme = watching.get('programme')
+        episode = watching.get('episode')
+        title = episode.get('title')
+        subtitle = episode.get('subtitle')
+        if(subtitle):
+            title += ", " + subtitle
+        episode_id = episode.get('id')
+        plot = episode.get('synopses').get('large')
+        aired = episode.get('release_date')
+        image_url = ParseImageUrl(episode.get('images').get('standard'))
+        aired = ParseAired(aired)
+        url="http://www.bbc.co.uk/iplayer/episode/%s" % (episode_id) 
+        CheckAutoplay(title, url, image_url, plot, aired)
+
+
+def ListFavourites(logged_in):
+
+    if(CheckLogin(logged_in) == False):
+        CATEGORIES()
+        return
+    
+    """Scrapes all episodes of the favourites page."""
+    html = OpenURL('http://www.bbc.co.uk/iplayer/usercomponents/favourites/programmes.json')
+    json_data = json.loads(html)
+    #favourites = json_data.get('favourites')
+    programmes = json_data.get('programmes')
+    for programme in programmes:
+        id = programme.get('id')
+        url = "http://www.bbc.co.uk/iplayer/brand/%s" % (id)
+        title = programme.get('title')
+        initial_child = programme.get('initial_children')[0]
+        image=initial_child.get('images')
+        image_url=ParseImageUrl(image.get('standard'))
+        synopses = initial_child.get('synopses')
+        plot = synopses.get('small')
+        aired = ParseAired(initial_child.get('release_date'))
+        CheckAutoplay(title, url, image_url, plot, aired)
+
+
 params = get_params()
 url = None
 name = None
@@ -997,6 +1177,7 @@ mode = None
 iconimage = None
 description = None
 subtitles_url = None
+logged_in = False
 
 try:
     url = urllib.unquote_plus(params["url"])
@@ -1020,6 +1201,10 @@ except:
     pass
 try:
     subtitles_url = urllib.unquote_plus(params["subtitles_url"])
+except:
+    pass
+try:
+    logged_in = params['logged_in'] == 'True'
 except:
     pass
 
@@ -1046,6 +1231,12 @@ elif mode == 105:
 
 elif mode == 106:
     ListHighlights()
+
+elif mode == 107:
+    ListWatching(logged_in)
+
+elif mode == 108:
+    ListFavourites(logged_in)
 
 # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
