@@ -1091,7 +1091,7 @@ def SignOutBBCiD():
 def StatusBBCiD():
     status_url="https://ssl.bbc.co.uk/id/status"
     html=OpenURL(status_url)
-    if("You are signed in." in html):
+    if("You are signed in" in html):
         return True
     return False
 
@@ -1139,6 +1139,8 @@ def ListWatching(logged_in):
             title += ", " + subtitle
         episode_id = episode.get('id')
         plot = episode.get('synopses').get('large')
+        if plot is None:
+            plot = ''
         aired = episode.get('release_date')
         image_url = ParseImageUrl(episode.get('images').get('standard'))
         aired = ParseAired(aired)
