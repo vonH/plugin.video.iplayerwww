@@ -42,7 +42,11 @@ def GetAddonInfo():
 __addoninfo__ = GetAddonInfo()
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 DIR_USERDATA = xbmc.translatePath(__addoninfo__["profile"])
+cookie_jar = None
 
+
+if(not os.path.exists(DIR_USERDATA)):
+    os.makedirs(DIR_USERDATA)
 
 def CATEGORIES():
     AddMenuEntry(translation(31000), 'url', 106, '', '', '')
@@ -813,9 +817,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
-def GetCookies():
-    if(not os.path.exists(DIR_USERDATA)):
-        os.makedirs(DIR_USERDATA)
+def InitialiseCookieJar():
     cookie_file = os.path.join(DIR_USERDATA,'iplayer.cookies')
     cj = cookielib.LWPCookieJar(cookie_file)
     if(os.path.exists(cookie_file)):
@@ -828,17 +830,16 @@ def GetCookies():
 
 def OpenURL(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/41.0'}
-    cookies = GetCookies()
     try:
-        r = requests.get(url, headers=headers, cookies=cookies)
+        r = requests.get(url, headers=headers, cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(32000), "%s" % e)
         sys.exit(1)
     try:
         for cookie in r.cookies:
-            cookies.set_cookie(cookie)
-        cookies.save(ignore_discard=True, ignore_expires=True)
+            cookie_jar.set_cookie(cookie)
+        cookie_jar.save(ignore_discard=True, ignore_expires=True)
     except:
         pass
     return r.content
@@ -851,18 +852,16 @@ def OpenURLPost(url, post_data):
                'Accept':'*/*',
                'Referer':'https://ssl.bbc.co.uk/id/signin',
                'Content-Type':'application/x-www-form-urlencoded'}
-    cookies = GetCookies()
     try:
-        r = requests.post(url, headers=headers, data=post_data, allow_redirects=False, cookies=cookies)
+        r = requests.post(url, headers=headers, data=post_data, allow_redirects=False, cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(32000), "%s" % e)
         sys.exit(1)
-    
     try:
         for cookie in r.cookies:
-            cookies.set_cookie(cookie)
-        cookies.save(ignore_discard=True, ignore_expires=True)
+            cookie_jar.set_cookie(cookie)
+        cookie_jar.save(ignore_discard=True, ignore_expires=True)
     except:
         pass
     return r
@@ -1127,7 +1126,7 @@ def ListWatching(logged_in):
         return
 
     identity_cookie = None
-    for cookie in GetCookies():
+    for cookie in cookie_jar:
         if (cookie.name == 'IDENTITY'):
             identity_cookie = cookie.value
             break
@@ -1175,6 +1174,7 @@ def ListFavourites(logged_in):
         CheckAutoplay(title, url, image_url, plot, aired)
 
 
+cookie_jar = InitialiseCookieJar()
 params = get_params()
 url = None
 name = None
