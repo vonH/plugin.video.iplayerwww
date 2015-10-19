@@ -814,17 +814,15 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
 
 
 def GetCookies():
+    if(not os.path.exists(DIR_USERDATA)):
+        os.makedirs(DIR_USERDATA)
     cookie_file = os.path.join(DIR_USERDATA,'iplayer.cookies')
     cj = cookielib.LWPCookieJar(cookie_file)
-
     if(os.path.exists(cookie_file)):
         try:
             cj.load(ignore_discard=True, ignore_expires=True)
         except:
             xbmcgui.Dialog().notification(translation(32000), translation(32002), xbmcgui.NOTIFICATION_ERROR)
-    else:
-        xbmcgui.Dialog().notification(translation(32000), translation(32003), xbmcgui.NOTIFICATION_ERROR)
-    
     return cj
 
 
@@ -837,9 +835,12 @@ def OpenURL(url):
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(32000), "%s" % e)
         sys.exit(1)
-    for cookie in r.cookies:
-        cookies.set_cookie(cookie)
-    cookies.save(ignore_discard=True, ignore_expires=True)
+    try:
+        for cookie in r.cookies:
+            cookies.set_cookie(cookie)
+        cookies.save(ignore_discard=True, ignore_expires=True)
+    except:
+        pass
     return r.content
 
 
@@ -857,9 +858,13 @@ def OpenURLPost(url, post_data):
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(32000), "%s" % e)
         sys.exit(1)
-    for cookie in r.cookies:
-        cookies.set_cookie(cookie)
-    cookies.save(ignore_discard=True, ignore_expires=True)
+    
+    try:
+        for cookie in r.cookies:
+            cookies.set_cookie(cookie)
+        cookies.save(ignore_discard=True, ignore_expires=True)
+    except:
+        pass
     return r
 
 
