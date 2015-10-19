@@ -68,13 +68,13 @@ def ListLive():
         ('bbc_parliament', 'bbc_parliament', 'BBC Parliament'),
         ('bbc_alba', 'bbc_alba', 'Alba'),
         ('s4cpbs', 's4c', 'S4C'),
+        ('bbc_one_london', 'bbc_one', 'BBC One London'),
         ('bbc_one_scotland_hd', 'bbc_one', 'BBC One Scotland'),
         ('bbc_one_northern_ireland_hd', 'bbc_one', 'BBC One Northern Ireland'),
         ('bbc_one_wales_hd', 'bbc_one', 'BBC One Wales'),
         ('bbc_two_scotland', 'bbc_two', 'BBC Two Scotland'),
         ('bbc_two_northern_ireland_digital', 'bbc_two', 'BBC Two Northern Ireland'),
         ('bbc_two_wales_digital', 'bbc_two', 'BBC Two Wales'),
-        ('bbc_one_london', 'bbc_one', 'BBC One London'),
     ]
     for id, img, name in channel_list:
         iconimage = xbmc.translatePath(
@@ -1091,7 +1091,7 @@ def SignOutBBCiD():
 def StatusBBCiD():
     status_url="https://ssl.bbc.co.uk/id/status"
     html=OpenURL(status_url)
-    if("You are signed in." in html):
+    if("You are signed in" in html):
         return True
     return False
 
@@ -1138,7 +1138,7 @@ def ListWatching(logged_in):
         if(subtitle):
             title += ", " + subtitle
         episode_id = episode.get('id')
-        plot = episode.get('synopses').get('large')
+        plot = episode.get('synopses').get('large') or ''
         aired = episode.get('release_date')
         image_url = ParseImageUrl(episode.get('images').get('standard'))
         aired = ParseAired(aired)
