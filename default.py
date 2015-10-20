@@ -1143,7 +1143,7 @@ def ListWatching(logged_in):
         if(subtitle):
             title += ", " + subtitle
         episode_id = episode.get('id')
-        plot = episode.get('synopses').get('large') or ''
+        plot = episode.get('synopses').get('large') or " "
         aired = episode.get('release_date')
         image_url = ParseImageUrl(episode.get('images').get('standard'))
         aired = ParseAired(aired)
