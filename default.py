@@ -950,16 +950,26 @@ def get_params():
     return param
 
 
+#Creates a 'urlencoded' string from a unicode input
+def utf8_quote_plus(unicode):
+    return urllib.quote_plus(unicode.encode('utf-8'))
+
+
+#Gets a unicode string from a 'urlencoded' string
+def utf8_unquote_plus(str):
+    return urllib.unquote_plus(str).decode('utf-8')
+
+
 def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None, logged_in=False):
     """Adds a new line to the Kodi list of playables.
 
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
-    listitem_url = (sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) +
-                    "&name=" + urllib.quote_plus(name) +
-                    "&iconimage=" + urllib.quote_plus(iconimage) +
-                    "&description=" + urllib.quote_plus(description) + 
-                    "&subtitles_url=" + urllib.quote_plus(subtitles_url) +
+    listitem_url = (sys.argv[0] + "?url=" + utf8_quote_plus(url) + "&mode=" + str(mode) +
+                    "&name=" + utf8_quote_plus(name) +
+                    "&iconimage=" + utf8_quote_plus(iconimage) +
+                    "&description=" + utf8_quote_plus(description) + 
+                    "&subtitles_url=" + utf8_quote_plus(subtitles_url) +
                     "&logged_in=" + str(logged_in))
 
     # Try to extract the date from the title and add it as an InfoLabel to allow sorting by date.
@@ -1217,15 +1227,15 @@ subtitles_url = None
 logged_in = False
 
 try:
-    url = urllib.unquote_plus(params["url"])
+    url = utf8_unquote_plus(params["url"])
 except:
     pass
 try:
-    name = urllib.unquote_plus(params["name"])
+    name = utf8_unquote_plus(params["name"])
 except:
     pass
 try:
-    iconimage = urllib.unquote_plus(params["iconimage"])
+    iconimage = utf8_unquote_plus(params["iconimage"])
 except:
     pass
 try:
@@ -1233,11 +1243,11 @@ try:
 except:
     pass
 try:
-    description = urllib.unquote_plus(params["description"])
+    description = utf8_unquote_plus(params["description"])
 except:
     pass
 try:
-    subtitles_url = urllib.unquote_plus(params["subtitles_url"])
+    subtitles_url = utf8_unquote_plus(params["subtitles_url"])
 except:
     pass
 try:
