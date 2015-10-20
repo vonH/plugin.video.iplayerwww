@@ -49,7 +49,8 @@ if(not os.path.exists(DIR_USERDATA)):
     os.makedirs(DIR_USERDATA)
 
 def CATEGORIES():
-    AddMenuEntry(translation(31000), 'url', 106, '', '', '')
+    AddMenuEntry(translation(31000), 'iplayer', 106, '', '', '')
+    AddMenuEntry(translation(31017), 'url', 109, '', '', '')
     AddMenuEntry(translation(31001), 'url', 105, '', '', '')
     AddMenuEntry(translation(31002), 'url', 102, '', '', '')
     AddMenuEntry(translation(31003), 'url', 103, '', '', '')
@@ -291,12 +292,35 @@ def GetFilteredCategory(url):
             break
 
 
-def ListHighlights():
+def ListChannelHighlights():
+    """Creates a list directories linked to the highlights section of each channel.
+
+    """
+    channel_list = [
+        ('bbcone', 'bbc_one', 'BBC One'),
+        ('bbctwo', 'bbc_two', 'BBC Two'),
+        ('bbcthree', 'bbc_three', 'BBC Three'),
+        ('bbcfour', 'bbc_four', 'BBC Four'),
+        ('tv/cbbc', 'cbbc', 'CBBC'),
+        ('tv/cbeebies', 'cbeebies', 'CBeebies'),
+        ('tv/bbcnews', 'bbc_news24', 'BBC News Channel'),
+        ('tv/bbcparliament', 'bbc_parliament', 'BBC Parliament'),
+        ('tv/bbcalba', 'bbc_alba', 'Alba'),
+        ('tv/s4c', 's4c', 'S4C'),
+    ]
+    for id, img, name in channel_list:
+        iconimage = xbmc.translatePath(
+            os.path.join('special://home/addons/plugin.video.iplayerwww/media', img + '.png'))
+        AddMenuEntry(name, id, 106, iconimage, '', '')
+
+
+
+def ListHighlights(url):
     """Creates a list of the programmes in the highlights section.
 
     All entries are scraped of the intro page and the pages linked from the intro page.
     """
-    html = OpenURL('http://www.bbc.co.uk/iplayer')
+    html = OpenURL('http://www.bbc.co.uk/%s' % url)
     # Match all regular groups.
     match1 = re.compile(
         'data-group-name="(.+?)".+?'
@@ -325,10 +349,17 @@ def ListHighlights():
     # We need to parse both to avoid duplicates and to make sure we get all of them.
     episodelist = []
     for group_name, group_type, more in match1:
-        match2 = re.compile(
-            'href="/iplayer/episode/(.+?)/.+?'
-            'typo--skylark"><strong>(.+?)</strong>(.+?)</li>',
-            re.DOTALL).findall(more)
+        # CBBC and Cbeebies uses different fonts, so they need a different regexp.
+        if ((url == 'tv/cbbc') or (url == 'tv/cbeebies')):
+            match2 = re.compile(
+                'href="/iplayer/episode/(.+?)/.+?'
+                'typo--canary"><strong>(.+?)</strong>(.+?)</li>',
+                re.DOTALL).findall(more)
+        else:
+            match2 = re.compile(
+                'href="/iplayer/episode/(.+?)/.+?'
+                'typo--skylark"><strong>(.+?)</strong>(.+?)</li>',
+                re.DOTALL).findall(more)
         for episode_id, name, evenmore in match2:
             # The next two lines require verification.
             # At the time of writing these lines, no series-catchup group was available to test.
@@ -1236,13 +1267,16 @@ elif mode == 105:
     ListMostPopular()
 
 elif mode == 106:
-    ListHighlights()
+    ListHighlights(url)
 
 elif mode == 107:
     ListWatching(logged_in)
 
 elif mode == 108:
     ListFavourites(logged_in)
+
+elif mode == 109:
+    ListChannelHighlights()
 
 # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
