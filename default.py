@@ -974,6 +974,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
 
     listitem.setProperty("IsPlayable", str(not isFolder).lower())
     listitem.setProperty("IsFolder", str(isFolder).lower())
+    listitem.setProperty("Property(Addon.Name)", "iPlayer WWW")
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                 url=listitem_url, listitem=listitem, isFolder=isFolder)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
