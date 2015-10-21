@@ -873,7 +873,7 @@ def OpenURL(url):
         cookie_jar.save(ignore_discard=True, ignore_expires=True)
     except:
         pass
-    return r.content
+    return r.content.decode('utf-8')
 
 
 def OpenURLPost(url, post_data):
