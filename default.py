@@ -115,6 +115,7 @@ def GetAtoZPage(url):
         '<a href="/iplayer/brand/(.+?)".+?<span class="title">(.+?)</span>',
         re.DOTALL).findall(link)
     for programme_id, name in match:
+        name = StripTags(name)
         AddMenuEntry(name, programme_id, 121, '', '', '')
 
 
@@ -134,11 +135,12 @@ def ScrapeSearchEpisodes(url):
         '<.+?img src="(.+?)".+?<p class="synopsis">(.+?)</p>',
         re.DOTALL).findall(html.replace('amp;', ''))
     for programme_id, name, iconimage, plot in match1:
+        name = StripTags(name)
         # Some programmes actually contain multiple episodes (haven't seen that for episodes yet).
         # These can be recognized by some extra HTML code
         match_episodes = re.search(
             '<a class="view-more-container avail stat" href="/iplayer/episodes/%s"' % programme_id, html)
-        # If multiple episodes are found, the programme_id is suitable to add a new directory.
+        # If multiple episodes are found, the programme_id is suitable to add a new directory.       
         if match_episodes:
             num_episodes = re.compile(
                 '<a class="view-more-container avail stat" href="/iplayer/episodes/%s".+?'
@@ -157,6 +159,7 @@ def ScrapeSearchEpisodes(url):
         '(.+?)<div class="period"',
         re.DOTALL).findall(html.replace('amp;', ''))
     for programme_id, name, iconimage, plot, more in match1:
+        name = StripTags(name)
         episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % programme_id
         aired = re.compile(
             '.+?class="release">\s+First shown: (.+?)\n',
@@ -178,6 +181,7 @@ def ScrapeSearchEpisodes(url):
         '.+?<a class="view-more-container sibling stat" href="(.+?)">',
         re.DOTALL).findall(html.replace('amp;', ''))
     for programme_id, name, iconimage, plot, group_url in match1:
+        name = StripTags(name)
         episode_url = "http://www.bbc.co.uk%s" % group_url
         ScrapeSearchEpisodes(episode_url)
     nextpage = re.compile('<span class="next txt"> <a href=".+?page=(\d+)">').findall(html)
@@ -248,6 +252,7 @@ def ScrapeCategoryEpisodes(url):
         '<p class="synopsis">(.+?)</p>',
         re.DOTALL).findall(html.replace('amp;', ''))
     for programme_id, episode_id, name, iconimage, sub_content, plot in match:
+        name = StripTags(name)
         # Some programmes actually contain multiple episodes.
         # These can be recognized by some extra HTML code
         match_episodes = re.search(
@@ -328,6 +333,7 @@ def ListHighlights(url):
         '<em>(.+?)</em>',
         re.DOTALL).findall(html.replace('amp;', ''))
     for name, episode_id, num_episodes in match1:
+        name = StripTags(name)
         AddMenuEntry(' %s: %s - %s %s' % (
             translation(31014), name, num_episodes, translation(31015)), episode_id, 127, '', '', '')
     # Match special groups. Usually this is just Exclusive content.
@@ -338,6 +344,7 @@ def ListHighlights(url):
         'typo--canary">(.+?)<',
         re.DOTALL).findall(html)
     for episode_id, name, plot in match1:
+        name = StripTags(name)
         AddMenuEntry(' %s: %s' % (translation(31014), name), episode_id, 127, '', plot, '')
     # Match groups again
     # We need to do this to get the previewed episodes for groups.
@@ -361,6 +368,7 @@ def ListHighlights(url):
                 'typo--skylark"><strong>(.+?)</strong>(.+?)</li>',
                 re.DOTALL).findall(more)
         for episode_id, name, evenmore in match2:
+            name = StripTags(name)
             # The next two lines require verification.
             # At the time of writing these lines, no series-catchup group was available to test.
             if group_type == 'series-catchup':
@@ -393,6 +401,7 @@ def ListHighlights(url):
         '(.+?)</div>',
         re.DOTALL).findall(html.replace('amp;', ''))
     for episode_id, name, subtitle, iconimage, plot, more in match1:
+        name = StripTags(name)
         episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode_id
         aired = re.compile(
             '.+?First shown: (.+?)</p>',
@@ -442,6 +451,7 @@ def GetGroups(url):
             re.DOTALL).findall(html)
 
         for URL, name, iconimage, plot, more in match:
+            name = StripTags(name)
             _URL_ = 'http://www.bbc.co.uk/%s' % URL
             aired = re.compile(
                 '.+?class="release">\s+First shown: (.+?)\n',
@@ -503,6 +513,9 @@ def ParseAired(aired):
 def ParseImageUrl(url):
     return url.replace("{recipe}", "288x162")
 
+def StripTags(html):
+    return re.sub(r'<[^>]+>','', html)
+    
 def GetEpisodes(programme_id):
     """Gets all programmes corresponding to a certain programme ID."""
     # Construct URL and load HTML
