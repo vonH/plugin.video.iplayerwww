@@ -361,8 +361,9 @@ def ListHighlights(url):
                 'typo--skylark"><strong>(.+?)</strong>(.+?)</li>',
                 re.DOTALL).findall(more)
         for episode_id, name, evenmore in match2:
-            # The next two lines require verification.
-            # At the time of writing these lines, no series-catchup group was available to test.
+            # Omnibus programmes contain a lot of HTML format code which needs to be striped.
+            name = re.sub('<.+?>','',name)
+            # Series Catchup content needs the title to be composed including the series name.
             if group_type == 'series-catchup':
                 name = "%s: %s" % (group_name, name)
             match3 = re.compile(
@@ -394,6 +395,8 @@ def ListHighlights(url):
         re.DOTALL).findall(html.replace('amp;', ''))
     for episode_id, name, subtitle, iconimage, plot, more in match1:
         episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode_id
+        # Omnibus programmes contain a lot of HTML format code which needs to be striped.
+        name = re.sub('<.+?>','',name)
         aired = re.compile(
             '.+?First shown: (.+?)</p>',
             re.DOTALL).findall(more)
