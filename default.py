@@ -373,11 +373,11 @@ def ListHighlights(url):
             # At the time of writing these lines, no series-catchup group was available to test.
             if group_type == 'series-catchup':
                 name = "%s: %s" % (group_name, name)
-            match3 = re.compile(
-                'typo--canary">(.+?)<',
-                re.DOTALL).findall(evenmore)
-            if match3:
-                name = "%s: %s" % (name, match3[0])
+            #match3 = re.compile(
+            #    'typo--canary">(.+?)<',
+            #    re.DOTALL).findall(evenmore)
+            #if match3:
+            #    name = "%s: %s" % (name, match3[0])
             add_entry = True
             for n,i in enumerate(episodelist):
                 if i[0]==episode_id:
