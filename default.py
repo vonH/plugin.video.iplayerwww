@@ -415,7 +415,7 @@ def ListHighlights(url):
         else:
             aired = ''
         sub_match = re.compile(
-            'class="single-item__subtitle.+?>(.+?)<', re.DOTALL).findall(subtitle)
+            'class="single-item__subtitle.+?>(.+?)</p', re.DOTALL).findall(subtitle)
         # We need to make sure not to list episodes which are part of a group twice.
         # If we already identified an episode as part of a group, add information to the list and continue.
         add_entry = True
@@ -427,7 +427,7 @@ def ListHighlights(url):
                 add_entry = False
         if add_entry:
             if len(sub_match) == 1:
-                CheckAutoplay("%s: %s" % (name, sub_match[0]), episode_url, iconimage, plot, aired=aired)
+                CheckAutoplay("%s: %s" % (name, StripTags(sub_match[0])), episode_url, iconimage, plot, aired=aired)
             else:
                 CheckAutoplay(name, episode_url, iconimage, plot, aired=aired)
     # Finally add all programmes which have been identified as part of a group before.
