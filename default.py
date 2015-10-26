@@ -118,6 +118,17 @@ def GetAtoZPage(url):
         AddMenuEntry(name, programme_id, 121, '', '', '')
 
 
+'''Parses a string format %d %b %Y to %d/%n/%Y otherwise empty string'''
+def ParseAired(aired):
+    if aired:
+        try:
+            # Need to use equivelent for datetime.strptime() due to weird TypeError.
+            return datetime.datetime(*(time.strptime(aired[0], '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
+        except ValueError:
+            pass
+    return ''
+
+
 def ScrapeSearchEpisodes(url):
     """Extracts the episode IDs from the search result HTML.
 
@@ -158,17 +169,11 @@ def ScrapeSearchEpisodes(url):
         re.DOTALL).findall(html.replace('amp;', ''))
     for programme_id, name, iconimage, plot, more in match1:
         episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % programme_id
-        aired = re.compile(
+        aired = re.search(
             '.+?class="release">\s+First shown: (.+?)\n',
-            re.DOTALL).findall(more)
-        if aired:
-            try:
-                # Need to use equivelent for datetime.strptime() due to weird TypeError.
-                aired = datetime.datetime(*(time.strptime(aired[0], '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
-            except ValueError:
-                aired = ''
-        else:
-             aired = ''
+            more,
+            re.DOTALL)
+        aired = ParseAired(aired.group() if aired else '')
         CheckAutoplay(name, episode_url, iconimage, plot, aired=aired)
     match1 = re.compile(
         'search-group"  data-ip-id="(.+?)">'
@@ -222,9 +227,10 @@ def ListCategoryFilters(url):
     # Read selected category's page.
     html = OpenURL(NEW_URL)
     # Some categories offer filters, we want to provide these filters as options.
-    match1 = re.compile(
+    match1 = re.search(
         '<li class="filter"> <a class="name" href="/iplayer/categories/(.+?)"> (.+?)</a>',
-        re.DOTALL).findall(html.replace('amp;', ''))
+        html.replace('amp;', ''),
+        re.DOTALL)
     if match1:
         AddMenuEntry('All', url, 126, '', '', '')
         for url, name in match1:
@@ -254,24 +260,27 @@ def ScrapeCategoryEpisodes(url):
             '<a class="view-more-container avail stat" href="/iplayer/episodes/%s"' % programme_id, html)
         # If multiple episodes are found, the programme_id is suitable to add a new directory.
         if match_episodes:
-            num_episodes = re.compile(
+            num_episodes = re.search(
                 '<a class="view-more-container avail stat" '
                 'href="/iplayer/episodes/%s".+?<em '
                 'class="view-more-heading">(.+?)<' % programme_id,
-                re.DOTALL).findall(html)
-            AddMenuEntry("%s - %s %s" % (
-                name, num_episodes[0], translation(31013)), programme_id, 121, iconimage, plot, '')
+                html,
+                re.DOTALL)
+            if(num_episodes):
+                AddMenuEntry("%s - %s %s" % (
+                name, num_episodes.group(), translation(31013)), programme_id, 121, iconimage, plot, '')
         # If only one episode is found, the episode_id is suitable to add a directory or stream.
         # This is required because some programmes which have their own page will redirect
         # the programme_id to the program page which may look entirely different from
         # the regular page.
         else:
             # Some episodes have additional subtitles or episode descriptions.
-            subtitle_match = re.compile(
+            subtitle_match = re.search(
                 '<div class="subtitle">(.+?)</div>',
-                re.DOTALL).findall(sub_content)
+                sub_content,
+                re.DOTALL)
             if subtitle_match:
-                name += ", %s" % subtitle_match[0]
+                name += ", %s" % subtitle_match.group()
             episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode_id
             CheckAutoplay(name, episode_url, iconimage, plot)
         # Check if a next page exists and if so return the index
@@ -293,9 +302,7 @@ def GetFilteredCategory(url):
 
 
 def ListChannelHighlights():
-    """Creates a list directories linked to the highlights section of each channel.
-
-    """
+    """Creates a list directories linked to the highlights section of each channel."""
     channel_list = [
         ('bbcone', 'bbc_one', 'BBC One'),
         ('bbctwo', 'bbc_two', 'BBC Two'),
@@ -366,11 +373,12 @@ def ListHighlights(url):
             # Series Catchup content needs the title to be composed including the series name.
             if group_type == 'series-catchup':
                 name = "%s: %s" % (group_name, name)
-            match3 = re.compile(
+            match3 = re.search(
                 'typo--canary">(.+?)<',
-                re.DOTALL).findall(evenmore)
+                evenmore,
+                re.DOTALL)
             if match3:
-                name = "%s: %s" % (name, match3[0])
+                name = "%s: %s" % (name, match3.group())
             add_entry = True
             for n,i in enumerate(episodelist):
                 if i[0]==episode_id:
@@ -397,17 +405,11 @@ def ListHighlights(url):
         episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode_id
         # Omnibus programmes contain a lot of HTML format code which needs to be striped.
         name = re.sub('<.+?>','',name)
-        aired = re.compile(
+        aired = re.search(
             '.+?First shown: (.+?)</p>',
-            re.DOTALL).findall(more)
-        if aired:
-            try:
-                # Need to use equivelent for datetime.strptime() due to weird TypeError.
-                aired = datetime.datetime(*(time.strptime(aired[0], '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
-            except ValueError:
-                aired = ''
-        else:
-            aired = ''
+            more,
+            re.DOTALL)
+        aired = ParseAired(aired.group() if aired else '')
         sub_match = re.compile(
             'class="single-item__subtitle.+?>(.+?)<', re.DOTALL).findall(subtitle)
         # We need to make sure not to list episodes which are part of a group twice.
@@ -446,17 +448,11 @@ def GetGroups(url):
 
         for URL, name, iconimage, plot, more in match:
             _URL_ = 'http://www.bbc.co.uk/%s' % URL
-            aired = re.compile(
+            aired = re.search(
                 '.+?class="release">\s+First shown: (.+?)\n',
-                re.DOTALL).findall(more)
-            if aired:
-                try:
-                    # Need to use equivelent for datetime.strptime() due to weird TypeError.
-                    aired = datetime.datetime(*(time.strptime(aired[0], '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
-                except ValueError:
-                    aired = ''
-            else:
-                aired = ''
+                more,
+                re.DOTALL)
+            aired = ParseAired(aired.group() if aired else '')
             CheckAutoplay(name, _URL_, iconimage.replace('336x189', '832x468'), plot, aired=aired)
 
         # If there is only one match, this is one programme only.
@@ -491,18 +487,6 @@ def Search():
     EvaluateSearch(NEW_URL)
 
 
-def ParseAired(aired):
-    if aired:
-        try:
-            # Need to use equivelent for datetime.strptime() due to weird TypeError.
-            aired = datetime.datetime(*(time.strptime(aired, '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
-        except ValueError:
-            aired = ''
-    else:
-        aired = ''
-    return aired
-
-
 def ParseImageUrl(url):
     return url.replace("{recipe}", "288x162")
 
@@ -522,17 +506,11 @@ def GetEpisodes(programme_id):
 
         for URL, name, iconimage, plot, more in match:
             _URL_ = 'http://www.bbc.co.uk/%s' % URL
-            aired = re.compile(
+            aired = re.search(
                 '.+?class="release">\s+First shown: (.+?)\n',
-                re.DOTALL).findall(more)
-            if aired:
-                try:
-                    # Need to use equivelent for datetime.strptime() due to weird TypeError.
-                    aired = datetime.datetime(*(time.strptime(aired[0], '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
-                except ValueError:
-                    aired = ''
-            else:
-                aired = ''
+                more,
+                re.DOTALL)
+            aired = ParseAired(aired.group() if aired else '')
             CheckAutoplay(name, _URL_, iconimage.replace('336x189', '832x468'), plot, aired=aired)
 
         # If there is only one match, this is one programme only.
