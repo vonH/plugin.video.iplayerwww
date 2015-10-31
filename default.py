@@ -173,7 +173,7 @@ def ScrapeSearchEpisodes(url):
             '.+?class="release">\s+First shown: (.+?)\n',
             more,
             re.DOTALL)
-        aired = ParseAired(aired.group() if aired else '')
+        aired = ParseAired(aired.group(1) if aired else '')
         CheckAutoplay(name, episode_url, iconimage, plot, aired=aired)
     match1 = re.compile(
         'search-group"  data-ip-id="(.+?)">'
@@ -268,7 +268,7 @@ def ScrapeCategoryEpisodes(url):
                 re.DOTALL)
             if(num_episodes):
                 AddMenuEntry("%s - %s %s" % (
-                name, num_episodes.group(), translation(31013)), programme_id, 121, iconimage, plot, '')
+                name, num_episodes.group(1), translation(31013)), programme_id, 121, iconimage, plot, '')
         # If only one episode is found, the episode_id is suitable to add a directory or stream.
         # This is required because some programmes which have their own page will redirect
         # the programme_id to the program page which may look entirely different from
@@ -280,7 +280,7 @@ def ScrapeCategoryEpisodes(url):
                 sub_content,
                 re.DOTALL)
             if subtitle_match:
-                name += ", %s" % subtitle_match.group()
+                name += ", %s" % subtitle_match.group(1)
             episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode_id
             CheckAutoplay(name, episode_url, iconimage, plot)
         # Check if a next page exists and if so return the index
@@ -378,7 +378,7 @@ def ListHighlights(url):
                 evenmore,
                 re.DOTALL)
             if match3:
-                name = "%s: %s" % (name, match3.group())
+                name = "%s: %s" % (name, match3.group(1))
             add_entry = True
             for n,i in enumerate(episodelist):
                 if i[0]==episode_id:
@@ -409,7 +409,7 @@ def ListHighlights(url):
             '.+?First shown: (.+?)</p>',
             more,
             re.DOTALL)
-        aired = ParseAired(aired.group() if aired else '')
+        aired = ParseAired(aired.group(1) if aired else '')
         sub_match = re.compile(
             'class="single-item__subtitle.+?>(.+?)<', re.DOTALL).findall(subtitle)
         # We need to make sure not to list episodes which are part of a group twice.
@@ -452,7 +452,7 @@ def GetGroups(url):
                 '.+?class="release">\s+First shown: (.+?)\n',
                 more,
                 re.DOTALL)
-            aired = ParseAired(aired.group() if aired else '')
+            aired = ParseAired(aired.group(1) if aired else '')
             CheckAutoplay(name, _URL_, iconimage.replace('336x189', '832x468'), plot, aired=aired)
 
         # If there is only one match, this is one programme only.
@@ -510,7 +510,7 @@ def GetEpisodes(programme_id):
                 '.+?class="release">\s+First shown: (.+?)\n',
                 more,
                 re.DOTALL)
-            aired = ParseAired(aired.group() if aired else '')
+            aired = ParseAired(aired.group(1) if aired else '')
             CheckAutoplay(name, _URL_, iconimage.replace('336x189', '832x468'), plot, aired=aired)
 
         # If there is only one match, this is one programme only.
