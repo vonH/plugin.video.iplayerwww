@@ -21,6 +21,9 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
+import random
+import string
+
 __addonid__ = "plugin.video.iplayerwww"
 __plugin_handle__ = int(sys.argv[1])
 
@@ -73,9 +76,9 @@ def ListLive():
         ('bbc_alba', 'bbc_alba', 'Alba'),
         ('s4cpbs', 's4c', 'S4C'),
         ('bbc_one_london', 'bbc_one', 'BBC One London'),
-        ('bbc_one_scotland_hd', 'bbc_one', 'BBC One Scotland'),
-        ('bbc_one_northern_ireland_hd', 'bbc_one', 'BBC One Northern Ireland'),
-        ('bbc_one_wales_hd', 'bbc_one', 'BBC One Wales'),
+        ('bbc_one_scotland_hd', 'bbc_one_scotland', 'BBC One Scotland'),
+        ('bbc_one_northern_ireland_hd', 'bbc_one_northern_ireland', 'BBC One Northern Ireland'),
+        ('bbc_one_wales_hd', 'bbc_one_wales', 'BBC One Wales'),
         ('bbc_two_scotland', 'bbc_two', 'BBC Two Scotland'),
         ('bbc_two_northern_ireland_digital', 'bbc_two', 'BBC Two Northern Ireland'),
         ('bbc_two_wales_digital', 'bbc_two', 'BBC Two Wales'),
@@ -895,8 +898,9 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     # print subtitles_url
     # print name
     # print iconimage
+    x = ''.join(random.choice(string.ascii_uppercase) for _ in range(10))
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
-        subtitles_file = download_subtitles(subtitles_url)
+        subtitles_file = download_subtitles(subtitles_url, x)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
         # Successfully started playing something?
@@ -1000,7 +1004,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
 re_subtitles = re.compile('^\s*<p.*?begin=\"(.*?)(\.([0-9]+))?\"\s+.*?end=\"(.*?)(\.([0-9]+))?\"\s*>(.*?)</p>')
 
 
-def download_subtitles(url):
+def download_subtitles(url, x):
     # Download and Convert the TTAF format to srt
     # SRT:
     # 1
@@ -1014,8 +1018,8 @@ def download_subtitles(url):
 
     # TT:
     # <p begin="0:01:12.400" end="0:01:13.880">Thinking.</p>
-
-    outfile = os.path.join(DIR_USERDATA, 'iplayer.srt')
+    name = 'iplayer%s.srt' % x
+    outfile = os.path.join(DIR_USERDATA, name)
     # print "Downloading subtitles from %s to %s"%(url, outfile)
     fw = open(outfile, 'w')
 
