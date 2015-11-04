@@ -21,9 +21,6 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
-import random
-import string
-
 __addonid__ = "plugin.video.iplayerwww"
 __plugin_handle__ = int(sys.argv[1])
 
@@ -898,9 +895,8 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     # print subtitles_url
     # print name
     # print iconimage
-    x = ''.join(random.choice(string.ascii_uppercase) for _ in range(10))
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
-        subtitles_file = download_subtitles(subtitles_url, x)
+        subtitles_file = download_subtitles(subtitles_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
         # Successfully started playing something?
@@ -1004,7 +1000,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
 re_subtitles = re.compile('^\s*<p.*?begin=\"(.*?)(\.([0-9]+))?\"\s+.*?end=\"(.*?)(\.([0-9]+))?\"\s*>(.*?)</p>')
 
 
-def download_subtitles(url, x):
+def download_subtitles(url):
     # Download and Convert the TTAF format to srt
     # SRT:
     # 1
@@ -1018,8 +1014,7 @@ def download_subtitles(url, x):
 
     # TT:
     # <p begin="0:01:12.400" end="0:01:13.880">Thinking.</p>
-    name = 'iplayer%s.srt' % x
-    outfile = os.path.join(DIR_USERDATA, name)
+    outfile = os.path.join(DIR_USERDATA, 'iplayer.srt')
     # print "Downloading subtitles from %s to %s"%(url, outfile)
     fw = open(outfile, 'w')
 
