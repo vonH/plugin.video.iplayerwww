@@ -9,9 +9,8 @@ import sys
 import time
 import urllib
 from operator import itemgetter
-
 import requests
-import requests.packages.urllib3
+from requests.packages import urllib3
 
 import cookielib
 
@@ -74,9 +73,9 @@ def ListLive():
         ('bbc_alba', 'bbc_alba', 'Alba'),
         ('s4cpbs', 's4c', 'S4C'),
         ('bbc_one_london', 'bbc_one', 'BBC One London'),
-        ('bbc_one_scotland_hd', 'bbc_one', 'BBC One Scotland'),
-        ('bbc_one_northern_ireland_hd', 'bbc_one', 'BBC One Northern Ireland'),
-        ('bbc_one_wales_hd', 'bbc_one', 'BBC One Wales'),
+        ('bbc_one_scotland_hd', 'bbc_one_scotland', 'BBC One Scotland'),
+        ('bbc_one_northern_ireland_hd', 'bbc_one_northern_ireland', 'BBC One Northern Ireland'),
+        ('bbc_one_wales_hd', 'bbc_one_wales', 'BBC One Wales'),
         ('bbc_two_scotland', 'bbc_two', 'BBC Two Scotland'),
         ('bbc_two_northern_ireland_digital', 'bbc_two', 'BBC Two Northern Ireland'),
         ('bbc_two_wales_digital', 'bbc_two', 'BBC Two Wales'),
@@ -906,11 +905,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
                 break
             else:
                 xbmc.sleep(500)
-        # print subtitles_file
-        # print "Now playing subtitles"
         xbmc.Player().setSubtitles(subtitles_file)
-    # else:
-        # print "Not playing subtitles"
 
 
 def get_params():
@@ -1002,7 +997,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     return True
 
-re_subtitles = re.compile('^\s*<p.*?begin=\"(.*?)\.([0-9]+)\"\s+.*?end=\"(.*?)\.([0-9]+)\"\s*>(.*?)</p>')
+re_subtitles = re.compile('^\s*<p.*?begin=\"(.*?)(\.([0-9]+))?\"\s+.*?end=\"(.*?)(\.([0-9]+))?\"\s*>(.*?)</p>')
 
 
 def download_subtitles(url):
@@ -1019,7 +1014,6 @@ def download_subtitles(url):
 
     # TT:
     # <p begin="0:01:12.400" end="0:01:13.880">Thinking.</p>
-
     outfile = os.path.join(DIR_USERDATA, 'iplayer.srt')
     # print "Downloading subtitles from %s to %s"%(url, outfile)
     fw = open(outfile, 'w')
@@ -1047,14 +1041,20 @@ def download_subtitles(url):
         # print line
         # print m
         if m:
-            start_mil = "%s000" % m.group(2)  # pad out to ensure 3 digits
-            end_mil = "%s000" % m.group(4)
+            if(m.group(3)):
+                start_mil = "%s000" % m.group(3) # pad out to ensure 3 digits
+            else:
+                start_mil = "000"
+            if(m.group(6)):
+                end_mil = "%s000" % m.group(6)
+            else:
+                end_mil = "000"
 
             ma = {'start': m.group(1),
                   'start_mil': start_mil[:3],
-                  'end': m.group(3),
+                  'end': m.group(4),
                   'end_mil': end_mil[:3],
-                  'text': m.group(5)}
+                  'text': m.group(7)}
 
             ma['text'] = ma['text'].replace('&amp;', '&')
             ma['text'] = ma['text'].replace('&gt;', '>')
@@ -1093,7 +1093,7 @@ def download_subtitles(url):
 
 def SignInBBCiD():
     #Below is required to get around an ssl issue
-    requests.packages.urllib3.disable_warnings()
+    urllib3.disable_warnings()
     sign_in_url="https://ssl.bbc.co.uk/id/signin"
     
     username=ADDON.getSetting('bbc_id_username')
