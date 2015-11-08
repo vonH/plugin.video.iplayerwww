@@ -299,6 +299,38 @@ def GetFilteredCategory(url):
         except:
             break
 
+def GetEpisodeInfo(url):
+    html = OpenURL(url)
+    soup = BeautifulSoup(html,"html.parser")
+
+    #<title>BBC iPlayer - Around the World with the Go Jetters - Go Jetters - 4. The Sahara Desert, Africa</title>    
+    name = 'the episode with no name'
+    title_tag = soup.find(name="title")
+    if title_tag:
+        string = ''.join(title_tag.stripped_strings)
+        string = re.sub(r"\s+", " ", string, flags=re.UNICODE)
+        #print string
+        name_parts = string.split('-')[1:]
+        #print name_parts
+        name = '-'.join(name_parts)
+        #print name           
+        
+    #<meta name="description" content="Glitch makes a sandcastle around an oasis in the Sahara. Can the Go Jetters save the day?">
+    description = 'no description'
+    description_tag = soup.find("meta", {"name":"description"})
+    #print description_tag
+    if description_tag:
+        description = description_tag["content"]
+    #print description
+        
+    #<meta property="og:image" content="http://ichef.bbci.co.uk/images/ic/1200x675/p0369f42.jpg">    
+    icon = 'DefaultVideo.png'
+    img_tag = soup.find(name="meta",property="og:image")
+    if img_tag:
+        icon = img_tag["content"]
+    
+    return (name, description, icon)
+
 
 def ListChannelHighlights():
     """Creates a list directories linked to the highlights section of each channel."""
@@ -328,6 +360,8 @@ def ListHighlights(url):
     html = OpenURL('http://www.bbc.co.uk/%s' % url)
     soup = BeautifulSoup(html,"html.parser")
     
+    groups = set()
+    
     # Groups
     hrefs = set()
     for link in soup.find_all(href=re.compile("iplayer/group")):
@@ -341,8 +375,10 @@ def ListHighlights(url):
         
         title = link.find(class_=["single-item__title","grouped-item__title","grouped-items__title"])
         name = "unnamed group"
+        group = 'unnamed group'
         if title:
             string = ''.join(title.stripped_strings)
+            group = string
             name = re.sub(r"\s+", " ", string, flags=re.UNICODE)
         
         link = link.parent
@@ -350,16 +386,24 @@ def ListHighlights(url):
         count = ''
         if title:
             string = ''.join(title.stripped_strings)
-            count = '(' + re.sub(r"\s+", " ", string, flags=re.UNICODE) + ')'       
+            string = re.sub(r"\s+", " ", string, flags=re.UNICODE)
+            count = '(' + string + ')'
+            if string.endswith('programmes'):
+                groups.add(group)                  
              
         AddMenuEntry(' %s: %s %s' % (translation(31014), name, count), url, 127, '', '', '')
-
+    
     ids = set()
 
     # Group Episodes
     for group_link in soup.find_all(class_="grouped-items"):
         
-        group_title = group_link["data-group-name"] + ': ' or ''
+        group_title = group_link["data-group-name"] or ''
+        print group_title
+        if group_title in groups:
+            group_title = ''
+        else:
+            group_title = group_title + ': '
             
         for link in group_link.find_all(href=re.compile("episode")) :
     
@@ -398,7 +442,12 @@ def ListHighlights(url):
                 rimage = image.find(class_="r-image")
                 if rimage:
                     icon = rimage["data-ip-src"]    
+            else:        
+                (episode_name,episode_description,episode_icon) = GetEpisodeInfo(url)
+                icon = episode_icon
 
+            icon_id = icon.rsplit('/',1)[-1]
+            icon = 'http://ichef.bbci.co.uk/images/ic/336x189/' + icon_id
             CheckAutoplay(name, url, icon, description, aired)
 
     # Episodes
@@ -439,7 +488,12 @@ def ListHighlights(url):
             rimage = image.find(class_="r-image")
             if rimage:
                 icon = rimage["data-ip-src"]    
+        else:        
+            (episode_name,episode_description,episode_icon) = GetEpisodeInfo(url)
+            icon = episode_icon
        
+        icon_id = icon.rsplit('/',1)[-1]
+        icon = 'http://ichef.bbci.co.uk/images/ic/336x189/' + icon_id
         CheckAutoplay(name, url, icon, description, aired)
  
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
