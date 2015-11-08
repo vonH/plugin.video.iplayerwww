@@ -299,6 +299,7 @@ def GetFilteredCategory(url):
         except:
             break
 
+
 def GetEpisodeInfo(url):
     html = OpenURL(url)
     soup = BeautifulSoup(html,"html.parser")
@@ -309,19 +310,14 @@ def GetEpisodeInfo(url):
     if title_tag:
         string = ''.join(title_tag.stripped_strings)
         string = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-        #print string
         name_parts = string.split('-')[1:]
-        #print name_parts
-        name = '-'.join(name_parts)
-        #print name           
+        name = '-'.join(name_parts)           
         
     #<meta name="description" content="Glitch makes a sandcastle around an oasis in the Sahara. Can the Go Jetters save the day?">
     description = 'no description'
     description_tag = soup.find("meta", {"name":"description"})
-    #print description_tag
     if description_tag:
         description = description_tag["content"]
-    #print description
         
     #<meta property="og:image" content="http://ichef.bbci.co.uk/images/ic/1200x675/p0369f42.jpg">    
     icon = 'DefaultVideo.png'
@@ -350,7 +346,6 @@ def ListChannelHighlights():
         iconimage = xbmc.translatePath(
             os.path.join('special://home/addons/plugin.video.iplayerwww/media', img + '.png'))
         AddMenuEntry(name, id, 106, iconimage, '', '')
-
 
 
 def ListHighlights(url):
@@ -395,17 +390,10 @@ def ListHighlights(url):
     
     ids = set()
 
-    # Group Episodes
-    for group_link in soup.find_all(class_="grouped-items"):
+    # inner function
+    def ProcessLinks(soup, group_title=''):    
         
-        group_title = group_link["data-group-name"] or ''
-        print group_title
-        if group_title in groups:
-            group_title = ''
-        else:
-            group_title = group_title + ': '
-            
-        for link in group_link.find_all(href=re.compile("episode")) :
+        for link in soup.find_all(href=re.compile("episode")) :
     
             href = link["href"]
             id = href.rsplit('/')[3]
@@ -447,55 +435,24 @@ def ListHighlights(url):
                 icon = episode_icon
 
             icon_id = icon.rsplit('/',1)[-1]
-            icon = 'http://ichef.bbci.co.uk/images/ic/336x189/' + icon_id
+            icon = 'http://ichef.bbci.co.uk/images/ic/832x468/' + icon_id
             CheckAutoplay(name, url, icon, description, aired)
-
-    # Episodes
-    for link in sorted(soup.find_all(href=re.compile("episode")) ):
-
-        href = link["href"]
-        id = href.rsplit('/')[3]
-        if id in ids:
-            continue
-        ids.add(id)        
-        url = 'http://www.bbc.co.uk/iplayer/episode/' + id
-                
-        name = 'the episode with no name'      
-        title = link.find(class_=["single-item__title","group-item__title","grouped-items__title"])
-        if title:
-            string = ''.join(title.stripped_strings)
-            name = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-            subtitle = link.find(class_=["single-item__subtitle","group-item__subtitle","grouped-items__subtitle"])
-            if subtitle:
-                string = ''.join(subtitle.stripped_strings)
-                name = name + ' ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
-
-        description = 'no description'
-        aired = None
-        desc = link.find(class_=["single-item__overlay__desc","group-item__overlay__desc","grouped-items__overlay__desc"])
-        if desc:
-            string = ''.join(desc.stripped_strings)
-            description = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-            subdesc = link.find(class_=["single-item__overlay__subtitle","group-item__overlay__subtitle","grouped-items__overlay__subtitle"])
-            if subdesc:
-                string = ''.join(subdesc.stripped_strings)
-                aired = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-                aired = ParseAired(aired)
+    
+    # Group Episodes
+    for group_tag in soup.find_all(class_="grouped-items"):
         
-        icon = 'DefaultVideo.png'    
-        image = link.find(class_=["single-item__img","group-item__img","grouped-items__img"])
-        if image:
-            rimage = image.find(class_="r-image")
-            if rimage:
-                icon = rimage["data-ip-src"]    
-        else:        
-            (episode_name,episode_description,episode_icon) = GetEpisodeInfo(url)
-            icon = episode_icon
-       
-        icon_id = icon.rsplit('/',1)[-1]
-        icon = 'http://ichef.bbci.co.uk/images/ic/336x189/' + icon_id
-        CheckAutoplay(name, url, icon, description, aired)
- 
+        group_title = group_tag["data-group-name"] or ''
+        print group_title
+        if group_title in groups:
+            group_title = ''
+        else:
+            group_title = group_title + ': '
+            
+        ProcessLinks(group_tag, group_title)
+        
+     # Episodes    
+    ProcessLinks(soup)
+
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
 
