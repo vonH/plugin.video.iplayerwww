@@ -328,9 +328,11 @@ def GetEpisodeInfo(url):
     #<span class="release"> First shown: 5:20pm 29 Oct 2015 </span>
     aired = None
     release_tag = soup.find("span", {"class":"release"})
+    print release_tag
     if release_tag:
         string = ''.join(release_tag.stripped_strings)
         release_parts = string.split(' ')
+        print release_parts
         if len(release_parts) == 6:
             release_parts = release_parts[-3:]
             monthDict={'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7, 'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12}        
