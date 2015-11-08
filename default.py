@@ -352,6 +352,10 @@ def ListHighlights(url):
     """Creates a list of the programmes in the highlights section.
     All entries are scraped of the intro page and the pages linked from the intro page.
     """
+    if ADDON.getSetting('find_missing_images') == 'true':
+        pDialog = xbmcgui.DialogProgress()
+        pDialog.create('iPlayer', 'Opening Highlights ...')
+    
     html = OpenURL('http://www.bbc.co.uk/%s' % url)
     soup = BeautifulSoup(html,"html.parser")
     
@@ -389,11 +393,16 @@ def ListHighlights(url):
         AddMenuEntry(' %s: %s %s' % (translation(31014), name, count), url, 127, '', '', '')
     
     ids = set()
+    total = 0
+    processed = 0
 
     # inner function
-    def ProcessLinks(soup, group_title=''):    
+    def ProcessLinks(soup, total, processed, group_title=''):   
         
-        for link in soup.find_all(href=re.compile("episode")) :
+        links = soup.find_all(href=re.compile("episode"))
+        total_episodes = len(links)
+        episode = 0
+        for link in links :
     
             href = link["href"]
             id = href.rsplit('/')[3]
@@ -412,6 +421,14 @@ def ListHighlights(url):
                     string = ''.join(subtitle.stripped_strings)
                     name = name + ' ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
     
+            if ADDON.getSetting('find_missing_images') == 'true':
+                fraction = 100.0 / total
+                episode_percent = int(fraction * episode / total_episodes)
+                episode = episode + 1
+                percent = int(100.0 * processed / total)
+                percent = percent + episode_percent
+                pDialog.update(percent, "Finding images...", name)
+            
             description = 'no description'
             aired = None
             desc = link.find(class_=["single-item__overlay__desc","group-item__overlay__desc","grouped-items__overlay__desc"])
@@ -431,27 +448,33 @@ def ListHighlights(url):
                 if rimage:
                     icon = rimage["data-ip-src"]    
             else:        
-                (episode_name,episode_description,episode_icon) = GetEpisodeInfo(url)
-                icon = episode_icon
+                if ADDON.getSetting('find_missing_images') == 'true':
+                    (episode_name,episode_description,episode_icon) = GetEpisodeInfo(url)
+                    icon = episode_icon
 
             icon_id = icon.rsplit('/',1)[-1]
             icon = 'http://ichef.bbci.co.uk/images/ic/832x468/' + icon_id
             CheckAutoplay(name, url, icon, description, aired)
+        
+        processed = processed + 1
+        return processed
+    
     
     # Group Episodes
-    for group_tag in soup.find_all(class_="grouped-items"):
+    group_tags = soup.find_all(class_="grouped-items")
+    total = len(group_tags) + 1
+    for group_tag in group_tags:
         
         group_title = group_tag["data-group-name"] or ''
-        print group_title
         if group_title in groups:
             group_title = ''
         else:
             group_title = group_title + ': '
             
-        ProcessLinks(group_tag, group_title)
+        processed = ProcessLinks(group_tag, total, processed, group_title)
         
-     # Episodes    
-    ProcessLinks(soup)
+    # Episodes    
+    processed = ProcessLinks(soup, total, processed )
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
