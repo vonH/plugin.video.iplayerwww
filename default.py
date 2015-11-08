@@ -11,7 +11,7 @@ import urllib
 from operator import itemgetter
 import requests
 from requests.packages import urllib3
-
+from bs4 import BeautifulSoup
 import cookielib
 
 import json
@@ -323,114 +323,127 @@ def ListChannelHighlights():
 
 def ListHighlights(url):
     """Creates a list of the programmes in the highlights section.
-
     All entries are scraped of the intro page and the pages linked from the intro page.
     """
     html = OpenURL('http://www.bbc.co.uk/%s' % url)
-    # Match all regular groups.
-    match1 = re.compile(
-        'data-group-name="(.+?)".+?'
-        'href="/iplayer/group/(.+?)".+?'
-        '<strong>(.+?)</strong>',
-        re.DOTALL).findall(html.replace('amp;', ''))
-    for name, episode_id, num_episodes in match1:
-        AddMenuEntry(' %s: %s - %s %s' % (
-            translation(31014), name, num_episodes, translation(31015)), episode_id, 127, '', '', '')
-    # Match special groups. Usually this is just Exclusive content.
-    match1 = re.compile(
-        'href="http://www.bbc.co.uk/iplayer/group/(.+?)"\n'
-        'class="single-item single-item--promotion stat".+?'
-        '<strong>(.+?)</strong>.+?'
-        'typo--canary">(.+?)<',
-        re.DOTALL).findall(html)
-    for episode_id, name, plot in match1:
-        AddMenuEntry(' %s: %s' % (translation(31014), name), episode_id, 127, '', plot, '')
-    # Match groups again
-    # We need to do this to get the previewed episodes for groups.
-    match1 = re.compile(
-        'data-group-name="(.+?)".+?'
-        'data-group-type="(.+?)"(.+?)</ul>',
-        re.DOTALL).findall(html.replace('amp;', ''))
-    # Some programmes show up twice in HTML, once inside the groups, once outside.
-    # We need to parse both to avoid duplicates and to make sure we get all of them.
-    episodelist = []
-    for group_name, group_type, more in match1:
-        # CBBC and Cbeebies uses different fonts, so they need a different regexp.
-        if ((url == 'tv/cbbc') or (url == 'tv/cbeebies')):
-            match2 = re.compile(
-                'href="/iplayer/episode/(.+?)/.+?'
-                'typo--canary"><strong>(.+?)</strong>(.+?)</li>',
-                re.DOTALL).findall(more)
-        else:
-            match2 = re.compile(
-                'href="/iplayer/episode/(.+?)/.+?'
-                'typo--skylark"><strong>(.+?)</strong>(.+?)</li>',
-                re.DOTALL).findall(more)
-        for episode_id, name, evenmore in match2:
-            # Omnibus programmes contain a lot of HTML format code which needs to be striped.
-            name = re.sub('<.+?>','',name)
-            # Series Catchup content needs the title to be composed including the series name.
-            if group_type == 'series-catchup':
-                name = "%s: %s" % (group_name, name)
-            match3 = re.search(
-                'typo--canary">(.+?)<',
-                evenmore,
-                re.DOTALL)
-            if match3:
-                name = "%s: %s" % (name, match3.group(1))
-            add_entry = True
-            for n,i in enumerate(episodelist):
-                if i[0]==episode_id:
-                    add_entry = False
-            if add_entry:
-                episodelist.append(
-                    [episode_id,
-                    name,
-                    '%s: %s' % (translation(31016), group_name),
-                    'DefaultVideo.png',
-                    '']
-                    )
-    # Match all individual episodes in Highlights.
-    match1 = re.compile(
-        'href="/iplayer/episode/(.+?)/.+?\n'
-        'class="single-item stat".+?'
-        'class="single-item__title.+?'
-        '<strong>(.+?)</strong>(.+?)'
-        'data-ip-src="(.+?)".+?'
-        'class="single-item__overlay__desc">(.+?)<'
-        '(.+?)</div>',
-        re.DOTALL).findall(html.replace('amp;', ''))
-    for episode_id, name, subtitle, iconimage, plot, more in match1:
-        episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode_id
-        # Omnibus programmes contain a lot of HTML format code which needs to be striped.
-        name = re.sub('<.+?>','',name)
-        aired = re.search(
-            '.+?First shown: (.+?)</p>',
-            more,
-            re.DOTALL)
-        aired = ParseAired(aired.group(1) if aired else '')
-        sub_match = re.compile(
-            'class="single-item__subtitle.+?>(.+?)<', re.DOTALL).findall(subtitle)
-        # We need to make sure not to list episodes which are part of a group twice.
-        # If we already identified an episode as part of a group, add information to the list and continue.
-        add_entry = True
-        for n,i in enumerate(episodelist):
-            if i[0]==episode_id:
-                episodelist[n][2]=plot
-                episodelist[n][3]=iconimage
-                episodelist[n][4]=aired
-                add_entry = False
-        if add_entry:
-            if len(sub_match) == 1:
-                CheckAutoplay("%s: %s" % (name, sub_match[0]), episode_url, iconimage, plot, aired=aired)
-            else:
-                CheckAutoplay(name, episode_url, iconimage, plot, aired=aired)
-    # Finally add all programmes which have been identified as part of a group before.
-    for episode in episodelist:
-        episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode[0]
-        CheckAutoplay(episode[1], episode_url, episode[3], episode[2], episode[4])
+    soup = BeautifulSoup(html,"html.parser")
+    
+    # Groups
+    hrefs = set()
+    for link in soup.find_all(href=re.compile("iplayer/group")):
 
+        link = link.parent
+        href = link.a["href"]
+        if href in hrefs:
+            continue
+        hrefs.add(href)
+        url = href.rsplit('/',1)[1]
+        
+        title = link.find(class_=["single-item__title","grouped-item__title","grouped-items__title"])
+        name = "unnamed group"
+        if title:
+            string = ''.join(title.stripped_strings)
+            name = re.sub(r"\s+", " ", string, flags=re.UNICODE)
+        
+        link = link.parent
+        title = link.find(class_=["single-item__item-count","grouped-item__item-count","grouped-items__item-count"])
+        count = ''
+        if title:
+            string = ''.join(title.stripped_strings)
+            count = '(' + re.sub(r"\s+", " ", string, flags=re.UNICODE) + ')'       
+             
+        AddMenuEntry(' %s: %s %s' % (translation(31014), name, count), url, 127, '', '', '')
+
+    ids = set()
+
+    # Group Episodes
+    for group_link in soup.find_all(class_="grouped-items"):
+        
+        group_title = group_link["data-group-name"] + ': ' or ''
+            
+        for link in group_link.find_all(href=re.compile("episode")) :
+    
+            href = link["href"]
+            id = href.rsplit('/')[3]
+            if id in ids:
+                continue
+            ids.add(id)            
+            url = 'http://www.bbc.co.uk/iplayer/episode/' + id        
+    
+            name = 'the episode with no name'
+            title = link.find(class_=["single-item__title","group-item__title","grouped-items__title"])
+            if title:
+                string = ''.join(title.stripped_strings)
+                name = group_title + re.sub(r"\s+", " ", string, flags=re.UNICODE)
+                subtitle = link.find(class_=["single-item__subtitle","group-item__subtitle","grouped-items__subtitle"])
+                if subtitle:
+                    string = ''.join(subtitle.stripped_strings)
+                    name = name + ' ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
+    
+            description = 'no description'
+            aired = None
+            desc = link.find(class_=["single-item__overlay__desc","group-item__overlay__desc","grouped-items__overlay__desc"])
+            if desc:
+                string = ''.join(desc.stripped_strings)
+                description = re.sub(r"\s+", " ", string, flags=re.UNICODE)
+                subdesc = link.find(class_=["single-item__overlay__subtitle","group-item__overlay__subtitle","grouped-items__overlay__subtitle"])
+                if subdesc:
+                    string = ''.join(subdesc.stripped_strings)
+                    aired = re.sub(r"\s+", " ", string, flags=re.UNICODE)
+                    aired = ParseAired(aired)
+            
+            icon = 'DefaultVideo.png'    
+            image = link.find(class_=["single-item__img","group-item__img","grouped-items__img"])
+            if image:
+                rimage = image.find(class_="r-image")
+                if rimage:
+                    icon = rimage["data-ip-src"]    
+
+            CheckAutoplay(name, url, icon, description, aired)
+
+    # Episodes
+    for link in sorted(soup.find_all(href=re.compile("episode")) ):
+
+        href = link["href"]
+        id = href.rsplit('/')[3]
+        if id in ids:
+            continue
+        ids.add(id)        
+        url = 'http://www.bbc.co.uk/iplayer/episode/' + id
+                
+        name = 'the episode with no name'      
+        title = link.find(class_=["single-item__title","group-item__title","grouped-items__title"])
+        if title:
+            string = ''.join(title.stripped_strings)
+            name = re.sub(r"\s+", " ", string, flags=re.UNICODE)
+            subtitle = link.find(class_=["single-item__subtitle","group-item__subtitle","grouped-items__subtitle"])
+            if subtitle:
+                string = ''.join(subtitle.stripped_strings)
+                name = name + ' ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
+
+        description = 'no description'
+        aired = None
+        desc = link.find(class_=["single-item__overlay__desc","group-item__overlay__desc","grouped-items__overlay__desc"])
+        if desc:
+            string = ''.join(desc.stripped_strings)
+            description = re.sub(r"\s+", " ", string, flags=re.UNICODE)
+            subdesc = link.find(class_=["single-item__overlay__subtitle","group-item__overlay__subtitle","grouped-items__overlay__subtitle"])
+            if subdesc:
+                string = ''.join(subdesc.stripped_strings)
+                aired = re.sub(r"\s+", " ", string, flags=re.UNICODE)
+                aired = ParseAired(aired)
+        
+        icon = 'DefaultVideo.png'    
+        image = link.find(class_=["single-item__img","group-item__img","grouped-items__img"])
+        if image:
+            rimage = image.find(class_="r-image")
+            if rimage:
+                icon = rimage["data-ip-src"]    
+       
+        CheckAutoplay(name, url, icon, description, aired)
+ 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
 
 def GetGroups(url):
     """Scrapes information on a particular group, a special kind of collection."""
