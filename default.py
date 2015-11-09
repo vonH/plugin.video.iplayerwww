@@ -433,6 +433,7 @@ def ListHighlights(url):
                 subtitle = link.find(class_=["single-item__subtitle","group-item__subtitle","grouped-items__subtitle"])
                 if subtitle:
                     string = ''.join(subtitle.stripped_strings)
+                    #TODO inconsistent: sometimes this is full of the plot summary (eg bbcone Doctor Who)
                     name = name + ' ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
     
             if ADDON.getSetting('find_missing_images') == 'true':
@@ -467,6 +468,7 @@ def ListHighlights(url):
             
             if ADDON.getSetting('find_missing_images') == 'true':
                 (episode_name, episode_description, episode_icon, episode_aired) = GetEpisodeInfo(url)
+                name = episode_name
                 icon = episode_icon
                 description = episode_description
                 aired = episode_aired         
