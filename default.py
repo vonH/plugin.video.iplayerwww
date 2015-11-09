@@ -422,8 +422,8 @@ def ListHighlights(url):
             id = href.rsplit('/')[3]
             if id in ids:
                 continue
-            ids.add(id)            
-            url = 'http://www.bbc.co.uk/iplayer/episode/' + id        
+            ids.add(id)
+            url = 'http://www.bbc.co.uk' + href
     
             name = 'the episode with no name'
             title = link.find(class_=["single-item__title","group-item__title","grouped-items__title"])
@@ -442,6 +442,9 @@ def ListHighlights(url):
                 percent = int(100.0 * processed / total)
                 percent = percent + episode_percent
                 pDialog.update(percent, "Finding images...", name)
+                #TODO this doesn't work
+                if pDialog.iscanceled():
+                    CATEGORIES
             
             description = 'no description'
             aired = None
