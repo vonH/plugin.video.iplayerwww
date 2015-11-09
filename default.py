@@ -320,7 +320,7 @@ def GetEpisodeInfo(url):
         description = description_tag["content"]
         
     #<meta property="og:image" content="http://ichef.bbci.co.uk/images/ic/1200x675/p0369f42.jpg">    
-    icon = 'DefaultVideo.png'
+    icon = ''
     img_tag = soup.find(name="meta",property="og:image")
     if img_tag:
         icon = img_tag["content"]
