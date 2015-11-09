@@ -411,7 +411,7 @@ def ListHighlights(url):
     processed = 0
 
     # inner function
-    def ProcessLinks(soup, ids, total, processed, group_title=''):   
+    def ProcessLinks(soup, ids, processed, group_title=''):   
         
         links = soup.find_all(href=re.compile("episode"))
         total_episodes = len(links)
@@ -491,10 +491,10 @@ def ListHighlights(url):
         else:
             group_title = group_title + ': '
             
-        (ids, processed) = ProcessLinks(group_tag, ids, total, processed, group_title)
+        (ids, processed) = ProcessLinks(group_tag, ids, processed, group_title)
         
     # Episodes    
-    (ids, processed) = ProcessLinks(soup, ids, total, processed )
+    (ids, processed) = ProcessLinks(soup, ids, processed )
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
