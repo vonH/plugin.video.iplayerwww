@@ -404,7 +404,7 @@ def ListHighlights(url):
             if string.endswith('programmes'):
                 groups.add(group)                  
              
-        AddMenuEntry(' %s: %s %s' % (translation(31014), name, count), url, 127, '', '', '')
+        AddMenuEntry('  %s: %s %s' % (translation(31014), name, count), url, 127, '', '', '')
     
     ids = set()
     total = 0
