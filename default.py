@@ -13,6 +13,7 @@ import requests
 from requests.packages import urllib3
 from bs4 import BeautifulSoup
 import cookielib
+import pickle
 
 import json
 
@@ -366,9 +367,27 @@ def ListHighlights(url):
     """Creates a list of the programmes in the highlights section.
     All entries are scraped of the intro page and the pages linked from the intro page.
     """
+    info = dict()
     if ADDON.getSetting('find_missing_images') == 'true':
+
         pDialog = xbmcgui.DialogProgress()
         pDialog.create('iPlayer', 'Opening Highlights ...')
+
+        dataPath = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8')
+        path = os.path.join(dataPath, 'episode_info')
+        if os.path.isfile(path):
+            with open(path,'rb') as store:
+                try:
+                    info = pickle.load(store)
+                    now = time.time()
+                    expire = now - 60*60*24*30
+                    for id in info.keys():
+                        (unixtime, episode_name, episode_description, episode_icon, episode_aired) = info[id]
+                        if unixtime < expire:
+                            del info[id]
+                except:
+                    pass
+                store.close()
     
     html = OpenURL('http://www.bbc.co.uk/%s' % url)
     soup = BeautifulSoup(html,"html.parser")
@@ -467,11 +486,15 @@ def ListHighlights(url):
                     icon = rimage["data-ip-src"]    
             
             if ADDON.getSetting('find_missing_images') == 'true':
-                (episode_name, episode_description, episode_icon, episode_aired) = GetEpisodeInfo(url)
+                if id in info:
+                    (unixtime, episode_name, episode_description, episode_icon, episode_aired) = info[id]
+                else:
+                    (episode_name, episode_description, episode_icon, episode_aired) = GetEpisodeInfo(url)
                 name = episode_name
                 icon = episode_icon
                 description = episode_description
-                aired = episode_aired         
+                aired = episode_aired
+                info[id] = (time.time(), episode_name, episode_description, episode_icon, episode_aired)
 
             if icon:
                 icon_id = icon.rsplit('/',1)[-1]
@@ -482,7 +505,7 @@ def ListHighlights(url):
             CheckAutoplay(name, url, icon, description, aired)
         
         processed = processed + 1
-        return (ids, processed)
+        return (ids, info, processed)
     
     
     # Group Episodes
@@ -496,10 +519,17 @@ def ListHighlights(url):
         else:
             group_title = group_title + ': '
             
-        (ids, processed) = ProcessLinks(group_tag, ids, processed, group_title)
+        (ids, info, processed) = ProcessLinks(group_tag, ids, processed, group_title)
         
     # Episodes    
-    (ids, processed) = ProcessLinks(soup, ids, processed )
+    (ids, info, processed) = ProcessLinks(soup, ids, processed )
+
+    if ADDON.getSetting('find_missing_images') == 'true':
+        dataPath = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8')
+        path = os.path.join(dataPath, 'episode_info')
+        store = open(path,'wb')
+        pickle.dump(info, store)
+        store.close()
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
