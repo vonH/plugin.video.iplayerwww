@@ -130,63 +130,104 @@ def ParseAired(aired):
 
 
 def ScrapeSearchEpisodes(url):
-    """Extracts the episode IDs from the search result HTML.
 
-    If there are more pages of search results, ScrapeSearchEpisodes also
-    returns the page number of the next result page.
-    """
-    html = OpenURL(url)
-    # In search mode, available and unavailable programmes will be found.
-    # While unavailable programmes are all marked by "unavailable",
-    # there are several classes of "available" programmes.
-    # Thus, we need to match all of them.
-    match1 = re.compile(
-        'programme"  data-ip-id="(.+?)">.+?class="title top-title">(.+?)'
-        '<.+?img src="(.+?)".+?<p class="synopsis">(.+?)</p>',
-        re.DOTALL).findall(html.replace('amp;', ''))
-    for programme_id, name, iconimage, plot in match1:
-        # Some programmes actually contain multiple episodes (haven't seen that for episodes yet).
-        # These can be recognized by some extra HTML code
-        match_episodes = re.search(
-            '<a class="view-more-container avail stat" href="/iplayer/episodes/%s"' % programme_id, html)
-        # If multiple episodes are found, the programme_id is suitable to add a new directory.
-        if match_episodes:
-            num_episodes = re.compile(
-                '<a class="view-more-container avail stat" href="/iplayer/episodes/%s".+?'
-                '<em class="view-more-heading">(.+?)<' % programme_id,
-                re.DOTALL).findall(html)
-            AddMenuEntry("%s - %s %s" % (
-                name, num_episodes[0], translation(31013)), programme_id, 121, iconimage, plot, '')
-        else:
-            episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % programme_id
-            CheckAutoplay(name, episode_url, iconimage, plot)
-    match1 = re.compile(
-        'episode"  data-ip-id="(.+?)">'
-        '.+?" title="(.+?)"'
-        '.+?img src="(.+?)"'
-        '.+?<p class="synopsis">(.+?)</p>'
-        '(.+?)<div class="period"',
-        re.DOTALL).findall(html.replace('amp;', ''))
-    for programme_id, name, iconimage, plot, more in match1:
-        episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % programme_id
-        aired = re.search(
-            '.+?class="release">\s+First shown: (.+?)\n',
-            more,
-            re.DOTALL)
-        aired = ParseAired(aired.group(1) if aired else '')
-        CheckAutoplay(name, episode_url, iconimage, plot, aired=aired)
-    match1 = re.compile(
-        'search-group"  data-ip-id="(.+?)">'
-        '.+?" title="(.+?)"'
-        '.+?img src="(.+?)"'
-        '.+?<p class="synopsis">(.+?)</p>'
-        '.+?<a class="view-more-container sibling stat" href="(.+?)">',
-        re.DOTALL).findall(html.replace('amp;', ''))
-    for programme_id, name, iconimage, plot, group_url in match1:
-        episode_url = "http://www.bbc.co.uk%s" % group_url
-        ScrapeSearchEpisodes(episode_url)
-    nextpage = re.compile('<span class="next txt"> <a href=".+?page=(\d+)">').findall(html)
-    return nextpage
+    new_url = url
+
+    more_pages = True
+    while more_pages:
+        more_pages = False
+
+        html = OpenURL(new_url)
+        soup = BeautifulSoup(html,"html.parser")
+
+        #Programme Groups
+
+        links = soup.find_all("li", {"class":["programme"]})
+        for link in links:
+
+            name = ''
+            title_tag = link.find("div", {"class":"title"})
+            if title_tag:
+                name = ''.join(title_tag.stripped_strings)
+
+            url = ''
+            count = ''
+            link_tag = link.find("a", {"class":"avail"})
+            if link_tag:
+
+                url = link_tag["href"].rsplit('/',1)[1]
+                count = '(' + ' '.join(link_tag.stripped_strings) + ')'
+
+                AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 121, '', '', '')
+
+        #Episodes
+
+        #<li class="list-item episode numbered" data-ip-id="b06pmn74">
+        links = soup.find_all("li", {"class":["programme", "episode"]})
+        for link in links:
+
+            #<li class="list-item episode numbered" data-ip-id="b06pmn74">
+            id = link["data-ip-id"]
+
+            #<a class="list-item-link stat" data-object-type="episode-most-popular" data-page-branded="0" data-progress-state="" href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders, 10/11/2015">
+            url = ''
+            link_tag = link.find("a", {"class":"stat"})
+            if link_tag:
+                url = 'http://www.bbc.co.uk/' + link_tag["href"]
+
+            #<div class="title">EastEnders</div>
+            title = ''
+            title_tag = link.find("div", {"class":"title"})
+            if title_tag:
+                title = ''.join(title_tag.stripped_strings)
+
+            #<div class="subtitle">10/11/2015</div>
+            subtitle_tag = link.find("div", {"class":"subtitle"})
+            subtitle = ''
+            if subtitle_tag:
+                subtitle = ''.join(subtitle_tag.stripped_strings)
+                title = title + " - " + subtitle
+
+            icon = ''
+            #<div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg" data-ip-type="episode">
+            image_tag = link.find("div", {"class":"r-image"})
+            if image_tag:
+                icon = image_tag["data-ip-src"]
+                icon = icon.replace('336x189', '832x468')
+
+            #<p class="synopsis">Ronnie and Dean continue to fight for Roxy. Tensions grow at the Vic.</p>
+            synopsis = ''
+            synopsis_tag = link.find("p", {"class":"synopsis"})
+            if synopsis_tag:
+                synopsis = ''.join(synopsis_tag.stripped_strings)
+
+            #<span class="release">\nFirst shown: 10 Nov 2015\n</span>
+            aired = None
+            release_tag = link.find("span", {"class":"release"})
+            if release_tag:
+                string = ''.join(release_tag.stripped_strings)
+                release_parts = string.split(' ')
+                year = release_parts[-1]
+                month = release_parts[-2]
+                monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
+                if month in monthDict:
+                    month = monthDict[month]
+                    day = release_parts[-3].rjust(2,'0')
+                else:
+                    month = '01'
+                    day = '01'
+                aired = year + '-' + month + '-' + day
+
+            CheckAutoplay(title, url, icon, synopsis, aired)
+
+        #<span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2"> Next <span class="tvip-hide">page</span>
+        href = soup.select(".paginate .next a[href]")
+        if href:
+            new_url = 'http://www.bbc.co.uk' + href[0]["href"]
+            #TODO this seems like a waste of time
+            more_pages = True
+            #TODO ??? see if this finds enough for most people
+            more_pages = False
 
 
 def EvaluateSearch(url):
@@ -201,6 +242,7 @@ def EvaluateSearch(url):
             nextpage = ScrapeSearchEpisodes(temp_url)
         except:
             break
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_PLAYLIST_ORDER)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 
@@ -407,7 +449,7 @@ def ListHighlights(url):
             continue
         hrefs.add(href)
         url = href.rsplit('/',1)[1]
-        
+
         title = link.find(class_=["single-item__title","grouped-item__title","grouped-items__title"])
         name = "unnamed group"
         group = 'unnamed group'
@@ -415,7 +457,7 @@ def ListHighlights(url):
             string = ''.join(title.stripped_strings)
             group = string
             name = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-        
+
         link = link.parent
         title = link.find(class_=["single-item__item-count","grouped-item__item-count","grouped-items__item-count"])
         count = ''
@@ -424,17 +466,17 @@ def ListHighlights(url):
             string = re.sub(r"\s+", " ", string, flags=re.UNICODE)
             count = '(' + string + ')'
             if string.endswith('programmes'):
-                groups.add(group)                  
+                groups.add(group)
              
         AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 127, '', '', '')
-    
+
     ids = set()
     total = 0
     processed = 0
 
     # inner function
     def ProcessLinks(soup, ids, processed, group_title=''):   
-        
+
         links = soup.find_all(href=re.compile("episode"))
         total_episodes = len(links)
         episode = 0
@@ -446,7 +488,7 @@ def ListHighlights(url):
                 continue
             ids.add(id)
             url = 'http://www.bbc.co.uk' + href
-    
+
             name = 'the episode with no name'
             title = link.find(class_=["single-item__title","group-item__title","grouped-items__title"])
             if title:
@@ -457,7 +499,7 @@ def ListHighlights(url):
                     string = ''.join(subtitle.stripped_strings)
                     #TODO inconsistent: sometimes this is full of the plot summary (eg bbcone Doctor Who)
                     name = name + ' - ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
-    
+
             if ADDON.getSetting('find_missing_images') == 'true':
                 fraction = 100.0 / total
                 episode_percent = int(fraction * episode / total_episodes)
@@ -468,7 +510,7 @@ def ListHighlights(url):
                 #TODO this doesn't work
                 if pDialog.iscanceled():
                     CATEGORIES
-            
+
             description = 'no description'
             aired = None
             desc = link.find(class_=["single-item__overlay__desc","group-item__overlay__desc","grouped-items__overlay__desc"])
@@ -481,13 +523,13 @@ def ListHighlights(url):
                     aired = re.sub(r"\s+", " ", string, flags=re.UNICODE)
                     aired = ParseAired(aired)          
       
-            icon = ''    
+            icon = ''
             image = link.find(class_=["single-item__img","group-item__img","grouped-items__img"])
             if image:
                 rimage = image.find(class_="r-image")
                 if rimage:
                     icon = rimage["data-ip-src"]    
-            
+
             if ADDON.getSetting('find_missing_images') == 'true':
                 if id in info:
                     (unixtime, episode_name, episode_description, episode_icon, episode_aired) = info[id]
@@ -504,26 +546,26 @@ def ListHighlights(url):
                 icon = 'http://ichef.bbci.co.uk/images/ic/832x468/' + icon_id
             else:
                 icon = 'DefaultVideo.png'
-                
+
             CheckAutoplay(name, url, icon, description, aired)
-        
+
         processed = processed + 1
         return (ids, info, processed)
-    
-    
+
+
     # Group Episodes
     group_tags = soup.find_all(class_="grouped-items")
     total = len(group_tags) + 1
     for group_tag in group_tags:
-        
+
         group_title = group_tag["data-group-name"] or ''
         if group_title in groups:
             group_title = ''
         else:
             group_title = group_title + ' - '
-            
+
         (ids, info, processed) = ProcessLinks(group_tag, ids, processed, group_title)
-        
+
     # Episodes    
     (ids, info, processed) = ProcessLinks(soup, ids, processed )
 
