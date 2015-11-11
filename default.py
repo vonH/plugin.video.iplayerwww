@@ -423,7 +423,7 @@ def ListHighlights(url):
             if string.endswith('programmes'):
                 groups.add(group)                  
              
-        AddMenuEntry('  %s: %s %s' % (translation(31014), name, count), url, 127, '', '', '')
+        AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 127, '', '', '')
     
     ids = set()
     total = 0
@@ -453,7 +453,7 @@ def ListHighlights(url):
                 if subtitle:
                     string = ''.join(subtitle.stripped_strings)
                     #TODO inconsistent: sometimes this is full of the plot summary (eg bbcone Doctor Who)
-                    name = name + ' ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
+                    name = name + ' - ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
     
             if ADDON.getSetting('find_missing_images') == 'true':
                 fraction = 100.0 / total
@@ -537,37 +537,81 @@ def ListHighlights(url):
 def GetGroups(url):
     """Scrapes information on a particular group, a special kind of collection."""
     new_url = "http://www.bbc.co.uk/iplayer/group/%s" % url
-    html = OpenURL(new_url)
 
-    while True:
-        # Extract all programmes from the page
-        match = re.compile(
-            'data-ip-id=".+?">.+?<a href="(.+?)" title="(.+?)'
-            '".+?data-ip-src="(.+?)">.+?class="synopsis">(.+?)</p>'
-            '(.+?)<div class="period"',
-            re.DOTALL).findall(html)
+    more_pages = True
+    while more_pages:
+        more_pages = False
 
-        for URL, name, iconimage, plot, more in match:
-            _URL_ = 'http://www.bbc.co.uk/%s' % URL
-            aired = re.search(
-                '.+?class="release">\s+First shown: (.+?)\n',
-                more,
-                re.DOTALL)
-            aired = ParseAired(aired.group(1) if aired else '')
-            CheckAutoplay(name, _URL_, iconimage.replace('336x189', '832x468'), plot, aired=aired)
+        html = OpenURL(new_url)
+        soup = BeautifulSoup(html,"html.parser")
 
-        # If there is only one match, this is one programme only.
-        if len(match) == 1:
-            break
+        #<li class="list-item episode numbered" data-ip-id="b06pmn74">
+        links = soup.find_all("li", {"class":"episode"})
+        for link in links:
 
-        # Some programmes consist of several pages, check if a next page exists and if so load it.
-        nextpage = re.compile('<span class="next bp1"> <a href=".+?page=(\d+)">').findall(html)
-        if not nextpage:
-            xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-            xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
-            break
-        temp_url = '%s?page=%s' % (new_url, nextpage[0])
-        html = OpenURL(temp_url)
+            #<li class="list-item episode numbered" data-ip-id="b06pmn74">
+            id = link["data-ip-id"]
+
+            #<a class="list-item-link stat" data-object-type="episode-most-popular" data-page-branded="0" data-progress-state="" href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders, 10/11/2015">
+            url = ''
+            link_tag = link.find("a", {"class":"stat"})
+            if link_tag:
+                url = 'http://www.bbc.co.uk/' + link_tag["href"]
+
+            #<div class="title">EastEnders</div>
+            title = ''
+            title_tag = link.find("div", {"class":"title"})
+            if title_tag:
+                title = ''.join(title_tag.stripped_strings)
+
+            #<div class="subtitle">10/11/2015</div>
+            subtitle_tag = link.find("div", {"class":"subtitle"})
+            subtitle = ''
+            if subtitle_tag:
+                subtitle = ''.join(subtitle_tag.stripped_strings)
+                title = title + " - " + subtitle
+
+            icon = ''
+            #<div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg" data-ip-type="episode">
+            image_tag = link.find("div", {"class":"r-image"})
+            if image_tag:
+                icon = image_tag["data-ip-src"]
+                icon = icon.replace('336x189', '832x468')
+
+            #<p class="synopsis">Ronnie and Dean continue to fight for Roxy. Tensions grow at the Vic.</p>
+            synopsis = ''
+            synopsis_tag = link.find("p", {"class":"synopsis"})
+            if synopsis_tag:
+                synopsis = ''.join(synopsis_tag.stripped_strings)
+
+            #<span class="release">\nFirst shown: 10 Nov 2015\n</span>
+            aired = None
+            release_tag = link.find("span", {"class":"release"})
+            if release_tag:
+                string = ''.join(release_tag.stripped_strings)
+                release_parts = string.split(' ')
+                if len(release_parts) == 5:
+                    release_parts = release_parts[-3:]
+                    monthDict={'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7, 'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12}
+                    release_parts[0] = release_parts[0].rjust(2, '0')
+                    month = release_parts[1]
+                    release_parts[1] = str(monthDict[month]).rjust(2, '0')
+                    aired = '-'.join(release_parts[::-1])
+
+            CheckAutoplay(title, url, icon, synopsis, aired)
+
+        #<span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2"> Next <span class="tvip-hide">page</span>
+        paginate_tag = soup.find("div", {"class":"paginate"})
+        if paginate_tag:
+            next_tag = paginate_tag.find("span", {"class":["next"]})
+            if next_tag:
+                a_tag = next_tag.find("a")
+                if a_tag:
+                    new_url = 'http://www.bbc.co.uk' + a_tag["href"]
+                    more_pages = True
+
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+    #TODO xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 
 
 def ListMostPopular():
