@@ -520,7 +520,7 @@ def ListHighlights(url):
         if group_title in groups:
             group_title = ''
         else:
-            group_title = group_title + ': '
+            group_title = group_title + ' - '
             
         (ids, info, processed) = ProcessLinks(group_tag, ids, processed, group_title)
         
@@ -614,7 +614,7 @@ def GetGroups(url):
 
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-    #TODO xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 
 
 def ListMostPopular():
@@ -1097,22 +1097,11 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
                     "&subtitles_url=" + utf8_quote_plus(subtitles_url) +
                     "&logged_in=" + str(logged_in))
 
-    '''
-    # Try to extract the date from the title and add it as an InfoLabel to allow sorting by date.
-    match = re.search(r'\d{1,2}/\d{1,2}/\d{4}', name)
-    if match:
-        date_dt = datetime.datetime(*(time.strptime(match.group(), '%d/%m/%Y')[0:6]))
-        date_string = date_dt.strftime('%d.%m.%Y')
-        if not aired:
-            aired = date_dt.strftime('%Y-%m-%d')
+    if aired:
+        ymd = aired.split('-')
+        date_string = ymd[2] + '/' + ymd[1] + '/' + ymd[0]
     else:
-        if aired:
-            date_string = datetime.datetime(*(time.strptime(aired, '%d/%m/%Y')[0:6])).strftime('%d.%m.%Y')
-        else:
-            # Use a dummy date for all entries without a date.
-            date_string = "01.01.1970"
-    '''
-    date_string = "01/01/1970"
+        date_string = "01/01/1970"
 
     # Modes 201-299 will create a new playable line, otherwise create a new directory line.
     if mode in (201, 202, 203):
