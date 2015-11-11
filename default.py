@@ -332,13 +332,16 @@ def GetEpisodeInfo(url):
     if release_tag:
         string = ''.join(release_tag.stripped_strings)
         release_parts = string.split(' ')
-        if len(release_parts) == 6:
-            release_parts = release_parts[-3:]
-            monthDict={'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7, 'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12}        
-            release_parts[0] = release_parts[0].rjust(2, '0')
-            month = release_parts[1]
-            release_parts[1] = str(monthDict[month]).rjust(2, '0')
-            aired = '-'.join(release_parts[::-1]) 
+        year = release_parts[-1]
+        month = release_parts[-2]
+        monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
+        if month in monthDict:
+            month = monthDict[month]
+            day = release_parts[-3].rjust(2,'0')
+        else:
+            month = '01'
+            day = '01'
+        aired = year + '-' + month + '-' + day
     
     return (name, description, icon, aired)
 
@@ -590,25 +593,25 @@ def GetGroups(url):
             if release_tag:
                 string = ''.join(release_tag.stripped_strings)
                 release_parts = string.split(' ')
-                if len(release_parts) == 5:
-                    release_parts = release_parts[-3:]
-                    monthDict={'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7, 'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12}
-                    release_parts[0] = release_parts[0].rjust(2, '0')
-                    month = release_parts[1]
-                    release_parts[1] = str(monthDict[month]).rjust(2, '0')
-                    aired = '-'.join(release_parts[::-1])
+                year = release_parts[-1]
+                month = release_parts[-2]
+                monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
+                if month in monthDict:
+                    month = monthDict[month]
+                    day = release_parts[-3].rjust(2,'0')
+                else:
+                    month = '01'
+                    day = '01'
+                aired = year + '-' + month + '-' + day
 
             CheckAutoplay(title, url, icon, synopsis, aired)
 
         #<span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2"> Next <span class="tvip-hide">page</span>
-        paginate_tag = soup.find("div", {"class":"paginate"})
-        if paginate_tag:
-            next_tag = paginate_tag.find("span", {"class":["next"]})
-            if next_tag:
-                a_tag = next_tag.find("a")
-                if a_tag:
-                    new_url = 'http://www.bbc.co.uk' + a_tag["href"]
-                    more_pages = True
+        href = soup.select(".paginate .next a[href]")
+        if href:
+            new_url = 'http://www.bbc.co.uk' + href[0]["href"]
+            more_pages = True
+
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     #TODO xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
