@@ -260,11 +260,6 @@ def ScrapeEpisodes(url):
     pDialog.close()
 
 
-def EvaluateSearch(url):
-    """Parses the Search result page(s) for available programmes and lists them."""
-    ScrapeEpisodes(url)
-
-
 def ListCategories():
     """Parses the available categories and creates directories for selecting one of them.
 
@@ -472,9 +467,6 @@ def ListHighlights(url):
                 percent = int(100.0 * processed / total)
                 percent = percent + episode_percent
                 pDialog.update(percent, "iPlayer: Finding images...", name)
-                #TODO this doesn't work
-                #if pDialog.iscanceled():
-                #    CATEGORIES
 
             description = 'no description'
             aired = None
@@ -561,8 +553,8 @@ def Search():
         search_entered = keyboard.getText() .replace(' ', '%20')  # sometimes you need to replace spaces with + or %20
         if search_entered is None:
             return False
-    NEW_URL = 'http://www.bbc.co.uk/iplayer/search?q=%s' % search_entered
-    EvaluateSearch(NEW_URL)
+    url = 'http://www.bbc.co.uk/iplayer/search?q=%s' % search_entered
+    ScrapeEpisodes(url)
 
 
 def ParseImageUrl(url):
