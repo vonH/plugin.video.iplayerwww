@@ -133,16 +133,33 @@ def ScrapeEpisodes(url):
 
     new_url = url
 
+    pDialog = xbmcgui.DialogProgressBG()
+    pDialog.create('iPlayer: Finding episodes...')
+
+    html = OpenURL(new_url)
+    soup = BeautifulSoup(html,"html.parser")
+
+    pages = soup.select(".paginate .page a[href]")
+    if pages:
+        last_page = pages[-1]
+        last_href = last_page["href"]
+        total_pages = int(last_href.rsplit('=',1)[1])
+    else:
+        total_pages = 1
+
     more_pages = True
+    page = 0
     while more_pages:
         more_pages = False
 
-        html = OpenURL(new_url)
-        soup = BeautifulSoup(html,"html.parser")
+        if page > 0:
+            html = OpenURL(new_url)
+            soup = BeautifulSoup(html,"html.parser")
 
         #Programme Groups
 
         links = soup.find_all("li", {"class":["programme"]})
+
         for link in links:
 
             name = ''
@@ -160,6 +177,9 @@ def ScrapeEpisodes(url):
 
                 AddMenuEntry('%s %s' % (name, count), url, 121, '', '', '')
 
+                percent = int(100*page/total_pages)
+                pDialog.update(percent,'iPlayer: Finding episodes...',name)
+
         #Episodes
 
         #<li class="list-item episode numbered" data-ip-id="b06pmn74">
@@ -176,17 +196,17 @@ def ScrapeEpisodes(url):
                 url = 'http://www.bbc.co.uk/' + link_tag["href"]
 
             #<div class="title">EastEnders</div>
-            title = ''
+            name = ''
             title_tag = link.find("div", {"class":"title"})
             if title_tag:
-                title = ''.join(title_tag.stripped_strings)
+                name = ''.join(title_tag.stripped_strings)
 
             #<div class="subtitle">10/11/2015</div>
             subtitle_tag = link.find("div", {"class":"subtitle"})
             subtitle = ''
             if subtitle_tag:
                 subtitle = ''.join(subtitle_tag.stripped_strings)
-                title = title + " - " + subtitle
+                name = name + " - " + subtitle
 
             icon = ''
             #<div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg" data-ip-type="episode">
@@ -218,7 +238,15 @@ def ScrapeEpisodes(url):
                     day = '01'
                 aired = year + '-' + month + '-' + day
 
-            CheckAutoplay(title, url, icon, synopsis, aired)
+            CheckAutoplay(name, url, icon, synopsis, aired)
+
+            percent = int(100*page/total_pages)
+            pDialog.update(percent,'iPlayer: Finding episodes...',name)
+
+        page = page + 1
+
+        percent = int(100*page/total_pages)
+        pDialog.update(percent,'iPlayer: Finding episodes...')
 
         #<span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2"> Next <span class="tvip-hide">page</span>
         href = soup.select(".paginate .next a[href]")
@@ -228,6 +256,8 @@ def ScrapeEpisodes(url):
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+
+    pDialog.close()
 
 
 def EvaluateSearch(url):
@@ -280,7 +310,7 @@ def GetEpisodeInfo(url):
     html = OpenURL(url)
     soup = BeautifulSoup(html,"html.parser")
 
-    #<title>BBC iPlayer - Around the World with the Go Jetters - Go Jetters - 4. The Sahara Desert, Africa</title>    
+    #<title>BBC iPlayer - Around the World with the Go Jetters - Go Jetters - 4. The Sahara Desert, Africa</title>
     name = 'the episode with no name'
     title_tag = soup.find(name="title")
     if title_tag:
@@ -289,19 +319,19 @@ def GetEpisodeInfo(url):
         name_parts = string.split('-')[1:]
         name = '-'.join(name_parts)
         name = name.strip()
-        
+
     #<meta name="description" content="Glitch makes a sandcastle around an oasis in the Sahara. Can the Go Jetters save the day?">
     description = 'no description'
     description_tag = soup.find("meta", {"name":"description"})
     if description_tag:
         description = description_tag["content"]
-        
-    #<meta property="og:image" content="http://ichef.bbci.co.uk/images/ic/1200x675/p0369f42.jpg">    
+
+    #<meta property="og:image" content="http://ichef.bbci.co.uk/images/ic/1200x675/p0369f42.jpg">
     icon = ''
     img_tag = soup.find(name="meta",property="og:image")
     if img_tag:
         icon = img_tag["content"]
-        
+
     #<span class="release"> First shown: 5:20pm 29 Oct 2015 </span>
     aired = None
     release_tag = soup.find("span", {"class":"release"})
@@ -318,7 +348,7 @@ def GetEpisodeInfo(url):
             month = '01'
             day = '01'
         aired = year + '-' + month + '-' + day
-    
+
     return (name, description, icon, aired)
 
 
@@ -367,12 +397,12 @@ def ListHighlights(url):
                 except:
                     pass
                 store.close()
-    
+
     html = OpenURL('http://www.bbc.co.uk/%s' % url)
     soup = BeautifulSoup(html,"html.parser")
-    
+
     groups = set()
-    
+
     # Groups
     hrefs = set()
     for link in soup.find_all(href=re.compile("iplayer/group")):
@@ -410,13 +440,13 @@ def ListHighlights(url):
     processed = 0
 
     # inner function
-    def ProcessLinks(soup, ids, processed, group_title=''):   
+    def ProcessLinks(soup, ids, processed, group_title=''):
 
         links = soup.find_all(href=re.compile("episode"))
         total_episodes = len(links)
         episode = 0
         for link in links :
-    
+
             href = link["href"]
             id = href.rsplit('/')[3]
             if id in ids:
@@ -456,14 +486,14 @@ def ListHighlights(url):
                 if subdesc:
                     string = ''.join(subdesc.stripped_strings)
                     aired = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-                    aired = ParseAired(aired)          
-      
+                    aired = ParseAired(aired)
+
             icon = ''
             image = link.find(class_=["single-item__img","group-item__img","grouped-items__img"])
             if image:
                 rimage = image.find(class_="r-image")
                 if rimage:
-                    icon = rimage["data-ip-src"]    
+                    icon = rimage["data-ip-src"]
 
             if ADDON.getSetting('find_missing_images') == 'true':
                 if id in info:
@@ -501,7 +531,7 @@ def ListHighlights(url):
 
         (ids, info, processed) = ProcessLinks(group_tag, ids, processed, group_title)
 
-    # Episodes    
+    # Episodes
     (ids, info, processed) = ProcessLinks(soup, ids, processed )
 
     if ADDON.getSetting('find_missing_images') == 'true':
@@ -957,7 +987,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     listitem_url = (sys.argv[0] + "?url=" + utf8_quote_plus(url) + "&mode=" + str(mode) +
                     "&name=" + utf8_quote_plus(name) +
                     "&iconimage=" + utf8_quote_plus(iconimage) +
-                    "&description=" + utf8_quote_plus(description) + 
+                    "&description=" + utf8_quote_plus(description) +
                     "&subtitles_url=" + utf8_quote_plus(subtitles_url) +
                     "&logged_in=" + str(logged_in))
 
@@ -1100,13 +1130,13 @@ def SignInBBCiD():
     #Below is required to get around an ssl issue
     urllib3.disable_warnings()
     sign_in_url="https://ssl.bbc.co.uk/id/signin"
-    
+
     username=ADDON.getSetting('bbc_id_username')
     password=ADDON.getSetting('bbc_id_password')
-    
+
     post_data={
-               'unique': username, 
-               'password': password, 
+               'unique': username,
+               'password': password,
                'rememberme':'0'}
     r = OpenURLPost(sign_in_url, post_data)
     if (r.status_code == 302):
@@ -1144,7 +1174,7 @@ def CheckLogin(logged_in):
                 return True;
             else:
                 xbmcgui.Dialog().notification(translation(31008), translation(31010))
-    
+
     return False
 
 def ListWatching(logged_in):
@@ -1174,7 +1204,7 @@ def ListWatching(logged_in):
         aired = episode.get('release_date')
         image_url = ParseImageUrl(episode.get('images').get('standard'))
         aired = ParseAired(aired)
-        url="http://www.bbc.co.uk/iplayer/episode/%s" % (episode_id) 
+        url="http://www.bbc.co.uk/iplayer/episode/%s" % (episode_id)
         CheckAutoplay(title, url, image_url, plot, aired)
 
 
@@ -1183,7 +1213,7 @@ def ListFavourites(logged_in):
     if(CheckLogin(logged_in) == False):
         CATEGORIES()
         return
-    
+
     """Scrapes all episodes of the favourites page."""
     html = OpenURL('http://www.bbc.co.uk/iplayer/usercomponents/favourites/programmes.json')
     json_data = json.loads(html)
