@@ -6,6 +6,7 @@
     <setting id="bbc_id_enabled" label="30140" default="false" type="bool" />
     <setting id="bbc_id_username" label="30141" default="" type="text" enable="eq(-1,true)" subsetting="true"/>
     <setting id="bbc_id_password" label="30142" default="" type="text" enable="eq(-2,true) + !eq(-1,)" subsetting="true" option="hidden"/>
+    <setting id="find_missing_images" label="30150" default="false" type="bool" />
 </category>
 <category label="30200">
     <setting id="streams_autoplay" label="30205" type="bool" default="true" />
