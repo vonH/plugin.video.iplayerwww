@@ -129,7 +129,7 @@ def ParseAired(aired):
     return ''
 
 
-def ScrapeSearchEpisodes(url):
+def ScrapeEpisodes(url):
 
     new_url = url
 
@@ -158,7 +158,7 @@ def ScrapeSearchEpisodes(url):
                 url = link_tag["href"].rsplit('/',1)[1]
                 count = '(' + ' '.join(link_tag.stripped_strings) + ')'
 
-                AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 121, '', '', '')
+                AddMenuEntry('%s %s' % (name, count), url, 121, '', '', '')
 
         #Episodes
 
@@ -224,27 +224,15 @@ def ScrapeSearchEpisodes(url):
         href = soup.select(".paginate .next a[href]")
         if href:
             new_url = 'http://www.bbc.co.uk' + href[0]["href"]
-            #TODO this seems like a waste of time
             more_pages = True
-            #TODO ??? see if this finds enough for most people
-            more_pages = False
+
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 
 
 def EvaluateSearch(url):
     """Parses the Search result page(s) for available programmes and lists them."""
-    nextpage = ScrapeSearchEpisodes(url)
-    # To make matters worse, there is a LOT of unavailable programmes and no way to search only for
-    # available programs, so we need to parse several pages.
-    # This is also why search takes a couple of seconds at least.
-    while True:
-        try:
-            temp_url = '%s&page=%s' % (url, nextpage[0])
-            nextpage = ScrapeSearchEpisodes(temp_url)
-        except:
-            break
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_PLAYLIST_ORDER)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    ScrapeEpisodes(url)
 
 
 def ListCategories():
@@ -281,66 +269,11 @@ def ListCategoryFilters(url):
         GetFilteredCategory(url)
 
 
-def ScrapeCategoryEpisodes(url):
-    """Scrapes the episode IDs from the category pages.
-
-    It also returns the ID of the next page, if there are more pages in the same category.
-    """
-    # Read selected category's page.
-    html = OpenURL(url)
-    # Scrape all programmes on this page and create one menu entry each.
-    match = re.compile(
-        'data-ip-id="(.+?)">.+?'
-        '<a href="/iplayer/episode/(.+?)/.+?"title top-title">'
-        '(.+?)<.+?img src="(.+?)"(.+?)'
-        '<p class="synopsis">(.+?)</p>',
-        re.DOTALL).findall(html.replace('amp;', ''))
-    for programme_id, episode_id, name, iconimage, sub_content, plot in match:
-        # Some programmes actually contain multiple episodes.
-        # These can be recognized by some extra HTML code
-        match_episodes = re.search(
-            '<a class="view-more-container avail stat" href="/iplayer/episodes/%s"' % programme_id, html)
-        # If multiple episodes are found, the programme_id is suitable to add a new directory.
-        if match_episodes:
-            num_episodes = re.search(
-                '<a class="view-more-container avail stat" '
-                'href="/iplayer/episodes/%s".+?<em '
-                'class="view-more-heading">(.+?)<' % programme_id,
-                html,
-                re.DOTALL)
-            if(num_episodes):
-                AddMenuEntry("%s - %s %s" % (
-                name, num_episodes.group(1), translation(31013)), programme_id, 121, iconimage, plot, '')
-        # If only one episode is found, the episode_id is suitable to add a directory or stream.
-        # This is required because some programmes which have their own page will redirect
-        # the programme_id to the program page which may look entirely different from
-        # the regular page.
-        else:
-            # Some episodes have additional subtitles or episode descriptions.
-            subtitle_match = re.search(
-                '<div class="subtitle">(.+?)</div>',
-                sub_content,
-                re.DOTALL)
-            if subtitle_match:
-                name += ", %s" % subtitle_match.group(1)
-            episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode_id
-            CheckAutoplay(name, episode_url, iconimage, plot)
-        # Check if a next page exists and if so return the index
-    nextpage = re.compile('<span class="next txt"> <a href=".+?page=(\d+)">').findall(html)
-    return nextpage
-
-
 def GetFilteredCategory(url):
     """Parses the programmes available in the category view."""
     NEW_URL = 'http://www.bbc.co.uk/iplayer/categories/%s/all?sort=atoz' % url
-    nextpage = ScrapeCategoryEpisodes(NEW_URL)
-    # Some categories consist of several pages, we need to parse all of them.
-    while True:
-        try:
-            temp_url = '%s&page=%s' % (NEW_URL, nextpage[0])
-            nextpage = ScrapeCategoryEpisodes(temp_url)
-        except:
-            break
+
+    ScrapeEpisodes(NEW_URL)
 
 
 def GetEpisodeInfo(url):
@@ -577,91 +510,13 @@ def ListHighlights(url):
         store.close()
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-
-
-def GetGroups(url):
-    """Scrapes information on a particular group, a special kind of collection."""
-    new_url = "http://www.bbc.co.uk/iplayer/group/%s" % url
-
-    more_pages = True
-    while more_pages:
-        more_pages = False
-
-        html = OpenURL(new_url)
-        soup = BeautifulSoup(html,"html.parser")
-
-        #<li class="list-item episode numbered" data-ip-id="b06pmn74">
-        links = soup.find_all("li", {"class":"episode"})
-        for link in links:
-
-            #<li class="list-item episode numbered" data-ip-id="b06pmn74">
-            id = link["data-ip-id"]
-
-            #<a class="list-item-link stat" data-object-type="episode-most-popular" data-page-branded="0" data-progress-state="" href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders, 10/11/2015">
-            url = ''
-            link_tag = link.find("a", {"class":"stat"})
-            if link_tag:
-                url = 'http://www.bbc.co.uk/' + link_tag["href"]
-
-            #<div class="title">EastEnders</div>
-            title = ''
-            title_tag = link.find("div", {"class":"title"})
-            if title_tag:
-                title = ''.join(title_tag.stripped_strings)
-
-            #<div class="subtitle">10/11/2015</div>
-            subtitle_tag = link.find("div", {"class":"subtitle"})
-            subtitle = ''
-            if subtitle_tag:
-                subtitle = ''.join(subtitle_tag.stripped_strings)
-                title = title + " - " + subtitle
-
-            icon = ''
-            #<div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg" data-ip-type="episode">
-            image_tag = link.find("div", {"class":"r-image"})
-            if image_tag:
-                icon = image_tag["data-ip-src"]
-                icon = icon.replace('336x189', '832x468')
-
-            #<p class="synopsis">Ronnie and Dean continue to fight for Roxy. Tensions grow at the Vic.</p>
-            synopsis = ''
-            synopsis_tag = link.find("p", {"class":"synopsis"})
-            if synopsis_tag:
-                synopsis = ''.join(synopsis_tag.stripped_strings)
-
-            #<span class="release">\nFirst shown: 10 Nov 2015\n</span>
-            aired = None
-            release_tag = link.find("span", {"class":"release"})
-            if release_tag:
-                string = ''.join(release_tag.stripped_strings)
-                release_parts = string.split(' ')
-                year = release_parts[-1]
-                month = release_parts[-2]
-                monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
-                if month in monthDict:
-                    month = monthDict[month]
-                    day = release_parts[-3].rjust(2,'0')
-                else:
-                    month = '01'
-                    day = '01'
-                aired = year + '-' + month + '-' + day
-
-            CheckAutoplay(title, url, icon, synopsis, aired)
-
-        #<span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2"> Next <span class="tvip-hide">page</span>
-        href = soup.select(".paginate .next a[href]")
-        if href:
-            new_url = 'http://www.bbc.co.uk' + href[0]["href"]
-            more_pages = True
-
-
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    if ADDON.getSetting('find_missing_images') == 'true':
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 
 
 def ListMostPopular():
     """Scrapes all episodes of the most popular page."""
-    GetGroups('most-popular')
+    ScrapeEpisodes("http://www.bbc.co.uk/iplayer/group/most-popular")
 
 
 def Search():
@@ -679,42 +534,6 @@ def Search():
 
 def ParseImageUrl(url):
     return url.replace("{recipe}", "288x162")
-
-def GetEpisodes(programme_id):
-    """Gets all programmes corresponding to a certain programme ID."""
-    # Construct URL and load HTML
-    url = 'http://www.bbc.co.uk/iplayer/episodes/%s' % programme_id
-    html = OpenURL(url)
-
-    while True:
-        # Extract all programmes from the page
-        match = re.compile(
-            'data-ip-id=".+?">.+?<a href="(.+?)" title="(.+?)'
-            '".+?data-ip-src="(.+?)">.+?class="synopsis">(.+?)</p>'
-            '(.+?)<div class="period"',
-            re.DOTALL).findall(html)
-
-        for URL, name, iconimage, plot, more in match:
-            _URL_ = 'http://www.bbc.co.uk/%s' % URL
-            aired = re.search(
-                '.+?class="release">\s+First shown: (.+?)\n',
-                more,
-                re.DOTALL)
-            aired = ParseAired(aired.group(1) if aired else '')
-            CheckAutoplay(name, _URL_, iconimage.replace('336x189', '832x468'), plot, aired=aired)
-
-        # If there is only one match, this is one programme only.
-        if len(match) == 1:
-            break
-
-        # Some programmes consist of several pages, check if a next page exists and if so load it.
-        nextpage = re.compile('<span class="next bp1"> <a href=".+?page=(\d+)">').findall(html)
-        if not nextpage:
-            xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-            xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
-            break
-        temp_url = '%s?page=%s' % (url, nextpage[0])
-        html = OpenURL(temp_url)
 
 
 def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
@@ -1454,7 +1273,8 @@ elif mode == 109:
 
 # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
-    GetEpisodes(url)
+    new_url = 'http://www.bbc.co.uk/iplayer/episodes/%s' % url
+    ScrapeEpisodes(new_url)
 
 elif mode == 122:
     GetAvailableStreams(name, url, iconimage, description)
@@ -1472,7 +1292,9 @@ elif mode == 126:
     GetFilteredCategory(url)
 
 elif mode == 127:
-    GetGroups(url)
+    #GetGroups(url)
+    new_url = "http://www.bbc.co.uk/iplayer/group/%s" % url
+    ScrapeEpisodes(new_url)
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:
