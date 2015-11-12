@@ -349,8 +349,8 @@ def ListHighlights(url):
     info = dict()
     if ADDON.getSetting('find_missing_images') == 'true':
 
-        pDialog = xbmcgui.DialogProgress()
-        pDialog.create('iPlayer', 'Opening Highlights ...')
+        pDialog = xbmcgui.DialogProgressBG()
+        pDialog.create('iPlayer: Finding images...')
 
         dataPath = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8')
         path = os.path.join(dataPath, 'episode_info')
@@ -441,10 +441,10 @@ def ListHighlights(url):
                 episode = episode + 1
                 percent = int(100.0 * processed / total)
                 percent = percent + episode_percent
-                pDialog.update(percent, "Finding images...", name)
+                pDialog.update(percent, "iPlayer: Finding images...", name)
                 #TODO this doesn't work
-                if pDialog.iscanceled():
-                    CATEGORIES
+                #if pDialog.iscanceled():
+                #    CATEGORIES
 
             description = 'no description'
             aired = None
@@ -510,6 +510,7 @@ def ListHighlights(url):
         store = open(path,'wb')
         pickle.dump(info, store)
         store.close()
+        pDialog.close()
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     if ADDON.getSetting('find_missing_images') == 'true':
