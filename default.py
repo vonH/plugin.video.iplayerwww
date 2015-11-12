@@ -483,11 +483,11 @@ def ListHighlights(url):
                     (unixtime, episode_name, episode_description, episode_icon, episode_aired) = info[id]
                 else:
                     (episode_name, episode_description, episode_icon, episode_aired) = GetEpisodeInfo(url)
+                    info[id] = (time.time(), episode_name, episode_description, episode_icon, episode_aired)
                 name = episode_name
                 icon = episode_icon
                 description = episode_description
                 aired = episode_aired
-                info[id] = (time.time(), episode_name, episode_description, episode_icon, episode_aired)
 
             if icon:
                 icon_id = icon.rsplit('/',1)[-1]
