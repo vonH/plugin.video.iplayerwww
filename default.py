@@ -1292,7 +1292,6 @@ elif mode == 126:
     GetFilteredCategory(url)
 
 elif mode == 127:
-    #GetGroups(url)
     new_url = "http://www.bbc.co.uk/iplayer/group/%s" % url
     ScrapeEpisodes(new_url)
 
