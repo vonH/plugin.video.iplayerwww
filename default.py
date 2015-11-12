@@ -287,7 +287,8 @@ def GetEpisodeInfo(url):
         string = ''.join(title_tag.stripped_strings)
         string = re.sub(r"\s+", " ", string, flags=re.UNICODE)
         name_parts = string.split('-')[1:]
-        name = '-'.join(name_parts)           
+        name = '-'.join(name_parts)
+        name = name.strip()
         
     #<meta name="description" content="Glitch makes a sandcastle around an oasis in the Sahara. Can the Go Jetters save the day?">
     description = 'no description'
@@ -400,8 +401,9 @@ def ListHighlights(url):
             count = '(' + string + ')'
             if string.endswith('programmes'):
                 groups.add(group)
-             
-        AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 127, '', '', '')
+                AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 127, '', '', '')
+            else:
+                AddMenuEntry('%s %s' % (name, count), url, 121, '', '', '')
 
     ids = set()
     total = 0
