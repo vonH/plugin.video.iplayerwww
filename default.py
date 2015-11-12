@@ -129,6 +129,25 @@ def ParseAired(aired):
     return ''
 
 
+def FindAired(soup):
+    release_tag = soup.find("span", {"class":"release"})
+    if release_tag:
+        string = ''.join(release_tag.stripped_strings)
+        release_parts = string.split(' ')
+        year = release_parts[-1]
+        month = release_parts[-2]
+        monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
+        if month in monthDict:
+            month = monthDict[month]
+            day = release_parts[-3].rjust(2,'0')
+        else:
+            month = '01'
+            day = '01'
+        aired = year + '-' + month + '-' + day
+        return aired
+    return None
+
+
 def ScrapeEpisodes(url):
 
     new_url = url
@@ -222,21 +241,7 @@ def ScrapeEpisodes(url):
                 synopsis = ''.join(synopsis_tag.stripped_strings)
 
             #<span class="release">\nFirst shown: 10 Nov 2015\n</span>
-            aired = None
-            release_tag = link.find("span", {"class":"release"})
-            if release_tag:
-                string = ''.join(release_tag.stripped_strings)
-                release_parts = string.split(' ')
-                year = release_parts[-1]
-                month = release_parts[-2]
-                monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
-                if month in monthDict:
-                    month = monthDict[month]
-                    day = release_parts[-3].rjust(2,'0')
-                else:
-                    month = '01'
-                    day = '01'
-                aired = year + '-' + month + '-' + day
+            aired = FindAired(link)
 
             CheckAutoplay(name, url, icon, synopsis, aired)
 
@@ -328,21 +333,7 @@ def GetEpisodeInfo(url):
         icon = img_tag["content"]
 
     #<span class="release"> First shown: 5:20pm 29 Oct 2015 </span>
-    aired = None
-    release_tag = soup.find("span", {"class":"release"})
-    if release_tag:
-        string = ''.join(release_tag.stripped_strings)
-        release_parts = string.split(' ')
-        year = release_parts[-1]
-        month = release_parts[-2]
-        monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
-        if month in monthDict:
-            month = monthDict[month]
-            day = release_parts[-3].rjust(2,'0')
-        else:
-            month = '01'
-            day = '01'
-        aired = year + '-' + month + '-' + day
+    aired = FindAired(soup)
 
     return (name, description, icon, aired)
 
