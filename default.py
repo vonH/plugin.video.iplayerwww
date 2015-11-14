@@ -148,6 +148,16 @@ def FindAired(soup):
     return None
 
 
+def GetEpisodes(url):
+    new_url = 'http://www.bbc.co.uk/iplayer/episodes/%s' % url
+    ScrapeEpisodes(new_url)
+
+
+def GetGroup(url):
+    new_url = "http://www.bbc.co.uk/iplayer/group/%s" % url
+    ScrapeEpisodes(new_url)
+
+
 def ScrapeEpisodes(url):
 
     new_url = url
@@ -1289,8 +1299,7 @@ elif mode == 109:
 
 # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
-    new_url = 'http://www.bbc.co.uk/iplayer/episodes/%s' % url
-    ScrapeEpisodes(new_url)
+    GetEpisodes(url)
 
 elif mode == 122:
     GetAvailableStreams(name, url, iconimage, description)
@@ -1308,8 +1317,7 @@ elif mode == 126:
     GetFilteredCategory(url)
 
 elif mode == 127:
-    new_url = "http://www.bbc.co.uk/iplayer/group/%s" % url
-    ScrapeEpisodes(new_url)
+    GetGroup(url)
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:
