@@ -405,6 +405,7 @@ def ListHighlights(url):
 
         link = link.parent
         href = link.a["href"]
+        print href
         if href in hrefs:
             continue
         hrefs.add(href)
@@ -429,7 +430,7 @@ def ListHighlights(url):
                 groups.add(group)
                 AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 127, '', '', '')
             else:
-                AddMenuEntry('%s %s' % (name, count), url, 121, '', '', '')
+                AddMenuEntry('%s %s' % (name, count), url, 127, '', '', '')
 
     ids = set()
     total = 0
