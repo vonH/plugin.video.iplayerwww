@@ -315,42 +315,6 @@ def GetFilteredCategory(url):
     ScrapeEpisodes(NEW_URL)
 
 
-def GetEpisodeInfo(url):
-    html = OpenURL(url)
-    soup = BeautifulSoup(html,"html.parser")
-
-    #<title>BBC iPlayer - Around the World with the Go Jetters - Go Jetters - 4. The Sahara Desert, Africa</title>
-    name = 'the episode with no name'
-    title_tag = soup.find(name="title")
-    if title_tag:
-        string = ''.join(title_tag.stripped_strings)
-        string = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-        name_parts = string.split('-')[1:]
-        name = '-'.join(name_parts)
-        name = name.strip()
-
-    #<meta name="description" content="Glitch makes a sandcastle around an oasis in the Sahara. Can the Go Jetters save the day?">
-    description = 'no description'
-    description_tag = soup.find("meta", {"name":"description"})
-    if description_tag:
-        description = description_tag["content"]
-
-    #<meta property="og:image" content="http://ichef.bbci.co.uk/images/ic/1200x675/p0369f42.jpg">
-    icon = ''
-    img_tag = soup.find(name="meta",property="og:image")
-    if img_tag:
-        icon = img_tag["content"]
-
-    #<span class="release"> First shown: 5:20pm 29 Oct 2015 </span>
-    aired = ''
-    release_tag = soup.find("span", {"class":"release"})
-    if release_tag:
-        string = ''.join(release_tag.stripped_strings)
-        aired = FirstShownToAired(string)
-
-    return (name, description, icon, aired)
-
-
 def ListChannelHighlights():
     """Creates a list directories linked to the highlights section of each channel."""
     channel_list = [
@@ -371,12 +335,12 @@ def ListChannelHighlights():
         AddMenuEntry(name, id, 106, iconimage, '', '')
 
 
-def ListHighlights(url):
+def ListHighlights(highlights_url):
     """Creates a list of the programmes in the highlights section.
     All entries are scraped of the intro page and the pages linked from the intro page.
     """
 
-    html = OpenURL('http://www.bbc.co.uk/%s' % url)
+    html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url)
     soup = BeautifulSoup(html,"html.parser")
 
     for grouped_items in soup.find_all(class_="grouped-items"):
@@ -394,6 +358,7 @@ def ListHighlights(url):
         grouped_items__img = grouped_items.find("div",{"class":"grouped-items__img"})
         if grouped_items__img:
             icon = grouped_items__img.img["src"] #TODO image recipe
+            print icon
         else:
             icon = 'DefaultVideo.png'
 
@@ -405,7 +370,7 @@ def ListHighlights(url):
         #NOTE new behaviour - drill down for collection's episodes so that aired, images, description and title will be consistent
 
     for single_item in soup.find_all("a", attrs={"class":"single-item"}):
-
+        print single_item
         type = single_item["data-object-type"]
         href = single_item["href"]
 
@@ -429,12 +394,13 @@ def ListHighlights(url):
         r_image = single_item.find(class_="r-image")
         icon = r_image["data-ip-src"]
 
-        if type == "episode-featured":
-            url = 'http://www.bbc.co.uk' + href
-            CheckAutoplay(title, url, icon, desc, aired)
-        elif type == "editorial-promo": # Only on BBC iPlayer
+        if type == "editorial-promo": # Only on BBC iPlayer
             url = href.rsplit('/',1)[1]
             AddMenuEntry(' Collection - %s' % (title), url, 127, icon, '', '')
+        else:
+            if type == "episode-featured" or (highlights_url in ['tv/bbcnews', 'tv/bbcparliament'] and type == "episode-backfill"):
+                url = 'http://www.bbc.co.uk' + href
+                CheckAutoplay(title, url, icon, desc, aired)
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
