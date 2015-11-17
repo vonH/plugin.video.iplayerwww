@@ -128,24 +128,19 @@ def ParseAired(aired):
             pass
     return ''
 
-
-def FindAired(soup):
-    release_tag = soup.find("span", {"class":"release"})
-    if release_tag:
-        string = ''.join(release_tag.stripped_strings)
-        release_parts = string.split(' ')
-        year = release_parts[-1]
-        month = release_parts[-2]
-        monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
-        if month in monthDict:
-            month = monthDict[month]
-            day = release_parts[-3].rjust(2,'0')
-        else:
-            month = '01'
-            day = '01'
-        aired = year + '-' + month + '-' + day
-        return aired
-    return None
+def FirstShownToAired(first_shown):
+    release_parts = first_shown.split(' ')
+    year = release_parts[-1]
+    month = release_parts[-2]
+    monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
+    if month in monthDict:
+        month = monthDict[month]
+        day = release_parts[-3].rjust(2,'0')
+    else:
+        month = '01'
+        day = '01'
+    aired = year + '-' + month + '-' + day
+    return aired
 
 
 def GetEpisodes(url):
@@ -251,7 +246,11 @@ def ScrapeEpisodes(url):
                 synopsis = ''.join(synopsis_tag.stripped_strings)
 
             #<span class="release">\nFirst shown: 10 Nov 2015\n</span>
-            aired = FindAired(link)
+            aired = ''
+            release_tag = link.find("span", {"class":"release"})
+            if release_tag:
+                string = ''.join(release_tag.stripped_strings)
+                aired = FirstShownToAired(string)
 
             CheckAutoplay(name, url, icon, synopsis, aired)
 
@@ -343,7 +342,11 @@ def GetEpisodeInfo(url):
         icon = img_tag["content"]
 
     #<span class="release"> First shown: 5:20pm 29 Oct 2015 </span>
-    aired = FindAired(soup)
+    aired = ''
+    release_tag = soup.find("span", {"class":"release"})
+    if release_tag:
+        string = ''.join(release_tag.stripped_strings)
+        aired = FirstShownToAired(string)
 
     return (name, description, icon, aired)
 
@@ -372,404 +375,69 @@ def ListHighlights(url):
     """Creates a list of the programmes in the highlights section.
     All entries are scraped of the intro page and the pages linked from the intro page.
     """
-    info = dict()
-    if ADDON.getSetting('find_missing_images') == 'true':
-
-        pDialog = xbmcgui.DialogProgressBG()
-        pDialog.create('iPlayer: Finding images...')
-
-        dataPath = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8')
-        path = os.path.join(dataPath, 'episode_info')
-        if os.path.isfile(path):
-            with open(path,'rb') as store:
-                try:
-                    info = pickle.load(store)
-                    now = time.time()
-                    expire = now - 60*60*24*30
-                    for id in info.keys():
-                        (unixtime, episode_name, episode_description, episode_icon, episode_aired) = info[id]
-                        if unixtime < expire:
-                            del info[id]
-                except:
-                    pass
-                store.close()
 
     html = OpenURL('http://www.bbc.co.uk/%s' % url)
     soup = BeautifulSoup(html,"html.parser")
 
-    groups = set()
-
-    # Groups
-    hrefs = set()
-    
-    
     for grouped_items in soup.find_all(class_="grouped-items"):
-        #print grouped_items
-        print "GROUP"
-        print grouped_items["data-group-name"]
-        print grouped_items["data-group-id"]
-        print grouped_items["data-group-type"]
+
+        name = grouped_items["data-group-name"]
+        id = grouped_items["data-group-id"]
+        type = grouped_items["data-group-type"]
+
         group_list_link = grouped_items.find("a",{"data-object-type":"group-list-link"})
-        print group_list_link["href"]
+        href  = group_list_link["href"]
+        url = href.rsplit('/',1)[1]
+
         grouped_items__cta = grouped_items.find(class_="grouped-items__cta")
-        print ' '.join(grouped_items__cta.stripped_strings)
+        count = ' '.join(grouped_items__cta.stripped_strings)
         grouped_items__img = grouped_items.find("div",{"class":"grouped-items__img"})
-        image = grouped_items__img.img["src"]
-        print image
-        print "-"
-        for grouped_items__list_item in grouped_items.find_all(class_="grouped-items__list-item"):
-            print "ITEM"
-            link = grouped_items__list_item.find(class_="grouped-items__list-link")
-            print link["href"]
-            title = grouped_items__list_item.find(class_="grouped-items__title")
-            print ' '.join(title.stripped_strings)
-            subtitle = grouped_items__list_item.find(class_="grouped-items__subtitle")
-            if subtitle:
-                print ' '.join(subtitle.stripped_strings)
-            else:
-                print "NO SUBTITLE"
-            print "#"
-            # no desc
-            # no image
-            
-    
-    for single_item in soup.find_all("a",{"class":"single-item"},{"data-object-type":"episode-featured"}):
-        print "SINGLE"
-        print single_item["href"]
-        #print single_item
+        if grouped_items__img:
+            icon = grouped_items__img.img["src"] #TODO image recipe
+        else:
+            icon = 'DefaultVideo.png'
+
+        if type == "series-catchup":
+            AddMenuEntry('%s (%s)' % (name, count), url, 127, icon, '', '')
+        else:
+            AddMenuEntry(' Collection - %s (%s)' % (name, count), url, 127, icon, '', '')
+
+        #NOTE new behaviour - drill down for collection's episodes so that aired, images, description and title will be consistent
+
+    for single_item in soup.find_all("a", attrs={"class":"single-item"}):
+
+        type = single_item["data-object-type"]
+        href = single_item["href"]
+
         single_item__title = single_item.find(class_="single-item__title")
-        print ' '.join(single_item__title.stripped_strings)
+        title = ' '.join(single_item__title.stripped_strings)
+
         single_item__subtitle = single_item.find(class_="single-item__subtitle")
         if single_item__subtitle:
             subtitle = ' '.join(single_item__subtitle.stripped_strings)
-            print repr(subtitle)
-        else:
-            print "NO SUBTITLE"
+            title = title + ' - ' + subtitle
+
         single_item__desc = single_item.find(class_="single-item__overlay__desc")
         desc = ' '.join(single_item__desc.stripped_strings)
-        print repr(desc)
+
+        aired = None
         single_item__overlay__subtitle = single_item.find(class_="single-item__overlay__subtitle")
         if single_item__overlay__subtitle:
             subdesc = ' '.join(single_item__overlay__subtitle.stripped_strings)
-            print repr(subdesc)
-        else:
-            print "NO SUBDESC"
+            aired = FirstShownToAired(subdesc)
+
         r_image = single_item.find(class_="r-image")
-        print r_image["data-ip-src"]
-        print "~"
-        
-        
-        
-    for link in soup.find_all(href=re.compile("iplayer/group")):
+        icon = r_image["data-ip-src"]
 
-        link = link.parent
-        href = link.a["href"]
-        #print href
-        if href in hrefs:
-            continue
-        hrefs.add(href)
-        url = href.rsplit('/',1)[1]
-
-        title = link.find(class_=["single-item__title","grouped-item__title","grouped-items__title"])
-        name = "unnamed group"
-        group = 'unnamed group'
-        if title:
-            string = ''.join(title.stripped_strings)
-            group = string
-            name = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-
-        link = link.parent
-        title = link.find(class_=["single-item__item-count","grouped-item__item-count","grouped-items__item-count"])
-        count = ''
-        if title:
-            string = ''.join(title.stripped_strings)
-            string = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-            count = '(' + string + ')'
-            if string.endswith('programmes'):
-                groups.add(group)
-                AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 127, '', '', '')
-            else:
-                AddMenuEntry('%s %s' % (name, count), url, 127, '', '', '')
-
-    ids = set()
-    total = 0
-    processed = 0
-
-    # inner function
-    def ProcessLinks(soup, ids, processed, group_title=''):
-
-        links = soup.find_all(href=re.compile("episode"))
-        total_episodes = len(links)
-        episode = 0
-        for link in links :
-
-            href = link["href"]
-            id = href.rsplit('/')[3]
-            if id in ids:
-                continue
-            ids.add(id)
+        if type == "episode-featured":
             url = 'http://www.bbc.co.uk' + href
-
-            name = 'the episode with no name'
-            title = link.find(class_=["single-item__title","group-item__title","grouped-items__title"])
-            if title:
-                string = ''.join(title.stripped_strings)
-                name = group_title + re.sub(r"\s+", " ", string, flags=re.UNICODE)
-                subtitle = link.find(class_=["single-item__subtitle","group-item__subtitle","grouped-items__subtitle"])
-                if subtitle:
-                    string = ''.join(subtitle.stripped_strings)
-                    #TODO inconsistent: sometimes this is full of the plot summary (eg bbcone Doctor Who)
-                    name = name + ' - ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
-
-            if ADDON.getSetting('find_missing_images') == 'true':
-                fraction = 100.0 / total
-                episode_percent = int(fraction * episode / total_episodes)
-                episode = episode + 1
-                percent = int(100.0 * processed / total)
-                percent = percent + episode_percent
-                pDialog.update(percent, "iPlayer: Finding images...", name)
-
-            description = 'no description'
-            aired = None
-            desc = link.find(class_=["single-item__overlay__desc","group-item__overlay__desc","grouped-items__overlay__desc"])
-            if desc:
-                string = ''.join(desc.stripped_strings)
-                description = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-                subdesc = link.find(class_=["single-item__overlay__subtitle","group-item__overlay__subtitle","grouped-items__overlay__subtitle"])
-                if subdesc:
-                    string = ''.join(subdesc.stripped_strings)
-                    aired = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-                    aired = ParseAired(aired)
-
-            icon = ''
-            image = link.find(class_=["single-item__img","group-item__img","grouped-items__img"])
-            if image:
-                rimage = image.find(class_="r-image")
-                if rimage:
-                    icon = rimage["data-ip-src"]
-
-            if ADDON.getSetting('find_missing_images') == 'true':
-                if id in info:
-                    (unixtime, episode_name, episode_description, episode_icon, episode_aired) = info[id]
-                else:
-                    (episode_name, episode_description, episode_icon, episode_aired) = GetEpisodeInfo(url)
-                    info[id] = (time.time(), episode_name, episode_description, episode_icon, episode_aired)
-                name = episode_name
-                icon = episode_icon
-                description = episode_description
-                aired = episode_aired
-
-            if icon:
-                icon_id = icon.rsplit('/',1)[-1]
-                icon = 'http://ichef.bbci.co.uk/images/ic/832x468/' + icon_id
-            else:
-                icon = 'DefaultVideo.png'
-
-            CheckAutoplay(name, url, icon, description, aired)
-
-        processed = processed + 1
-        return (ids, info, processed)
-
-
-    # Group Episodes
-    group_tags = soup.find_all(class_="grouped-items")
-    total = len(group_tags) + 1
-    for group_tag in group_tags:
-
-        group_title = group_tag["data-group-name"] or ''
-        if group_title in groups:
-            group_title = ''
-        else:
-            group_title = group_title + ' - '
-
-        (ids, info, processed) = ProcessLinks(group_tag, ids, processed, group_title)
-
-    # Episodes
-    (ids, info, processed) = ProcessLinks(soup, ids, processed )
-
-    if ADDON.getSetting('find_missing_images') == 'true':
-        dataPath = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8')
-        path = os.path.join(dataPath, 'episode_info')
-        store = open(path,'wb')
-        pickle.dump(info, store)
-        store.close()
-        pDialog.close()
+            CheckAutoplay(title, url, icon, desc, aired)
+        elif type == "editorial-promo": # Only on BBC iPlayer
+            url = href.rsplit('/',1)[1]
+            AddMenuEntry(' Collection - %s' % (title), url, 127, icon, '', '')
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-    if ADDON.getSetting('find_missing_images') == 'true':
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
-
-def ListHighlights1(url):
-    """Creates a list of the programmes in the highlights section.
-    All entries are scraped of the intro page and the pages linked from the intro page.
-    """
-    info = dict()
-    if ADDON.getSetting('find_missing_images') == 'true':
-
-        pDialog = xbmcgui.DialogProgressBG()
-        pDialog.create('iPlayer: Finding images...')
-
-        dataPath = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8')
-        path = os.path.join(dataPath, 'episode_info')
-        if os.path.isfile(path):
-            with open(path,'rb') as store:
-                try:
-                    info = pickle.load(store)
-                    now = time.time()
-                    expire = now - 60*60*24*30
-                    for id in info.keys():
-                        (unixtime, episode_name, episode_description, episode_icon, episode_aired) = info[id]
-                        if unixtime < expire:
-                            del info[id]
-                except:
-                    pass
-                store.close()
-
-    html = OpenURL('http://www.bbc.co.uk/%s' % url)
-    soup = BeautifulSoup(html,"html.parser")
-
-    groups = set()
-
-    # Groups
-    hrefs = set()
-    for link in soup.find_all(href=re.compile("iplayer/group")):
-
-        link = link.parent
-        href = link.a["href"]
-        print href
-        if href in hrefs:
-            continue
-        hrefs.add(href)
-        url = href.rsplit('/',1)[1]
-
-        title = link.find(class_=["single-item__title","grouped-item__title","grouped-items__title"])
-        name = "unnamed group"
-        group = 'unnamed group'
-        if title:
-            string = ''.join(title.stripped_strings)
-            group = string
-            name = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-
-        link = link.parent
-        title = link.find(class_=["single-item__item-count","grouped-item__item-count","grouped-items__item-count"])
-        count = ''
-        if title:
-            string = ''.join(title.stripped_strings)
-            string = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-            count = '(' + string + ')'
-            if string.endswith('programmes'):
-                groups.add(group)
-                AddMenuEntry('  %s - %s %s' % (translation(31014), name, count), url, 127, '', '', '')
-            else:
-                AddMenuEntry('%s %s' % (name, count), url, 127, '', '', '')
-
-    ids = set()
-    total = 0
-    processed = 0
-
-    # inner function
-    def ProcessLinks(soup, ids, processed, group_title=''):
-
-        links = soup.find_all(href=re.compile("episode"))
-        total_episodes = len(links)
-        episode = 0
-        for link in links :
-
-            href = link["href"]
-            id = href.rsplit('/')[3]
-            if id in ids:
-                continue
-            ids.add(id)
-            url = 'http://www.bbc.co.uk' + href
-
-            name = 'the episode with no name'
-            title = link.find(class_=["single-item__title","group-item__title","grouped-items__title"])
-            if title:
-                string = ''.join(title.stripped_strings)
-                name = group_title + re.sub(r"\s+", " ", string, flags=re.UNICODE)
-                subtitle = link.find(class_=["single-item__subtitle","group-item__subtitle","grouped-items__subtitle"])
-                if subtitle:
-                    string = ''.join(subtitle.stripped_strings)
-                    #TODO inconsistent: sometimes this is full of the plot summary (eg bbcone Doctor Who)
-                    name = name + ' - ' + re.sub(r"\s+", " ", string, flags=re.UNICODE)
-
-            if ADDON.getSetting('find_missing_images') == 'true':
-                fraction = 100.0 / total
-                episode_percent = int(fraction * episode / total_episodes)
-                episode = episode + 1
-                percent = int(100.0 * processed / total)
-                percent = percent + episode_percent
-                pDialog.update(percent, "iPlayer: Finding images...", name)
-
-            description = 'no description'
-            aired = None
-            desc = link.find(class_=["single-item__overlay__desc","group-item__overlay__desc","grouped-items__overlay__desc"])
-            if desc:
-                string = ''.join(desc.stripped_strings)
-                description = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-                subdesc = link.find(class_=["single-item__overlay__subtitle","group-item__overlay__subtitle","grouped-items__overlay__subtitle"])
-                if subdesc:
-                    string = ''.join(subdesc.stripped_strings)
-                    aired = re.sub(r"\s+", " ", string, flags=re.UNICODE)
-                    aired = ParseAired(aired)
-
-            icon = ''
-            image = link.find(class_=["single-item__img","group-item__img","grouped-items__img"])
-            if image:
-                rimage = image.find(class_="r-image")
-                if rimage:
-                    icon = rimage["data-ip-src"]
-
-            if ADDON.getSetting('find_missing_images') == 'true':
-                if id in info:
-                    (unixtime, episode_name, episode_description, episode_icon, episode_aired) = info[id]
-                else:
-                    (episode_name, episode_description, episode_icon, episode_aired) = GetEpisodeInfo(url)
-                    info[id] = (time.time(), episode_name, episode_description, episode_icon, episode_aired)
-                name = episode_name
-                icon = episode_icon
-                description = episode_description
-                aired = episode_aired
-
-            if icon:
-                icon_id = icon.rsplit('/',1)[-1]
-                icon = 'http://ichef.bbci.co.uk/images/ic/832x468/' + icon_id
-            else:
-                icon = 'DefaultVideo.png'
-
-            CheckAutoplay(name, url, icon, description, aired)
-
-        processed = processed + 1
-        return (ids, info, processed)
-
-
-    # Group Episodes
-    group_tags = soup.find_all(class_="grouped-items")
-    total = len(group_tags) + 1
-    for group_tag in group_tags:
-
-        group_title = group_tag["data-group-name"] or ''
-        if group_title in groups:
-            group_title = ''
-        else:
-            group_title = group_title + ' - '
-
-        (ids, info, processed) = ProcessLinks(group_tag, ids, processed, group_title)
-
-    # Episodes
-    (ids, info, processed) = ProcessLinks(soup, ids, processed )
-
-    if ADDON.getSetting('find_missing_images') == 'true':
-        dataPath = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8')
-        path = os.path.join(dataPath, 'episode_info')
-        store = open(path,'wb')
-        pickle.dump(info, store)
-        store.close()
-        pDialog.close()
-
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-    if ADDON.getSetting('find_missing_images') == 'true':
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 
 
 def ListMostPopular():
