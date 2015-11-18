@@ -250,6 +250,9 @@ def ScrapeEpisodes(url):
             percent = int(100*page/total_pages)
             pDialog.update(percent,'iPlayer: Finding episodes...',name)
 
+        percent = int(100*page/total_pages)
+        pDialog.update(percent,'iPlayer: Finding episodes...',name)
+
         page = page + 1
 
         #<span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2"> Next <span class="tvip-hide">page</span>
