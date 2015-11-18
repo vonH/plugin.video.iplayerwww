@@ -181,11 +181,11 @@ def ScrapeEpisodes(url):
             soup = BeautifulSoup(html,"html.parser")
 
         #<li class="list-item episode numbered" data-ip-id="b06pmn74">
-        links = soup.find_all("li", {"class":["programme", "episode"]})
+        links = soup.find_all("li", {"class":["programme", "episode", "group"]})
         for link in links:
 
             #<li class="list-item episode numbered" data-ip-id="b06pmn74">
-            id = link["data-ip-id"]
+            #id = link["data-ip-id"]
 
             #<a class="list-item-link stat" data-object-type="episode-most-popular" data-page-branded="0" data-progress-state="" href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders, 10/11/2015">
             url = ''
@@ -228,7 +228,13 @@ def ScrapeEpisodes(url):
                 string = ''.join(release_tag.stripped_strings)
                 aired = FirstShownToAired(string)
 
-            CheckAutoplay(name, url, icon, synopsis, aired)
+            #<li class="list-item group">
+            if "group" in link["class"]:
+                count_tag = link.find("em", {"class":"view-more-heading"})
+                count = '(' + ' '.join(count_tag.stripped_strings) + ' programmes)'
+                AddMenuEntry('[B]%s[/B] %s' % (title, count), url, 128, icon, '', '')
+            else:
+                CheckAutoplay(name, url, icon, synopsis, aired)
 
             url = ''
             count = ''
@@ -245,9 +251,6 @@ def ScrapeEpisodes(url):
             pDialog.update(percent,'iPlayer: Finding episodes...',name)
 
         page = page + 1
-
-        percent = int(100*page/total_pages)
-        pDialog.update(percent,'iPlayer: Finding episodes...')
 
         #<span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2"> Next <span class="tvip-hide">page</span>
         href = soup.select(".paginate .next a[href]")
@@ -345,7 +348,6 @@ def ListHighlights(highlights_url):
         grouped_items__img = grouped_items.find("div",{"class":"grouped-items__img"})
         if grouped_items__img:
             icon = grouped_items__img.img["src"] #TODO image recipe
-            print icon
         else:
             icon = 'DefaultVideo.png'
 
@@ -357,7 +359,6 @@ def ListHighlights(highlights_url):
         #NOTE new behaviour - drill down for collection's episodes so that aired, images, description and title will be consistent
 
     for single_item in soup.find_all("a", attrs={"class":"single-item"}):
-        print single_item
         type = single_item["data-object-type"]
         href = single_item["href"]
 
@@ -382,9 +383,8 @@ def ListHighlights(highlights_url):
         r_image = single_item.find(class_="r-image")
         icon = r_image["data-ip-src"]
 
-        if type == "editorial-promo": # Only on BBC iPlayer
-            url = href.rsplit('/',1)[1]
-            AddMenuEntry(' [B]%s[/B]' % (title), url, 127, icon, '', '')
+        if type == "editorial-promo": 
+            AddMenuEntry(' [B]%s[/B]' % (title), href, 128, icon, '', '')
         else:
             if (type == "episode-featured" or
                 (highlights_url in ['tv/bbcnews', 'tv/bbcparliament'] and type == "episode-backfill")):
@@ -1174,6 +1174,9 @@ elif mode == 126:
 
 elif mode == 127:
     GetGroup(url)
+
+elif mode == 128:
+    ScrapeEpisodes(url)
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:
