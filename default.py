@@ -180,32 +180,6 @@ def ScrapeEpisodes(url):
             html = OpenURL(new_url)
             soup = BeautifulSoup(html,"html.parser")
 
-        #Programme Groups
-
-        links = soup.find_all("li", {"class":["programme"]})
-
-        for link in links:
-
-            name = ''
-            title_tag = link.find("div", {"class":"title"})
-            if title_tag:
-                name = ''.join(title_tag.stripped_strings)
-
-            url = ''
-            count = ''
-            link_tag = link.find("a", {"class":"avail"})
-            if link_tag:
-
-                url = link_tag["href"].rsplit('/',1)[1]
-                count = '(' + ' '.join(link_tag.stripped_strings) + ')'
-
-                AddMenuEntry('%s %s' % (name, count), url, 121, '', '', '')
-
-                percent = int(100*page/total_pages)
-                pDialog.update(percent,'iPlayer: Finding episodes...',name)
-
-        #Episodes
-
         #<li class="list-item episode numbered" data-ip-id="b06pmn74">
         links = soup.find_all("li", {"class":["programme", "episode"]})
         for link in links:
@@ -221,16 +195,18 @@ def ScrapeEpisodes(url):
 
             #<div class="title">EastEnders</div>
             name = ''
+            title = ''
             title_tag = link.find("div", {"class":"title"})
             if title_tag:
-                name = ''.join(title_tag.stripped_strings)
+                title = ''.join(title_tag.stripped_strings)
+                name = title
 
             #<div class="subtitle">10/11/2015</div>
             subtitle_tag = link.find("div", {"class":"subtitle"})
             subtitle = ''
             if subtitle_tag:
                 subtitle = ''.join(subtitle_tag.stripped_strings)
-                name = name + " - " + subtitle
+                name = title + " - " + subtitle
 
             icon = ''
             #<div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg" data-ip-type="episode">
@@ -253,6 +229,17 @@ def ScrapeEpisodes(url):
                 aired = FirstShownToAired(string)
 
             CheckAutoplay(name, url, icon, synopsis, aired)
+
+            url = ''
+            count = ''
+            #<a class="view-more-container avail stat" href="/iplayer/episodes/b06jn6pl" data-progress-state="">
+            link_tag = link.find("a", {"class":"avail"})
+            if link_tag:
+
+                url = link_tag["href"].rsplit('/',1)[1]
+                count = '(' + ' '.join(link_tag.stripped_strings) + ')'
+
+                AddMenuEntry('[B]%s[/B] %s' % (title, count), url, 121, icon, '', '')
 
             percent = int(100*page/total_pages)
             pDialog.update(percent,'iPlayer: Finding episodes...',name)
@@ -363,9 +350,9 @@ def ListHighlights(highlights_url):
             icon = 'DefaultVideo.png'
 
         if type == "series-catchup":
-            AddMenuEntry('%s (%s)' % (name, count), url, 127, icon, '', '')
+            AddMenuEntry('[B]%s[/B] (%s)' % (name, count), url, 127, icon, '', '')
         else:
-            AddMenuEntry(' Collection - %s (%s)' % (name, count), url, 127, icon, '', '')
+            AddMenuEntry(' [B]%s[/B] (%s)' % (name, count), url, 127, icon, '', '')
 
         #NOTE new behaviour - drill down for collection's episodes so that aired, images, description and title will be consistent
 
@@ -376,11 +363,12 @@ def ListHighlights(highlights_url):
 
         single_item__title = single_item.find(class_="single-item__title")
         title = ' '.join(single_item__title.stripped_strings)
+        name = title
 
         single_item__subtitle = single_item.find(class_="single-item__subtitle")
         if single_item__subtitle:
             subtitle = ' '.join(single_item__subtitle.stripped_strings)
-            title = title + ' - ' + subtitle
+            name = title + ' - ' + subtitle
 
         single_item__desc = single_item.find(class_="single-item__overlay__desc")
         desc = ' '.join(single_item__desc.stripped_strings)
@@ -396,13 +384,13 @@ def ListHighlights(highlights_url):
 
         if type == "editorial-promo": # Only on BBC iPlayer
             url = href.rsplit('/',1)[1]
-            AddMenuEntry(' Collection - %s' % (title), url, 127, icon, '', '')
+            AddMenuEntry(' [B]%s[/B]' % (title), url, 127, icon, '', '')
         else:
-            if (type == "episode-featured" or 
+            if (type == "episode-featured" or
                 (highlights_url in ['tv/bbcnews', 'tv/bbcparliament'] and type == "episode-backfill")):
-                
+
                 url = 'http://www.bbc.co.uk' + href
-                CheckAutoplay(title, url, icon, desc, aired)
+                CheckAutoplay(name, url, icon, desc, aired)
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
