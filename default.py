@@ -215,7 +215,7 @@ def ScrapeEpisodes(url):
 
             #<a class="list-item-link stat" data-object-type="episode-most-popular" data-page-branded="0" data-progress-state="" href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders, 10/11/2015">
             url = ''
-            link_tag = link.find("a", {"class":"stat"})
+            link_tag = link.find("a", {"class":"list-item-link"})
             if link_tag:
                 url = 'http://www.bbc.co.uk/' + link_tag["href"]
 
@@ -337,7 +337,7 @@ def ListChannelHighlights():
 
 def ListHighlights(highlights_url):
     """Creates a list of the programmes in the highlights section.
-    All entries are scraped of the intro page and the pages linked from the intro page.
+       Collections are linked and not scraped for consistent episode info.
     """
 
     html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url)
@@ -398,7 +398,9 @@ def ListHighlights(highlights_url):
             url = href.rsplit('/',1)[1]
             AddMenuEntry(' Collection - %s' % (title), url, 127, icon, '', '')
         else:
-            if type == "episode-featured" or (highlights_url in ['tv/bbcnews', 'tv/bbcparliament'] and type == "episode-backfill"):
+            if (type == "episode-featured" or 
+                (highlights_url in ['tv/bbcnews', 'tv/bbcparliament'] and type == "episode-backfill")):
+                
                 url = 'http://www.bbc.co.uk' + href
                 CheckAutoplay(title, url, icon, desc, aired)
 
