@@ -251,7 +251,7 @@ def ScrapeEpisodes(url):
             pDialog.update(percent,'iPlayer: Finding episodes...',name)
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,'iPlayer: Finding episodes...',name)
+        pDialog.update(percent,'iPlayer: Finding episodes...')
 
         page = page + 1
 
@@ -404,17 +404,19 @@ def ListMostPopular():
     ScrapeEpisodes("http://www.bbc.co.uk/iplayer/group/most-popular")
 
 
-def Search():
+def Search(search_entered):
     """Simply calls the online search function. The search is then evaluated in EvaluateSearch."""
-    search_entered = ''
-    keyboard = xbmc.Keyboard(search_entered, 'Search iPlayer')
-    keyboard.doModal()
-    if keyboard.isConfirmed():
-        search_entered = keyboard.getText() .replace(' ', '%20')  # sometimes you need to replace spaces with + or %20
-        if search_entered is None:
-            return False
-    url = 'http://www.bbc.co.uk/iplayer/search?q=%s' % search_entered
-    ScrapeEpisodes(url)
+    if search_entered is None:
+        keyboard = xbmc.Keyboard('', 'Search iPlayer')
+        keyboard.doModal()
+        if keyboard.isConfirmed():
+            search_entered = keyboard.getText() .replace(' ', '%20')  # sometimes you need to replace spaces with + or %20
+
+    if search_entered is None:
+        return False
+
+    NEW_URL = 'http://www.bbc.co.uk/iplayer/search?q=%s' % search_entered
+    ScrapeEpisodes(NEW_URL)
 
 
 def ParseImageUrl(url):
@@ -1093,6 +1095,7 @@ iconimage = None
 description = None
 subtitles_url = None
 logged_in = False
+keyword = None
 
 try:
     url = utf8_unquote_plus(params["url"])
@@ -1122,6 +1125,10 @@ try:
     logged_in = params['logged_in'] == 'True'
 except:
     pass
+try:
+    keyword = utf8_unquote_plus(params["keyword"])
+except: 
+    pass
 
 
 # These are the modes which tell the plugin where to go.
@@ -1139,7 +1146,7 @@ elif mode == 103:
     ListCategories()
 
 elif mode == 104:
-    Search()
+    Search(keyword)
 
 elif mode == 105:
     ListMostPopular()
