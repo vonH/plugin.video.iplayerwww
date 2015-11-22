@@ -6,7 +6,7 @@
     <import addon="script.module.beautifulsoup4" />
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
-        <provides>video</provides>
+        <provides>video audio</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
     <summary lang="en">Watch TV from BBC iPlayer</summary>
