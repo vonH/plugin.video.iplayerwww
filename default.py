@@ -132,7 +132,9 @@ def FirstShownToAired(first_shown):
     release_parts = first_shown.split(' ')
     year = release_parts[-1]
     month = release_parts[-2]
-    monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
+    monthDict = {
+        'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06',
+        'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
     if month in monthDict:
         month = monthDict[month]
         day = release_parts[-3].rjust(2,'0')
@@ -180,20 +182,22 @@ def ScrapeEpisodes(url):
             html = OpenURL(new_url)
             soup = BeautifulSoup(html,"html.parser")
 
-        #<li class="list-item episode numbered" data-ip-id="b06pmn74">
+        # <li class="list-item episode numbered" data-ip-id="b06pmn74">
         links = soup.find_all("li", {"class":["programme", "episode", "group"]})
         for link in links:
 
-            #<li class="list-item episode numbered" data-ip-id="b06pmn74">
-            #id = link["data-ip-id"]
+            # <li class="list-item episode numbered" data-ip-id="b06pmn74">
+            # id = link["data-ip-id"]
 
-            #<a class="list-item-link stat" data-object-type="episode-most-popular" data-page-branded="0" data-progress-state="" href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders, 10/11/2015">
+            # <a class="list-item-link stat" data-object-type="episode-most-popular" data-page-branded="0"
+            # data-progress-state="" href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders,
+            # 10/11/2015">
             url = ''
             link_tag = link.find("a", {"class":"list-item-link"})
             if link_tag:
                 url = 'http://www.bbc.co.uk/' + link_tag["href"]
 
-            #<div class="title">EastEnders</div>
+            # < div class="title">EastEnders</div>
             name = ''
             title = ''
             title_tag = link.find("div", {"class":"title"})
@@ -201,7 +205,7 @@ def ScrapeEpisodes(url):
                 title = ''.join(title_tag.stripped_strings)
                 name = title
 
-            #<div class="subtitle">10/11/2015</div>
+            # <div class="subtitle">10/11/2015</div>
             subtitle_tag = link.find("div", {"class":"subtitle"})
             subtitle = ''
             if subtitle_tag:
@@ -209,26 +213,27 @@ def ScrapeEpisodes(url):
                 name = title + " - " + subtitle
 
             icon = ''
-            #<div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg" data-ip-type="episode">
+            # <div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg"
+            # data-ip-type="episode">
             image_tag = link.find("div", {"class":"r-image"})
             if image_tag:
                 icon = image_tag["data-ip-src"]
                 icon = icon.replace('336x189', '832x468')
 
-            #<p class="synopsis">Ronnie and Dean continue to fight for Roxy. Tensions grow at the Vic.</p>
+            # <p class="synopsis">Ronnie and Dean continue to fight for Roxy. Tensions grow at the Vic.</p>
             synopsis = ''
             synopsis_tag = link.find("p", {"class":"synopsis"})
             if synopsis_tag:
                 synopsis = ''.join(synopsis_tag.stripped_strings)
 
-            #<span class="release">\nFirst shown: 10 Nov 2015\n</span>
+            # <span class="release">\nFirst shown: 10 Nov 2015\n</span>
             aired = ''
             release_tag = link.find("span", {"class":"release"})
             if release_tag:
                 string = ''.join(release_tag.stripped_strings)
                 aired = FirstShownToAired(string)
 
-            #<li class="list-item group">
+            # <li class="list-item group">
             if "group" in link["class"]:
                 count_tag = link.find("em", {"class":"view-more-heading"})
                 count = '(' + ' '.join(count_tag.stripped_strings) + ' programmes)'
@@ -238,7 +243,8 @@ def ScrapeEpisodes(url):
 
             url = ''
             count = ''
-            #<a class="view-more-container avail stat" href="/iplayer/episodes/b06jn6pl" data-progress-state="">
+            # <a class="view-more-container avail stat" href="/iplayer/episodes/b06jn6pl"
+            # data-progress-state="">
             link_tag = link.find("a", {"class":"avail"})
             if link_tag:
 
@@ -255,7 +261,8 @@ def ScrapeEpisodes(url):
 
         page = page + 1
 
-        #<span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2"> Next <span class="tvip-hide">page</span>
+        # <span class="next txt"> <a href="/iplayer/categories/news/all?sort=atoz&amp;page=2">
+        # Next <span class="tvip-hide">page</span>
         href = soup.select(".paginate .next a[href]")
         if href:
             new_url = 'http://www.bbc.co.uk' + href[0]["href"]
@@ -350,7 +357,7 @@ def ListHighlights(highlights_url):
         count = ' '.join(grouped_items__cta.stripped_strings)
         grouped_items__img = grouped_items.find("div",{"class":"grouped-items__img"})
         if grouped_items__img:
-            icon = grouped_items__img.img["src"] #TODO image recipe
+            icon = grouped_items__img.img["src"] # TODO image recipe
         else:
             icon = 'DefaultVideo.png'
 
@@ -359,7 +366,8 @@ def ListHighlights(highlights_url):
         else:
             AddMenuEntry(' [B]%s[/B] (%s)' % (name, count), url, 127, icon, '', '')
 
-        #NOTE new behaviour - drill down for collection's episodes so that aired, images, description and title will be consistent
+        # NOTE new behaviour - drill down for collection's episodes so that aired, images,
+        # description and title will be consistent
 
     for single_item in soup.find_all("a", attrs={"class":"single-item"}):
         type = single_item["data-object-type"]
@@ -410,7 +418,8 @@ def Search(search_entered):
         keyboard = xbmc.Keyboard('', 'Search iPlayer')
         keyboard.doModal()
         if keyboard.isConfirmed():
-            search_entered = keyboard.getText() .replace(' ', '%20')  # sometimes you need to replace spaces with + or %20
+            # sometimes you need to replace spaces with + or %20
+            search_entered = keyboard.getText() .replace(' ', '%20')
 
     if search_entered is None:
         return False
@@ -750,7 +759,7 @@ def OpenURL(url):
         cookie_jar.save(ignore_discard=True, ignore_expires=True)
     except:
         pass
-    return r.content.decode('utf-8')
+    return r.content.decode('utf-8').replace('&amp;', '&')
 
 
 def OpenURLPost(url, post_data):
@@ -823,12 +832,12 @@ def get_params():
     return param
 
 
-#Creates a 'urlencoded' string from a unicode input
+# Creates a 'urlencoded' string from a unicode input
 def utf8_quote_plus(unicode):
     return urllib.quote_plus(unicode.encode('utf-8'))
 
 
-#Gets a unicode string from a 'urlencoded' string
+# Gets a unicode string from a 'urlencoded' string
 def utf8_unquote_plus(str):
     return urllib.unquote_plus(str).decode('utf-8')
 
@@ -981,7 +990,7 @@ def download_subtitles(url):
 
 
 def SignInBBCiD():
-    #Below is required to get around an ssl issue
+    # Below is required to get around an ssl issue
     urllib3.disable_warnings()
     sign_in_url="https://ssl.bbc.co.uk/id/signin"
 
@@ -1071,7 +1080,7 @@ def ListFavourites(logged_in):
     """Scrapes all episodes of the favourites page."""
     html = OpenURL('http://www.bbc.co.uk/iplayer/usercomponents/favourites/programmes.json')
     json_data = json.loads(html)
-    #favourites = json_data.get('favourites')
+    # favourites = json_data.get('favourites')
     programmes = json_data.get('programmes')
     for programme in programmes:
         id = programme.get('id')
