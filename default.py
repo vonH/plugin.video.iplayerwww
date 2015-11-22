@@ -155,6 +155,11 @@ def GetGroup(url):
     ScrapeEpisodes(new_url)
 
 
+def GetSearchGroup(url):
+    new_url = "http://www.bbc.co.uk%s" % url
+    ScrapeEpisodes(new_url)
+
+
 def ScrapeEpisodes(url):
 
     new_url = url
@@ -169,7 +174,12 @@ def ScrapeEpisodes(url):
     if pages:
         last_page = pages[-1]
         last_href = last_page["href"]
-        total_pages = int(last_href.rsplit('=',1)[1])
+        part_pages = last_href.rsplit('page=',1)[1]
+        # Search groups have more complex urls, they need special treatment when getting the number of pages.
+        try:
+            total_pages = int(part_pages)
+        except:
+            total_pages = int(part_pages.split('&',1)[0])
     else:
         total_pages = 1
 
@@ -183,78 +193,100 @@ def ScrapeEpisodes(url):
             soup = BeautifulSoup(html,"html.parser")
 
         # <li class="list-item episode numbered" data-ip-id="b06pmn74">
-        links = soup.find_all("li", {"class":["programme", "episode", "group"]})
+        links = soup.find_all("li", {"class":["programme", "episode", "group", "search-group"]})
         for link in links:
 
-            # <li class="list-item episode numbered" data-ip-id="b06pmn74">
-            # id = link["data-ip-id"]
+            # Check if this link is unavailable. If so, skip it. Otherwise, scrape it.
 
-            # <a class="list-item-link stat" data-object-type="episode-most-popular" data-page-branded="0"
-            # data-progress-state="" href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders,
-            # 10/11/2015">
-            url = ''
-            link_tag = link.find("a", {"class":"list-item-link"})
-            if link_tag:
-                url = 'http://www.bbc.co.uk/' + link_tag["href"]
+            # <a href="http://www.bbc.co.uk/programmes/b0078vwn"
+            # class="list-item-link stat unavailable"
+            # data-timeliness-type="unavailable"
+            # data-object-type="episode-unavail"
+            # title="Mastermind">
 
-            # < div class="title">EastEnders</div>
-            name = ''
-            title = ''
-            title_tag = link.find("div", {"class":"title"})
-            if title_tag:
-                title = ''.join(title_tag.stripped_strings)
-                name = title
+            link_unavailable = link.find("a", {"class":"unavailable"})
+            if not link_unavailable:
+                # <li class="list-item episode numbered" data-ip-id="b06pmn74">
+                # id = link["data-ip-id"]
 
-            # <div class="subtitle">10/11/2015</div>
-            subtitle_tag = link.find("div", {"class":"subtitle"})
-            subtitle = ''
-            if subtitle_tag:
-                subtitle = ''.join(subtitle_tag.stripped_strings)
-                name = title + " - " + subtitle
+                # <a class="list-item-link stat" data-object-type="episode-most-popular"
+                # data-page-branded="0" data-progress-state=""
+                # href="/iplayer/episode/b06pmn74/eastenders-10112015" title="EastEnders, 10/11/2015">
+                url = ''
+                link_tag = link.find("a", {"class":"list-item-link"})
+                if link_tag:
+                    url = 'http://www.bbc.co.uk/' + link_tag["href"]
 
-            icon = ''
-            # <div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg"
-            # data-ip-type="episode">
-            image_tag = link.find("div", {"class":"r-image"})
-            if image_tag:
-                icon = image_tag["data-ip-src"]
-                icon = icon.replace('336x189', '832x468')
+                # < div class="title">EastEnders</div>
+                name = ''
+                title = ''
+                title_tag = link.find("div", {"class":"title"})
+                if title_tag:
+                    title = ''.join(title_tag.stripped_strings)
+                    name = title
 
-            # <p class="synopsis">Ronnie and Dean continue to fight for Roxy. Tensions grow at the Vic.</p>
-            synopsis = ''
-            synopsis_tag = link.find("p", {"class":"synopsis"})
-            if synopsis_tag:
-                synopsis = ''.join(synopsis_tag.stripped_strings)
+                # <div class="subtitle">10/11/2015</div>
+                subtitle_tag = link.find("div", {"class":"subtitle"})
+                subtitle = ''
+                if subtitle_tag:
+                    subtitle = ''.join(subtitle_tag.stripped_strings)
+                    name = title + " - " + subtitle
 
-            # <span class="release">\nFirst shown: 10 Nov 2015\n</span>
-            aired = ''
-            release_tag = link.find("span", {"class":"release"})
-            if release_tag:
-                string = ''.join(release_tag.stripped_strings)
-                aired = FirstShownToAired(string)
+                icon = ''
+                # <div class="r-image" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p0370ptv.jpg"
+                # data-ip-type="episode">
+                image_tag = link.find("div", {"class":"r-image"})
+                if image_tag:
+                    icon = image_tag["data-ip-src"]
+                    icon = icon.replace('336x189', '832x468')
 
-            # <li class="list-item group">
-            if "group" in link["class"]:
-                count_tag = link.find("em", {"class":"view-more-heading"})
-                count = '(' + ' '.join(count_tag.stripped_strings) + ' programmes)'
-                AddMenuEntry('[B]%s[/B] %s' % (title, count), url, 128, icon, '', '')
-            else:
-                CheckAutoplay(name, url, icon, synopsis, aired)
+                # <p class="synopsis">Ronnie and Dean continue to fight for Roxy. Tensions grow at the Vic.</p>
+                synopsis = ''
+                synopsis_tag = link.find("p", {"class":"synopsis"})
+                if synopsis_tag:
+                    synopsis = ''.join(synopsis_tag.stripped_strings)
 
-            url = ''
-            count = ''
-            # <a class="view-more-container avail stat" href="/iplayer/episodes/b06jn6pl"
-            # data-progress-state="">
-            link_tag = link.find("a", {"class":"avail"})
-            if link_tag:
+                # <span class="release">\nFirst shown: 10 Nov 2015\n</span>
+                aired = ''
+                release_tag = link.find("span", {"class":"release"})
+                if release_tag:
+                    string = ''.join(release_tag.stripped_strings)
+                    aired = FirstShownToAired(string)
 
-                url = link_tag["href"].rsplit('/',1)[1]
-                count = '(' + ' '.join(link_tag.stripped_strings) + ')'
+                # <li class="list-item group">
+                if "group" in link["class"]:
+                    count_tag = link.find("em", {"class":"view-more-heading"})
+                    count = '(' + ' '.join(count_tag.stripped_strings) + ' programmes)'
+                    AddMenuEntry('[B]%s[/B] %s' % (title, count), url, 128, icon, '', '')
+                else:
+                    CheckAutoplay(name, url, icon, synopsis, aired)
 
-                AddMenuEntry('[B]%s[/B] %s' % (title, count), url, 121, icon, '', '')
+                url = ''
+                count = ''
+                # <a class="view-more-container avail stat" href="/iplayer/episodes/b06jn6pl"
+                # data-progress-state="">
+                link_tag = link.find("a", {"class":"avail"})
+                if link_tag:
 
-            percent = int(100*page/total_pages)
-            pDialog.update(percent,'iPlayer: Finding episodes...',name)
+                    url = link_tag["href"].rsplit('/',1)[1]
+                    count = '(' + ' '.join(link_tag.stripped_strings) + ')'
+
+                    AddMenuEntry('[B]%s[/B] %s' % (title, count), url, 121, icon, '', '')
+
+                url = ''
+                count = ''
+                # <a class="view-more-container sibling stat"
+                # href="/iplayer/search?q=doctor who&search_group_id=urn:bbc:programmes:b006xnzc">
+                link_tag = link.find("a", {"class":"sibling"})
+                if link_tag:
+
+                    url = link_tag["href"]
+                    count = '(' + ' '.join(link_tag.stripped_strings) + ')'
+
+                    AddMenuEntry('[B]%s[/B] %s' % (title, count), url, 129, icon, '', '')
+
+                percent = int(100*page/total_pages)
+                pDialog.update(percent,'iPlayer: Finding episodes...',name)
 
         percent = int(100*page/total_pages)
         pDialog.update(percent,'iPlayer: Finding episodes...')
@@ -1196,6 +1228,9 @@ elif mode == 127:
 
 elif mode == 128:
     ScrapeEpisodes(url)
+
+elif mode == 129:
+    GetSearchGroup(url)
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:
