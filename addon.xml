@@ -11,5 +11,10 @@
     <summary lang="en">Watch TV from BBC iPlayer</summary>
     <description lang="en">This plugin (UK only) enables playing of Live and Catchup TV content from the BBC iPlayer website.</description>
     <platform>all</platform>
+    <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
+    <forum>http://forum.kodi.tv/showthread.php?tid=239378</forum>
+    <website></website>
+    <email></email>
+    <source>https://github.com/vonH/plugin.video.iplayerwww</source>
   </extension>
 </addon>
