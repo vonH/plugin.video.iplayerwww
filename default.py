@@ -162,7 +162,17 @@ def ScrapeEpisodes(url):
 
     html = OpenURL(new_url)
     soup = BeautifulSoup(html,"html.parser")
+    
+    total_pages = 1
+    paginate = re.search(r'<div class="paginate.*?</div>',html)
+    if paginate:
+        pages = re.findall(r'<li class="page.*?</li>',paginate.group(0))
+        if pages:
+            last = pages[-1]
+            last_page = re.search(r'<a href=.*?page=(.*?)">',last)
+            total_pages = int(last_page.group(1))
 
+    '''
     pages = soup.select(".paginate .page a[href]")
     if pages:
         last_page = pages[-1]
@@ -170,6 +180,7 @@ def ScrapeEpisodes(url):
         total_pages = int(last_href.rsplit('=',1)[1])
     else:
         total_pages = 1
+    '''
 
     more_pages = True
     page = 0
@@ -179,7 +190,86 @@ def ScrapeEpisodes(url):
         if page > 0:
             html = OpenURL(new_url)
             soup = BeautifulSoup(html,"html.parser")
+            
+        #print repr(html)
+        #list = re.search(r'<ul class="iplayer-list.*?</ul>', html, re.DOTALL | re.MULTILINE)
+        #if list:
+        #    print list.group(0)
+        #<li class="list-item programme"  data-ip-id="p026f2t4">
+        html = re.sub(r'<li data-version-type.*?</li>', '', html, re.DOTALL | re.MULTILINE)
+        li = re.findall(r'<li class="list-item.*?.*?</li>', html, re.DOTALL | re.MULTILINE)
+        print "XXX"
+        if li:
+            print li
+        print "YYY"
+        for l in li:
 
+        
+            name = None
+            synopsis = None
+            title = None
+            subtitle = None
+            more = None
+            
+            print l.encode('utf-8') 
+            #<a href="/iplayer/episode/p026gmw9/world-of-difference-the-models" title="World of Difference, The Models" class="list-item-link stat"
+            url_match = re.search(r'<a.*?href="(.*?)".*?list-item-link.*?>', l, re.DOTALL | re.MULTILINE)
+            if url_match:
+                url = url_match.group(1)
+                print url
+            #<div class="title top-title">World of Difference</div>
+            title_match = re.search(r'<div class="title top-title">\s*(.*?)\s*</div>', l, re.DOTALL | re.MULTILINE)
+            if title_match:
+                title = title_match.group(1)
+                print repr(title)
+            #<div class="r-image"  data-ip-type="episode" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p026vl1q.jpg">
+            image_match = re.search(r'<div class="r-image"  data-ip-type="episode" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/(.*?)\.jpg"', l)
+            if image_match:
+                image = image_match.group(1)
+                print image
+            #<div class="subtitle">The Models</div>
+            subtitle_match = re.search(r'<div class="subtitle">\s*(.*?)\s*</div>', l, re.DOTALL | re.MULTILINE)
+            if subtitle_match:
+                subtitle = subtitle_match.group(1)
+                print repr(subtitle)
+            #<p class="synopsis">What was it like to be a top fashion model 30 years ago? (1978)</p>
+            synopsis_match = re.search(r'<p class="synopsis">\s*(.*?)\s*</p>', l, re.DOTALL | re.MULTILINE)
+            if synopsis_match:
+                synopsis = synopsis_match.group(1)
+                print repr(synopsis)
+            #<span class="release">\nFirst shown: 8 Jun 1967\n</span>
+            release_match = re.search(r'<span class="release">.*?First shown: (.*?)\n.*?</span>', l, re.DOTALL | re.MULTILINE)
+            if release_match:
+                release = release_match.group(1)
+                print release
+            #<a class="view-more-container avail stat" href="/iplayer/episodes/p00db1jf" data-progress-state="">
+            episodes_match = re.search(r'<a class="view-more-container avail stat" href="(.*?)"', l)
+            if episodes_match:
+                episodes = episodes_match.group(1)
+                print episodes
+            #<em class="view-more-heading">27</em>
+            more_match = re.search(r'<em class="view-more-heading">(.*?)</em>', l)
+            if more_match:
+                more = more_match.group(1)
+                print more
+                
+            url = 'http://www.bbc.co.uk/' + url
+            name = title
+            if subtitle:
+                name = name + " - " + subtitle
+            icon = ''
+            if image:
+                icon = "http://ichef.bbci.co.uk/images/ic/832x468/" + image + ".jpg"
+            aired = ''
+            if release:
+                aired = FirstShownToAired(release)
+                
+            if more:
+                AddMenuEntry('[B]%s[/B] (%s)' % (title, more), url, 121, icon, '', '')
+            
+            CheckAutoplay(name + 'XXX', url, icon, synopsis, aired)
+                
+                
         #<li class="list-item episode numbered" data-ip-id="b06pmn74">
         links = soup.find_all("li", {"class":["programme", "episode", "group"]})
         for link in links:
