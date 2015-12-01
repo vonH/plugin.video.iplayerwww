@@ -153,15 +153,16 @@ def GetGroup(url):
     ScrapeEpisodes(new_url)
 
 
-def ScrapeEpisodes(url):
+def ScrapeEpisodes(page_url):
 
-    new_url = url
+    #page_url = url
 
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create('iPlayer: Finding episodes...')
 
-    html = OpenURL(new_url)
-    soup = BeautifulSoup(html,"html.parser")
+    print "page_url" + page_url
+    html = OpenURL(page_url)
+    #soup = BeautifulSoup(html,"html.parser")
     
     total_pages = 1
     paginate = re.search(r'<div class="paginate.*?</div>',html)
@@ -169,8 +170,10 @@ def ScrapeEpisodes(url):
         pages = re.findall(r'<li class="page.*?</li>',paginate.group(0))
         if pages:
             last = pages[-1]
-            last_page = re.search(r'<a href=.*?page=(.*?)">',last)
-            total_pages = int(last_page.group(1))
+            last_page = re.search(r'<a href="(.*?page=)(.*?)">',last)
+            page_base_url = re.sub(r'&amp;','&',last_page.group(1))
+            print "page_base_url" + page_base_url
+            total_pages = int(last_page.group(2))
 
     '''
     pages = soup.select(".paginate .page a[href]")
@@ -182,22 +185,27 @@ def ScrapeEpisodes(url):
         total_pages = 1
     '''
 
-    more_pages = True
-    page = 0
-    while more_pages:
-        more_pages = False
+    #more_pages = True
+    #page = 0
+    for page in range(1,total_pages+1):
+        #more_pages = False
 
-        if page > 0:
-            html = OpenURL(new_url)
-            soup = BeautifulSoup(html,"html.parser")
+        if page > 1:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
+            print "page_url" + page_url
+            html = OpenURL(page_url)
+            #soup = BeautifulSoup(html,"html.parser")
             
         #print repr(html)
         #list = re.search(r'<ul class="iplayer-list.*?</ul>', html, re.DOTALL | re.MULTILINE)
         #if list:
         #    print list.group(0)
+        
+        print html.encode('utf-8')
+        #<li data-version-type="hd">
+        html = re.sub(r'<li data-version-type.*?</li>', '', html, flags=(re.DOTALL | re.MULTILINE))
         #<li class="list-item programme"  data-ip-id="p026f2t4">
-        html = re.sub(r'<li data-version-type.*?</li>', '', html, re.DOTALL | re.MULTILINE)
-        li = re.findall(r'<li class="list-item.*?.*?</li>', html, re.DOTALL | re.MULTILINE)
+        li = re.findall(r'<li class="list-item.*?.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
         print "XXX"
         if li:
             print li
@@ -210,15 +218,16 @@ def ScrapeEpisodes(url):
             title = None
             subtitle = None
             more = None
+            episodes = None
             
             print l.encode('utf-8') 
             #<a href="/iplayer/episode/p026gmw9/world-of-difference-the-models" title="World of Difference, The Models" class="list-item-link stat"
-            url_match = re.search(r'<a.*?href="(.*?)".*?list-item-link.*?>', l, re.DOTALL | re.MULTILINE)
+            url_match = re.search(r'<a.*?href="(.*?)".*?list-item-link.*?>', l, flags=(re.DOTALL | re.MULTILINE))
             if url_match:
                 url = url_match.group(1)
                 print url
             #<div class="title top-title">World of Difference</div>
-            title_match = re.search(r'<div class="title top-title">\s*(.*?)\s*</div>', l, re.DOTALL | re.MULTILINE)
+            title_match = re.search(r'<div class="title top-title">\s*(.*?)\s*</div>', l, flags=(re.DOTALL | re.MULTILINE))
             if title_match:
                 title = title_match.group(1)
                 print repr(title)
@@ -228,32 +237,32 @@ def ScrapeEpisodes(url):
                 image = image_match.group(1)
                 print image
             #<div class="subtitle">The Models</div>
-            subtitle_match = re.search(r'<div class="subtitle">\s*(.*?)\s*</div>', l, re.DOTALL | re.MULTILINE)
+            subtitle_match = re.search(r'<div class="subtitle">\s*(.*?)\s*</div>', l, flags=(re.DOTALL | re.MULTILINE))
             if subtitle_match:
                 subtitle = subtitle_match.group(1)
                 print repr(subtitle)
             #<p class="synopsis">What was it like to be a top fashion model 30 years ago? (1978)</p>
-            synopsis_match = re.search(r'<p class="synopsis">\s*(.*?)\s*</p>', l, re.DOTALL | re.MULTILINE)
+            synopsis_match = re.search(r'<p class="synopsis">\s*(.*?)\s*</p>', l, flags=(re.DOTALL | re.MULTILINE))
             if synopsis_match:
                 synopsis = synopsis_match.group(1)
                 print repr(synopsis)
             #<span class="release">\nFirst shown: 8 Jun 1967\n</span>
-            release_match = re.search(r'<span class="release">.*?First shown: (.*?)\n.*?</span>', l, re.DOTALL | re.MULTILINE)
+            release_match = re.search(r'<span class="release">.*?First shown: (.*?)\n.*?</span>', l, flags=(re.DOTALL | re.MULTILINE))
             if release_match:
                 release = release_match.group(1)
                 print release
             #<a class="view-more-container avail stat" href="/iplayer/episodes/p00db1jf" data-progress-state="">
-            episodes_match = re.search(r'<a class="view-more-container avail stat" href="(.*?)"', l)
+            episodes_match = re.search(r'<a class="view-more-container avail stat" href="(.*?)"', l, flags=(re.DOTALL | re.MULTILINE))
             if episodes_match:
                 episodes = episodes_match.group(1)
                 print episodes
             #<em class="view-more-heading">27</em>
-            more_match = re.search(r'<em class="view-more-heading">(.*?)</em>', l)
+            more_match = re.search(r'<em class="view-more-heading">(.*?)</em>', l, flags=(re.DOTALL | re.MULTILINE))
             if more_match:
                 more = more_match.group(1)
                 print more
                 
-            url = 'http://www.bbc.co.uk/' + url
+           
             name = title
             if subtitle:
                 name = name + " - " + subtitle
@@ -265,10 +274,26 @@ def ScrapeEpisodes(url):
                 aired = FirstShownToAired(release)
                 
             if more:
-                AddMenuEntry('[B]%s[/B] (%s)' % (title, more), url, 121, icon, '', '')
-            
-            CheckAutoplay(name + 'XXX', url, icon, synopsis, aired)
+                episodes_url = 'http://www.bbc.co.uk' + episodes
+                print "episodes_url"
+                print episodes_url
+                AddMenuEntry('[B]%s[/B] (%s)' % (title, more), episodes_url, 128, icon, '', '')
                 
+            episode_url = 'http://www.bbc.co.uk' + url
+            print "episode_url"
+            print episode_url
+            
+            CheckAutoplay(name , episode_url, icon, synopsis, aired)
+            
+            percent = int(100*page/total_pages)
+            pDialog.update(percent,'iPlayer: Finding episodes...',name)
+
+        percent = int(100*page/total_pages)
+        pDialog.update(percent,'iPlayer: Finding episodes...')
+
+        #page = page + 1
+            
+        '''
                 
         #<li class="list-item episode numbered" data-ip-id="b06pmn74">
         links = soup.find_all("li", {"class":["programme", "episode", "group"]})
@@ -350,6 +375,7 @@ def ScrapeEpisodes(url):
         if href:
             new_url = 'http://www.bbc.co.uk' + href[0]["href"]
             more_pages = True
+        '''
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
