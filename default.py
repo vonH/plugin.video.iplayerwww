@@ -188,18 +188,18 @@ def ScrapeEpisodes(page_url):
         html = re.sub(r'<li data-version-type.*?</li>', '', html, flags=(re.DOTALL | re.MULTILINE))
 
         #<li class="list-item programme"  data-ip-id="p026f2t4">
-        li = re.findall(r'<li class="list-item.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
+        list_items = re.findall(r'<li class="list-item.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
 
-        for l in li:
+        for li in list_items:
 
             #<li class="list-item unavailable"  data-ip-id="b06sq9xj">
-            unavailable_match = re.search('<li class="list-item.*?unavailable.*?"', l, flags=(re.DOTALL | re.MULTILINE))
+            unavailable_match = re.search('<li class="list-item.*?unavailable.*?"', li, flags=(re.DOTALL | re.MULTILINE))
             if unavailable_match:
                 break
 
             main_url = None
             #<a href="/iplayer/episode/p026gmw9/world-of-difference-the-models" title="World of Difference, The Models" class="list-item-link stat"
-            url_match = re.search(r'<a.*?href="(.*?)".*?list-item-link.*?>', l, flags=(re.DOTALL | re.MULTILINE))
+            url_match = re.search(r'<a.*?href="(.*?)".*?list-item-link.*?>', li, flags=(re.DOTALL | re.MULTILINE))
             if url_match:
                 url = url_match.group(1)
                 if url:
@@ -208,14 +208,14 @@ def ScrapeEpisodes(page_url):
             name = ''
             title = ''
             #<div class="title top-title">World of Difference</div>
-            title_match = re.search(r'<div class="title top-title">\s*(.*?)\s*</div>', l, flags=(re.DOTALL | re.MULTILINE))
+            title_match = re.search(r'<div class="title top-title">\s*(.*?)\s*</div>', li, flags=(re.DOTALL | re.MULTILINE))
             if title_match:
                 title = title_match.group(1)
                 name = title
 
             subtitle = None
             #<div class="subtitle">The Models</div>
-            subtitle_match = re.search(r'<div class="subtitle">\s*(.*?)\s*</div>', l, flags=(re.DOTALL | re.MULTILINE))
+            subtitle_match = re.search(r'<div class="subtitle">\s*(.*?)\s*</div>', li, flags=(re.DOTALL | re.MULTILINE))
             if subtitle_match:
                 subtitle = subtitle_match.group(1)
                 if subtitle:
@@ -225,7 +225,7 @@ def ScrapeEpisodes(page_url):
             type = None
             #<div class="r-image"  data-ip-type="episode" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p026vl1q.jpg">
             #<div class="r-image"  data-ip-type="group" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p037ty9z.jpg">
-            image_match = re.search(r'<div class="r-image"  data-ip-type="(.*?)" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/(.*?)\.jpg"', l)
+            image_match = re.search(r'<div class="r-image"  data-ip-type="(.*?)" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/(.*?)\.jpg"', li, flags=(re.DOTALL | re.MULTILINE))
             if image_match:
                 type = image_match.group(1)
                 image = image_match.group(2)
@@ -234,13 +234,13 @@ def ScrapeEpisodes(page_url):
 
             synopsis = ''
             #<p class="synopsis">What was it like to be a top fashion model 30 years ago? (1978)</p>
-            synopsis_match = re.search(r'<p class="synopsis">\s*(.*?)\s*</p>', l, flags=(re.DOTALL | re.MULTILINE))
+            synopsis_match = re.search(r'<p class="synopsis">\s*(.*?)\s*</p>', li, flags=(re.DOTALL | re.MULTILINE))
             if synopsis_match:
                 synopsis = synopsis_match.group(1)
 
             aired = ''
             #<span class="release">\nFirst shown: 8 Jun 1967\n</span>
-            release_match = re.search(r'<span class="release">.*?First shown: (.*?)\n.*?</span>', l, flags=(re.DOTALL | re.MULTILINE))
+            release_match = re.search(r'<span class="release">.*?First shown: (.*?)\n.*?</span>', li, flags=(re.DOTALL | re.MULTILINE))
             if release_match:
                 release = release_match.group(1)
                 if release:
@@ -248,13 +248,13 @@ def ScrapeEpisodes(page_url):
 
             episodes = None
             #<a class="view-more-container avail stat" href="/iplayer/episodes/p00db1jf" data-progress-state="">
-            episodes_match = re.search(r'<a class="view-more-container avail stat" href="(.*?)"', l, flags=(re.DOTALL | re.MULTILINE))
+            episodes_match = re.search(r'<a class="view-more-container avail stat" href="(.*?)"', li, flags=(re.DOTALL | re.MULTILINE))
             if episodes_match:
                 episodes = episodes_match.group(1)
 
             more = None
             #<em class="view-more-heading">27</em>
-            more_match = re.search(r'<em class="view-more-heading">(.*?)</em>', l, flags=(re.DOTALL | re.MULTILINE))
+            more_match = re.search(r'<em class="view-more-heading">(.*?)</em>', li, flags=(re.DOTALL | re.MULTILINE))
             if more_match:
                 more = more_match.group(1)
 
@@ -346,185 +346,103 @@ def ListHighlights(highlights_url):
     """
 
     html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url)
-    soup = BeautifulSoup(html,"html.parser")
-    
-    inner_anchors = re.findall(r'<a.*?(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
-    
 
-        
+    inner_anchors = re.findall(r'<a.*?(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
+
     #<a\nhref="/iplayer/episode/p036gq3z/bbc-music-introducing-from-buddhist-monk-to-rock-star"\nclass="single-item stat"
     singles = [a for a in inner_anchors if re.search(r'class="single-item', a, flags=(re.DOTALL | re.MULTILINE))]
-    
+
     for single in singles:
-        print single.encode('utf-8')
-        #pass
-        
+
         object_type = ''
         #data-object-type="episode-backfill"
         data_object_type = re.search(r'data-object-type="(.*?)"', single, flags=(re.DOTALL | re.MULTILINE))
         if data_object_type:
             object_type = data_object_type.group(1)
-            print object_type
             if object_type == "episode-backfill":
                 if (highlights_url not in ['tv/bbcnews', 'tv/bbcparliament']):
                     continue
 
-                
+        href = ''
+        url = ''
         #<a\nhref="/iplayer/episode/p036gq3z/bbc-music-introducing-from-buddhist-monk-to-rock-star"
         url_match = re.match(r'<a.*?href="(.*?)"', single, flags=(re.DOTALL | re.MULTILINE))
-        print url_match.group(1).encode('utf-8')
-        href = url_match.group(1)
-        
+        if url_match:
+            href = url_match.group(1)
+            url = 'http://www.bbc.co.uk' + href
+
+        name = ''
         #<h3 class="single-item__title typo typo--skylark"><strong>BBC Music Introducing</strong></h3>
         title_match = re.search(r'<.*?class="single-item__title.*?<strong>(.*?)</strong>', single, flags=(re.DOTALL | re.MULTILINE))
-        print title_match.group(1).encode('utf-8')
-        name = title_match.group(1)
-        
+        if title_match:
+            name = title_match.group(1)
+            name = re.sub(r'<.*?>','', name, flags=(re.DOTALL | re.MULTILINE))
+
         #<p class="single-item__subtitle typo typo--canary">From Buddhist Monk to Rock Star</p>
         subtitle_match = re.search(r'<.*?class="single-item__subtitle.*?>(.*?)<', single, flags=(re.DOTALL | re.MULTILINE))
         if subtitle_match:
-            print subtitle_match.group(1).encode('utf-8')
             name = name + ' - ' + subtitle_match.group(1)
-            
+
+        icon = ''
         #<div class="r-image"  data-ip-type="episode" data-ip-src="http://ichef.bbci.co.uk/images/ic/406x228/p036gtc5.jpg">
         image_match = re.search(r'<.*?class="r-image.*?data-ip-src="(.*?)"', single, flags=(re.DOTALL | re.MULTILINE))
-        icon = ''
         if image_match:
-            print image_match.group(1).encode('utf-8')
             icon = image_match.group(1)
-            
+
         desc = ''
         #<p class="single-item__overlay__desc">The remarkable rise of Ngawang Lodup - from BBC Introducing to performing at the O2 Arena</p>
         desc_match = re.search(r'<.*?class="single-item__overlay__desc.*?>(.*?)<', single, flags=(re.DOTALL | re.MULTILINE))
         if desc_match:
-            print desc_match.group(1).encode('utf-8')
             desc = desc_match.group(1)
-            
+
         aired = ''
         #<p class="single-item__overlay__subtitle">First shown: 4 Nov 2015</p>
         release_match = re.search(r'<.*?class="single-item__overlay__subtitle">First shown: (.*?)<', single, flags=(re.DOTALL | re.MULTILINE))
         if release_match:
-            print release_match.group(1).encode('utf-8')
             release = release_match.group(1)
             if release:
                 aired = FirstShownToAired(release)
-                print aired
 
-            
-        url = 'http://www.bbc.co.uk' + href
         if object_type == "editorial-promo":
-            AddMenuEntry(' [B]%s[/B]' % (name), href, 128, icon, '', '')
+            AddMenuEntry('[B]%s[/B]' % (name), href, 128, icon, '', '')
         else:
             CheckAutoplay(name, url, icon, desc, aired)
-            
 
+    #NOTE find episode count first
     episode_count = dict()
     groups = [a for a in inner_anchors if re.match(r'<a[^<]*?class="grouped-items__cta.*?data-object-type="group-list-link".*?', a, flags=(re.DOTALL | re.MULTILINE))]
     for group in groups:
-        print group.encode('utf-8')
-        
+
+        href = ''
         href_match = re.match(r'<a[^<]*?href="(.*?)"', group, flags=(re.DOTALL | re.MULTILINE))
-        print href_match.groups()
-        href = href_match.group(1)
-        print href
-        
-        #print href_match.group(0).encode('utf-8')
-        count_match = re.search(r'>View all (.*?) episodes</a>', group, flags=(re.DOTALL | re.MULTILINE))
+        if href_match:
+            href = href_match.group(1)
+
+        count_match = re.search(r'>View all ([0-9]*).*?</a>', group, flags=(re.DOTALL | re.MULTILINE))
         if count_match:
-            print count_match.group(1).encode('utf-8')
             count = count_match.group(1)
-        
             episode_count[href] = count
 
-    print "HERE"
-    print episode_count
-        
     groups = [a for a in inner_anchors if re.match(r'<a[^<]*?class="grouped-items__title.*?data-object-type="group-list-link".*?', a, flags=(re.DOTALL | re.MULTILINE))]
     for group in groups:
-        print group.encode('utf-8')
-        
+
+        href = ''
         href_match = re.match(r'<a[^<]*?href="(.*?)"', group, flags=(re.DOTALL | re.MULTILINE))
-        print href_match.groups()
-        href = href_match.group(1)
-        print href
-        
-        #print href_match.group(0).encode('utf-8')
+        if href_match:
+            href = href_match.group(1)
+
+        name = ''
         name_match = re.search(r'<strong>(.*?)</strong>', group, flags=(re.DOTALL | re.MULTILINE))
-        print name_match.group(1).encode('utf-8')
-        name = name_match.group(1)
-        
+        if name_match:
+            name = name_match.group(1)
+
         count = ''
         if href in episode_count:
             count = episode_count[href]
-        
-        icon = ''
-        
+
         url = 'http://www.bbc.co.uk' + href
-        print url
-        AddMenuEntry(' [B]%s[/B] (%s)' % (name, count), url, 128, icon, '', '')
-            
-            
-            
-    '''       
-    for grouped_items in soup.find_all(class_="grouped-items"):
 
-        name = grouped_items["data-group-name"]
-        id = grouped_items["data-group-id"]
-        ttype = grouped_items["data-group-type"]
-
-        group_list_link = grouped_items.find("a",{"data-object-type":"group-list-link"})
-        href  = group_list_link["href"]
-        url = href.rsplit('/',1)[1]
-
-        grouped_items__cta = grouped_items.find(class_="grouped-items__cta")
-        count = ' '.join(grouped_items__cta.stripped_strings)
-        grouped_items__img = grouped_items.find("div",{"class":"grouped-items__img"})
-        if grouped_items__img:
-            icon = grouped_items__img.img["src"] #TODO image recipe
-        else:
-            icon = 'DefaultVideo.png'
-
-        if ttype == "series-catchup":
-            AddMenuEntry('[B]%s[/B] (%s)' % (name, count), url, 127, icon, '', '')
-        else:
-            AddMenuEntry(' [B]%s[/B] (%s)' % (name, count), url, 127, icon, '', '')
-
-        #NOTE new behaviour - drill down for collection's episodes so that aired, images, description and title will be consistent
-
-    for single_item in soup.find_all("a", attrs={"class":"single-item"}):
-        ttype = single_item["data-object-type"]
-        href = single_item["href"]
-
-        single_item__title = single_item.find(class_="single-item__title")
-        title = ' '.join(single_item__title.stripped_strings)
-        name = title
-
-        single_item__subtitle = single_item.find(class_="single-item__subtitle")
-        if single_item__subtitle:
-            subtitle = ' '.join(single_item__subtitle.stripped_strings)
-            name = title + ' - ' + subtitle
-
-        single_item__desc = single_item.find(class_="single-item__overlay__desc")
-        desc = ' '.join(single_item__desc.stripped_strings)
-
-        aired = None
-        single_item__overlay__subtitle = single_item.find(class_="single-item__overlay__subtitle")
-        if single_item__overlay__subtitle:
-            subdesc = ' '.join(single_item__overlay__subtitle.stripped_strings)
-            aired = FirstShownToAired(subdesc)
-
-        r_image = single_item.find(class_="r-image")
-        icon = r_image["data-ip-src"]
-
-        if ttype == "editorial-promo":
-            AddMenuEntry(' [B]%s[/B]' % (title), href, 128, icon, '', '')
-        else:
-            if (type == "episode-featured" or
-                (highlights_url in ['tv/bbcnews', 'tv/bbcparliament'] and ttype == "episode-backfill")):
-
-                url = 'http://www.bbc.co.uk' + href
-                CheckAutoplay(name, url, icon, desc, aired)
-    '''
+        AddMenuEntry('[B]%s[/B] (%s)' % (name, count), url, 128, '', '', '')
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
