@@ -11,10 +11,7 @@ import urllib
 from operator import itemgetter
 import requests
 from requests.packages import urllib3
-from bs4 import BeautifulSoup
 import cookielib
-import pickle
-
 import json
 
 import xbmc
