@@ -163,6 +163,8 @@ def ScrapeEpisodes(page_url):
 
     html = OpenURL(page_url)
 
+    html = re.sub(r'&amp;','&', html)
+
     total_pages = 1
     paginate = re.search(r'<div class="paginate.*?</div>',html)
     if paginate:
@@ -170,7 +172,7 @@ def ScrapeEpisodes(page_url):
         if pages:
             last = pages[-1]
             last_page = re.search(r'<a href="(.*?page=)(.*?)">',last)
-            page_base_url = re.sub(r'&amp;','&',last_page.group(1))
+            page_base_url = last_page.group(1)
             total_pages = int(last_page.group(2))
 
     for page in range(1, total_pages+1):
@@ -178,6 +180,8 @@ def ScrapeEpisodes(page_url):
         if page > 1:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
             html = OpenURL(page_url)
+
+        html = re.sub(r'&amp;','&', html)
 
         #NOTE remove inner li to match outer li
 
@@ -343,6 +347,8 @@ def ListHighlights(highlights_url):
     """
 
     html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url)
+
+    html = re.sub(r'&amp;','&', html)
 
     inner_anchors = re.findall(r'<a.*?(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
 
