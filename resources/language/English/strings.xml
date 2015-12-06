@@ -61,4 +61,11 @@
   <string id="30402">Cookie Load Failed</string>
   <string id="30403">Playback failed</string>
   <string id="30404">Can't find stream.</string>
+
+  <string id="30500">HTTP Proxy</string>
+  <string id="30510">Use Proxy</string>
+  <string id="30520">Proxy Host</string>
+  <string id="30530">Proxy Port</string>
+  <string id="30540">Proxy Username</string>
+  <string id="30550">Proxy Password</string>
 </strings>

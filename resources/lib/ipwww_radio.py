@@ -4,7 +4,8 @@ import sys
 import re
 from operator import itemgetter
 from ipwww_common import translation, AddMenuEntry, OpenURL, \
-                         CheckLogin, CreateBaseDirectory
+                         CheckLogin, CreateBaseDirectory, \
+                         SetListItemProxyProperties
 
 import xbmc
 import xbmcgui
@@ -229,6 +230,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     liz.setInfo(type='Audio', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
+    SetListItemProxyProperties(liz)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
 
 

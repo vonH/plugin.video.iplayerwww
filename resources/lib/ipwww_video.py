@@ -11,7 +11,8 @@ import json
 from operator import itemgetter
 from ipwww_common import translation, AddMenuEntry, OpenURL, \
                          CheckLogin, CreateBaseDirectory, GetCookieJar, \
-                         ParseImageUrl, download_subtitles
+                         ParseImageUrl, download_subtitles, \
+                         SetListItemProxyProperties
 
 import xbmc
 import xbmcgui
@@ -893,6 +894,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     liz.setInfo(type='Video', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
+    SetListItemProxyProperties(liz)
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
         subtitles_file = download_subtitles(subtitles_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
