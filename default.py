@@ -250,13 +250,14 @@ def ScrapeCategoryEpisodes(url):
     """
     # Read selected category's page.
     html = OpenURL(url)
+    print html.encode("utf-8")
     # Scrape all programmes on this page and create one menu entry each.
     match = re.compile(
         'data-ip-id="(.+?)">.+?'
-        '<a href="/iplayer/episode/(.+?)/.+?"title top-title">'
-        '(.+?)<.+?img src="(.+?)"(.+?)'
-        '<p class="synopsis">(.+?)</p>'
-        '(.+?)<div class="period"',
+        '<a.+?href="/iplayer/episode/(.+?)/.+?"title.+?top-title">'
+        '(.+?)<.+?img.+?src="(.+?)"(.+?)'
+        '<p.+?class="synopsis">(.+?)</p>'
+        '(.+?)<div.+?class="period"',
         re.DOTALL).findall(html.replace('amp;', ''))
     for programme_id, episode_id, name, iconimage, sub_content, plot, more in match:
         # Some programmes actually contain multiple episodes.
@@ -266,7 +267,7 @@ def ScrapeCategoryEpisodes(url):
         # If multiple episodes are found, the programme_id is suitable to add a new directory.
         if match_episodes:
             num_episodes = re.search(
-                '<a class="view-more-container avail stat" '
+                '<a.+?class="view-more-container.+?avail.+?stat".+?'
                 'href="/iplayer/episodes/%s".+?<em '
                 'class="view-more-heading">(.+?)<' % programme_id,
                 html,
