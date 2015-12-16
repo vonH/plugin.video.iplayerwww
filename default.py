@@ -445,15 +445,16 @@ def ListHighlights(url):
 
 def GetGroups(url):
     """Scrapes information on a particular group, a special kind of collection."""
+
     new_url = "http://www.bbc.co.uk/iplayer/group/%s" % url
     html = OpenURL(new_url)
 
     while True:
         # Extract all programmes from the page
         match = re.compile(
-            'data-ip-id=".+?">.+?<a href="(.+?)" title="(.+?)'
+            'data-ip-id=".+?">.+?<a.+?href="(.+?)".+?title="(.+?)'
             '".+?data-ip-src="(.+?)">.+?class="synopsis">(.+?)</p>'
-            '(.+?)<div class="period"',
+            '(.+?)<div.+?class="period"',
             re.DOTALL).findall(html)
 
         for URL, name, iconimage, plot, more in match:
@@ -509,9 +510,9 @@ def GetEpisodes(programme_id):
     while True:
         # Extract all programmes from the page
         match = re.compile(
-            'data-ip-id=".+?">.+?<a href="(.+?)" title="(.+?)'
+            'data-ip-id=".+?">.+?<a.+?href="(.+?)".+?title="(.+?)'
             '".+?data-ip-src="(.+?)">.+?class="synopsis">(.+?)</p>'
-            '(.+?)<div class="period"',
+            '(.+?)<div.+?class="period"',
             re.DOTALL).findall(html)
 
         for URL, name, iconimage, plot, more in match:
