@@ -140,8 +140,8 @@ def ScrapeSearchEpisodes(url):
     # there are several classes of "available" programmes.
     # Thus, we need to match all of them.
     match1 = re.compile(
-        'programme"  data-ip-id="(.+?)">.+?class="title top-title">(.+?)'
-        '<.+?img src="(.+?)".+?<p class="synopsis">(.+?)</p>',
+        'programme"  data-ip-id="(.+?)">.+?class="title.+?top-title">(.+?)'
+        '<.+?img.+?src="(.+?)".+?<p.+?class="synopsis">(.+?)</p>',
         re.DOTALL).findall(html.replace('amp;', ''))
     for programme_id, name, iconimage, plot in match1:
         # Some programmes actually contain multiple episodes (haven't seen that for episodes yet).
@@ -151,8 +151,8 @@ def ScrapeSearchEpisodes(url):
         # If multiple episodes are found, the programme_id is suitable to add a new directory.
         if match_episodes:
             num_episodes = re.compile(
-                '<a class="view-more-container avail stat" href="/iplayer/episodes/%s".+?'
-                '<em class="view-more-heading">(.+?)<' % programme_id,
+                '<a.+?class="view-more-container.+?avail.+?stat".+?href="/iplayer/episodes/%s".+?'
+                '<em.+?class="view-more-heading">(.+?)<' % programme_id,
                 re.DOTALL).findall(html)
             AddMenuEntry("%s - %s %s" % (
                 name, num_episodes[0], translation(31013)), programme_id, 121, iconimage, plot, '')
@@ -161,10 +161,10 @@ def ScrapeSearchEpisodes(url):
             CheckAutoplay(name, episode_url, iconimage, plot)
     match1 = re.compile(
         'episode"  data-ip-id="(.+?)">'
-        '.+?" title="(.+?)"'
-        '.+?img src="(.+?)"'
-        '.+?<p class="synopsis">(.+?)</p>'
-        '(.+?)<div class="period"',
+        '.+?".+?title="(.+?)"'
+        '.+?img.+?src="(.+?)"'
+        '.+?<p.+?class="synopsis">(.+?)</p>'
+        '(.+?)<div.+?class="period"',
         re.DOTALL).findall(html.replace('amp;', ''))
     for programme_id, name, iconimage, plot, more in match1:
         episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % programme_id
