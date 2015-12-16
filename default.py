@@ -196,7 +196,7 @@ def ScrapeEpisodes(page_url):
             #<li class="list-item unavailable"  data-ip-id="b06sq9xj">
             unavailable_match = re.search('<li class="list-item.*?unavailable.*?"', li, flags=(re.DOTALL | re.MULTILINE))
             if unavailable_match:
-                break
+                continue
 
             main_url = None
             #<a href="/iplayer/episode/p026gmw9/world-of-difference-the-models" title="World of Difference, The Models" class="list-item-link stat"
