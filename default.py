@@ -250,7 +250,7 @@ def ScrapeCategoryEpisodes(url):
     """
     # Read selected category's page.
     html = OpenURL(url)
-    print html.encode("utf-8")
+
     # Scrape all programmes on this page and create one menu entry each.
     match = re.compile(
         'data-ip-id="(.+?)">.+?'
