@@ -135,7 +135,9 @@ def FirstShownToAired(first_shown):
     else:
         year = release_parts[-1]
         month = release_parts[-2]
-        monthDict={'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06', 'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
+        monthDict={
+            'Jan':'01', 'Feb':'02', 'Mar':'03', 'Apr':'04', 'May':'05', 'Jun':'06',
+            'Jul':'07', 'Aug':'08', 'Sep':'09', 'Oct':'10', 'Nov':'11', 'Dec':'12'}
         if month in monthDict:
             month = monthDict[month]
             day = release_parts[-3].rjust(2,'0')
@@ -183,24 +185,29 @@ def ScrapeEpisodes(page_url):
 
         html = re.sub(r'&amp;','&', html)
 
-        #NOTE remove inner li to match outer li
+        # NOTE remove inner li to match outer li
 
-        #<li data-version-type="hd">
+        # <li data-version-type="hd">
         html = re.sub(r'<li data-version-type.*?</li>', '', html, flags=(re.DOTALL | re.MULTILINE))
 
-        #<li class="list-item programme"  data-ip-id="p026f2t4">
+        # <li class="list-item programme"  data-ip-id="p026f2t4">
         list_items = re.findall(r'<li class="list-item.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
 
         for li in list_items:
 
-            #<li class="list-item unavailable"  data-ip-id="b06sq9xj">
-            unavailable_match = re.search('<li class="list-item.*?unavailable.*?"', li, flags=(re.DOTALL | re.MULTILINE))
+            # <li class="list-item unavailable"  data-ip-id="b06sq9xj">
+            unavailable_match = re.search(
+                '<li class="list-item.*?unavailable.*?"',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if unavailable_match:
                 continue
 
             main_url = None
-            #<a href="/iplayer/episode/p026gmw9/world-of-difference-the-models" title="World of Difference, The Models" class="list-item-link stat"
-            url_match = re.search(r'<a.*?href="(.*?)".*?list-item-link.*?>', li, flags=(re.DOTALL | re.MULTILINE))
+            # <a href="/iplayer/episode/p026gmw9/world-of-difference-the-models"
+            # title="World of Difference, The Models" class="list-item-link stat"
+            url_match = re.search(
+                r'<a.*?href="(.*?)".*?list-item-link.*?>',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if url_match:
                 url = url_match.group(1)
                 if url:
@@ -209,14 +216,18 @@ def ScrapeEpisodes(page_url):
             name = ''
             title = ''
             #<div class="title top-title">World of Difference</div>
-            title_match = re.search(r'<div class="title top-title">\s*(.*?)\s*</div>', li, flags=(re.DOTALL | re.MULTILINE))
+            title_match = re.search(
+                r'<div class="title top-title">\s*(.*?)\s*</div>',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if title_match:
                 title = title_match.group(1)
                 name = title
 
             subtitle = None
             #<div class="subtitle">The Models</div>
-            subtitle_match = re.search(r'<div class="subtitle">\s*(.*?)\s*</div>', li, flags=(re.DOTALL | re.MULTILINE))
+            subtitle_match = re.search(
+                r'<div class="subtitle">\s*(.*?)\s*</div>',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if subtitle_match:
                 subtitle = subtitle_match.group(1)
                 if subtitle:
@@ -224,9 +235,13 @@ def ScrapeEpisodes(page_url):
 
             icon = ''
             type = None
-            #<div class="r-image"  data-ip-type="episode" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p026vl1q.jpg">
-            #<div class="r-image"  data-ip-type="group" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p037ty9z.jpg">
-            image_match = re.search(r'<div class="r-image"  data-ip-type="(.*?)" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/(.*?)\.jpg"', li, flags=(re.DOTALL | re.MULTILINE))
+            # <div class="r-image"  data-ip-type="episode"
+            # data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p026vl1q.jpg">
+            # <div class="r-image"  data-ip-type="group"
+            # data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p037ty9z.jpg">
+            image_match = re.search(
+                r'<div class="r-image"  data-ip-type="(.*?)" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/(.*?)\.jpg"',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if image_match:
                 type = image_match.group(1)
                 image = image_match.group(2)
@@ -234,28 +249,36 @@ def ScrapeEpisodes(page_url):
                     icon = "http://ichef.bbci.co.uk/images/ic/832x468/" + image + ".jpg"
 
             synopsis = ''
-            #<p class="synopsis">What was it like to be a top fashion model 30 years ago? (1978)</p>
-            synopsis_match = re.search(r'<p class="synopsis">\s*(.*?)\s*</p>', li, flags=(re.DOTALL | re.MULTILINE))
+            # <p class="synopsis">What was it like to be a top fashion model 30 years ago? (1978)</p>
+            synopsis_match = re.search(
+                r'<p class="synopsis">\s*(.*?)\s*</p>',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if synopsis_match:
                 synopsis = synopsis_match.group(1)
 
             aired = ''
-            #<span class="release">\nFirst shown: 8 Jun 1967\n</span>
-            release_match = re.search(r'<span class="release">.*?First shown: (.*?)\n.*?</span>', li, flags=(re.DOTALL | re.MULTILINE))
+            # <span class="release">\nFirst shown: 8 Jun 1967\n</span>
+            release_match = re.search(
+                r'<span class="release">.*?First shown: (.*?)\n.*?</span>',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if release_match:
                 release = release_match.group(1)
                 if release:
                     aired = FirstShownToAired(release)
 
             episodes = None
-            #<a class="view-more-container avail stat" href="/iplayer/episodes/p00db1jf" data-progress-state="">
-            episodes_match = re.search(r'<a class="view-more-container avail stat" href="(.*?)"', li, flags=(re.DOTALL | re.MULTILINE))
+            # <a class="view-more-container avail stat" href="/iplayer/episodes/p00db1jf" data-progress-state="">
+            episodes_match = re.search(
+                r'<a class="view-more-container avail stat" href="(.*?)"',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if episodes_match:
                 episodes = episodes_match.group(1)
 
             more = None
-            #<em class="view-more-heading">27</em>
-            more_match = re.search(r'<em class="view-more-heading">(.*?)</em>', li, flags=(re.DOTALL | re.MULTILINE))
+            # <em class="view-more-heading">27</em>
+            more_match = re.search(
+                r'<em class="view-more-heading">(.*?)</em>',
+                li, flags=(re.DOTALL | re.MULTILINE))
             if more_match:
                 more = more_match.group(1)
 
@@ -282,7 +305,6 @@ def ScrapeEpisodes(page_url):
 
 def ListCategories():
     """Parses the available categories and creates directories for selecting one of them.
-
     The category names are scraped from the website.
     """
     html = OpenURL('http://www.bbc.co.uk/iplayer')
@@ -295,7 +317,6 @@ def ListCategories():
 
 def ListCategoryFilters(url):
     """Parses the available category filters (if available) and creates directories for selcting them.
-
     If there are no filters available, all programmes will be listed using GetFilteredCategory.
     """
     NEW_URL = 'http://www.bbc.co.uk/iplayer/categories/%s/all?sort=atoz' % url
@@ -352,14 +373,19 @@ def ListHighlights(highlights_url):
 
     inner_anchors = re.findall(r'<a.*?(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
 
-    #<a\nhref="/iplayer/episode/p036gq3z/bbc-music-introducing-from-buddhist-monk-to-rock-star"\nclass="single-item stat"
-    singles = [a for a in inner_anchors if re.search(r'class="single-item', a, flags=(re.DOTALL | re.MULTILINE))]
+    # < a\nhref="/iplayer/episode/p036gq3z/bbc-music-introducing-from-buddhist-monk-to-rock-star"\n
+    # class="single-item stat"
+    singles = [a for a in inner_anchors if re.search(
+        r'class="single-item',
+        a, flags=(re.DOTALL | re.MULTILINE))]
 
     for single in singles:
 
         object_type = ''
-        #data-object-type="episode-backfill"
-        data_object_type = re.search(r'data-object-type="(.*?)"', single, flags=(re.DOTALL | re.MULTILINE))
+        # data-object-type="episode-backfill"
+        data_object_type = re.search(
+            r'data-object-type="(.*?)"',
+            single, flags=(re.DOTALL | re.MULTILINE))
         if data_object_type:
             object_type = data_object_type.group(1)
             if object_type == "episode-backfill":
@@ -368,39 +394,53 @@ def ListHighlights(highlights_url):
 
         href = ''
         url = ''
-        #<a\nhref="/iplayer/episode/p036gq3z/bbc-music-introducing-from-buddhist-monk-to-rock-star"
-        url_match = re.match(r'<a.*?href="(.*?)"', single, flags=(re.DOTALL | re.MULTILINE))
+        # <a\nhref="/iplayer/episode/p036gq3z/bbc-music-introducing-from-buddhist-monk-to-rock-star"
+        url_match = re.match(
+            r'<a.*?href="(.*?)"',
+            single, flags=(re.DOTALL | re.MULTILINE))
         if url_match:
             href = url_match.group(1)
             url = 'http://www.bbc.co.uk' + href
 
         name = ''
-        #<h3 class="single-item__title typo typo--skylark"><strong>BBC Music Introducing</strong></h3>
-        title_match = re.search(r'<.*?class="single-item__title.*?<strong>(.*?)</strong>', single, flags=(re.DOTALL | re.MULTILINE))
+        # <h3 class="single-item__title typo typo--skylark"><strong>BBC Music Introducing</strong></h3>
+        title_match = re.search(
+            r'<.*?class="single-item__title.*?<strong>(.*?)</strong>',
+            single, flags=(re.DOTALL | re.MULTILINE))
         if title_match:
             name = title_match.group(1)
             name = re.sub(r'<.*?>','', name, flags=(re.DOTALL | re.MULTILINE))
 
-        #<p class="single-item__subtitle typo typo--canary">From Buddhist Monk to Rock Star</p>
-        subtitle_match = re.search(r'<.*?class="single-item__subtitle.*?>(.*?)<', single, flags=(re.DOTALL | re.MULTILINE))
+        # <p class="single-item__subtitle typo typo--canary">From Buddhist Monk to Rock Star</p>
+        subtitle_match = re.search(
+            r'<.*?class="single-item__subtitle.*?>(.*?)<',
+            single, flags=(re.DOTALL | re.MULTILINE))
         if subtitle_match:
             name = name + ' - ' + subtitle_match.group(1)
 
         icon = ''
-        #<div class="r-image"  data-ip-type="episode" data-ip-src="http://ichef.bbci.co.uk/images/ic/406x228/p036gtc5.jpg">
-        image_match = re.search(r'<.*?class="r-image.*?data-ip-src="(.*?)"', single, flags=(re.DOTALL | re.MULTILINE))
+        # <div class="r-image"  data-ip-type="episode"
+        # data-ip-src="http://ichef.bbci.co.uk/images/ic/406x228/p036gtc5.jpg">
+        image_match = re.search(
+            r'<.*?class="r-image.*?data-ip-src="(.*?)"',
+            single, flags=(re.DOTALL | re.MULTILINE))
         if image_match:
             icon = image_match.group(1)
 
         desc = ''
-        #<p class="single-item__overlay__desc">The remarkable rise of Ngawang Lodup - from BBC Introducing to performing at the O2 Arena</p>
-        desc_match = re.search(r'<.*?class="single-item__overlay__desc.*?>(.*?)<', single, flags=(re.DOTALL | re.MULTILINE))
+        # <p class="single-item__overlay__desc">
+        # The remarkable rise of Ngawang Lodup - from BBC Introducing to performing at the O2 Arena</p>
+        desc_match = re.search(
+            r'<.*?class="single-item__overlay__desc.*?>(.*?)<',
+            single, flags=(re.DOTALL | re.MULTILINE))
         if desc_match:
             desc = desc_match.group(1)
 
         aired = ''
-        #<p class="single-item__overlay__subtitle">First shown: 4 Nov 2015</p>
-        release_match = re.search(r'<.*?class="single-item__overlay__subtitle">First shown: (.*?)<', single, flags=(re.DOTALL | re.MULTILINE))
+        # <p class="single-item__overlay__subtitle">First shown: 4 Nov 2015</p>
+        release_match = re.search(
+            r'<.*?class="single-item__overlay__subtitle">First shown: (.*?)<',
+            single, flags=(re.DOTALL | re.MULTILINE))
         if release_match:
             release = release_match.group(1)
             if release:
@@ -411,31 +451,43 @@ def ListHighlights(highlights_url):
         else:
             CheckAutoplay(name, url, icon, desc, aired)
 
-    #NOTE find episode count first
+    # NOTE find episode count first
     episode_count = dict()
-    groups = [a for a in inner_anchors if re.match(r'<a[^<]*?class="grouped-items__cta.*?data-object-type="group-list-link".*?', a, flags=(re.DOTALL | re.MULTILINE))]
+    groups = [a for a in inner_anchors if re.match(
+        r'<a[^<]*?class="grouped-items__cta.*?data-object-type="group-list-link".*?',
+        a, flags=(re.DOTALL | re.MULTILINE))]
     for group in groups:
 
         href = ''
-        href_match = re.match(r'<a[^<]*?href="(.*?)"', group, flags=(re.DOTALL | re.MULTILINE))
+        href_match = re.match(
+            r'<a[^<]*?href="(.*?)"',
+            group, flags=(re.DOTALL | re.MULTILINE))
         if href_match:
             href = href_match.group(1)
 
-        count_match = re.search(r'>View all ([0-9]*).*?</a>', group, flags=(re.DOTALL | re.MULTILINE))
+        count_match = re.search(
+            r'>View all ([0-9]*).*?</a>',
+            group, flags=(re.DOTALL | re.MULTILINE))
         if count_match:
             count = count_match.group(1)
             episode_count[href] = count
 
-    groups = [a for a in inner_anchors if re.match(r'<a[^<]*?class="grouped-items__title.*?data-object-type="group-list-link".*?', a, flags=(re.DOTALL | re.MULTILINE))]
+    groups = [a for a in inner_anchors if re.match(
+        r'<a[^<]*?class="grouped-items__title.*?data-object-type="group-list-link".*?',
+        a, flags=(re.DOTALL | re.MULTILINE))]
     for group in groups:
 
         href = ''
-        href_match = re.match(r'<a[^<]*?href="(.*?)"', group, flags=(re.DOTALL | re.MULTILINE))
+        href_match = re.match(
+            r'<a[^<]*?href="(.*?)"',
+            group, flags=(re.DOTALL | re.MULTILINE))
         if href_match:
             href = href_match.group(1)
 
         name = ''
-        name_match = re.search(r'<strong>(.*?)</strong>', group, flags=(re.DOTALL | re.MULTILINE))
+        name_match = re.search(
+            r'<strong>(.*?)</strong>',
+            group, flags=(re.DOTALL | re.MULTILINE))
         if name_match:
             name = name_match.group(1)
 
@@ -789,7 +841,7 @@ def InitialiseCookieJar():
 
 
 def OpenURL(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/41.0'}
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/43.0'}
     try:
         r = requests.get(url, headers=headers, cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
@@ -807,7 +859,7 @@ def OpenURL(url):
 
 def OpenURLPost(url, post_data):
     headers = {
-               'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/41.0',
+               'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/43.0',
                'Host':'ssl.bbc.co.uk',
                'Accept':'*/*',
                'Referer':'https://ssl.bbc.co.uk/id/signin',
@@ -875,12 +927,12 @@ def get_params():
     return param
 
 
-#Creates a 'urlencoded' string from a unicode input
+# Creates a 'urlencoded' string from a unicode input
 def utf8_quote_plus(unicode):
     return urllib.quote_plus(unicode.encode('utf-8'))
 
 
-#Gets a unicode string from a 'urlencoded' string
+# Gets a unicode string from a 'urlencoded' string
 def utf8_unquote_plus(str):
     return urllib.unquote_plus(str).decode('utf-8')
 
@@ -1123,7 +1175,7 @@ def ListFavourites(logged_in):
     """Scrapes all episodes of the favourites page."""
     html = OpenURL('http://www.bbc.co.uk/iplayer/usercomponents/favourites/programmes.json')
     json_data = json.loads(html)
-    #favourites = json_data.get('favourites')
+    # favourites = json_data.get('favourites')
     programmes = json_data.get('programmes')
     for programme in programmes:
         id = programme.get('id')
