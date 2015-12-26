@@ -423,6 +423,14 @@ def ListHighlights(highlights_url):
 
         url = 'http://www.bbc.co.uk' + href
 
+        # Unfortunately, the group type is not inside the links, so we need to search the whole HTML.
+        group_type = ''
+        group_type_match = re.search(
+            r'data-group-name="'+name+'".+?data-group-type="(.+?)"',
+            html, flags=(re.DOTALL | re.MULTILINE))
+        if group_type_match:
+            group_type = group_type_match.group(1)
+
         position = ''
         position_match = re.search(
             r'data-object-position="(.+?)-ALL"',
@@ -430,7 +438,7 @@ def ListHighlights(highlights_url):
         if position_match:
             group_properties.append(
                              [position_match.group(1),
-                             name])
+                             name, group_type])
 
         AddMenuEntry('[B]%s: %s[/B] - %s %s' % (translation(31014), name, count, translation(31015)),
                      url, 128, '', '', '')
@@ -480,6 +488,9 @@ def ListHighlights(highlights_url):
             for n,i in enumerate(group_properties):
                 if re.match(i[0], position_match.group(1), flags=(re.DOTALL | re.MULTILINE)):
                     position = i[1]
+                    # For series-catchup groups, we need to modify the title.
+                    if i[2] == 'series-catchup':
+                        name = i[1]+': '+name
 
         episodelist.append(
                     [episode_id,
