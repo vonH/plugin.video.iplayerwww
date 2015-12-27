@@ -160,8 +160,6 @@ def GetGroup(url):
 
 def ScrapeEpisodes(page_url):
 
-    # TODO: Support for search groups.
-
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create('iPlayer: Finding episodes...')
 
@@ -201,6 +199,14 @@ def ScrapeEpisodes(page_url):
                 li, flags=(re.DOTALL | re.MULTILINE))
             if unavailable_match:
                 continue
+
+            # <li class="list-item search-group"  data-ip-id="b06rdtx0">
+            search_group = False
+            search_group_match = re.search(
+                '<li class="list-item.*?search-group.*?"',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if search_group_match:
+                search_group = True
 
             main_url = None
             # <a href="/iplayer/episode/p026gmw9/world-of-difference-the-models"
@@ -268,8 +274,10 @@ def ScrapeEpisodes(page_url):
 
             episodes = None
             # <a class="view-more-container avail stat" href="/iplayer/episodes/p00db1jf" data-progress-state="">
+            # <a class="view-more-container sibling stat"
+            #  href="/iplayer/search?q=doctor&amp;search_group_id=urn:bbc:programmes:b06qbs4n">
             episodes_match = re.search(
-                r'<a class="view-more-container avail stat" href="(.*?)"',
+                r'<a class="view-more-container.+?stat" href="(.*?)"',
                 li, flags=(re.DOTALL | re.MULTILINE))
             if episodes_match:
                 episodes = episodes_match.group(1)
@@ -284,8 +292,12 @@ def ScrapeEpisodes(page_url):
 
             if episodes:
                 episodes_url = 'http://www.bbc.co.uk' + episodes
-                AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(31013)),
-                             episodes_url, 128, icon, '', '')
+                if search_group:
+                    AddMenuEntry('[B]%s[/B] - %s' % (title, translation(31018)),
+                                 episodes_url, 128, icon, '', '')
+                else:
+                    AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(31013)),
+                                 episodes_url, 128, icon, '', '')
             elif more:
                 AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(31013)),
                              main_url, 128, icon, '', '')
