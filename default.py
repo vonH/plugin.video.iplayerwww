@@ -115,8 +115,8 @@ def GetAtoZPage(url):
         AddMenuEntry(name, programme_id, 121, '', '', '')
 
 
-'''Parses a string format %d %b %Y to %d/%n/%Y otherwise empty string'''
 def ParseAired(aired):
+    """Parses a string format %d %b %Y to %d/%n/%Y otherwise empty string."""
     if aired:
         try:
             # Need to use equivelent for datetime.strptime() due to weird TypeError.
@@ -126,6 +126,7 @@ def ParseAired(aired):
     return ''
 
 def FirstShownToAired(first_shown):
+    """Converts the 'First shown' tag to %Y %m %d format."""
     release_parts = first_shown.split(' ')
 
     if len(release_parts) == 1:
@@ -159,9 +160,15 @@ def GetGroup(url):
 
 
 def ScrapeEpisodes(page_url):
+    """Creates a list of programmes on one standard HTML page.
+
+    ScrapeEpisodes contains a number of special treatments, which are only needed for
+    specific pages, e.g. Search, but allows to use a single function for all kinds
+    of pages.
+    """
 
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create('iPlayer: Finding episodes...')
+    pDialog.create(translation(31019))
 
     html = OpenURL(page_url).replace('amp;','')
 
@@ -306,12 +313,12 @@ def ScrapeEpisodes(page_url):
                 CheckAutoplay(name , main_url, icon, synopsis, aired)
 
             percent = int(100*(page+list_item_num/len(list_items))/total_pages)
-            pDialog.update(percent,'iPlayer: Finding episodes...',name)
+            pDialog.update(percent,translation(31019),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,'iPlayer: Finding episodes...')
+        pDialog.update(percent,translation(31019))
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
