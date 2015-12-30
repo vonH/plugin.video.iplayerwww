@@ -120,7 +120,7 @@ def ParseAired(aired):
     if aired:
         try:
             # Need to use equivelent for datetime.strptime() due to weird TypeError.
-            return datetime.datetime(*(time.strptime(aired, '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
+            return datetime.datetime(*(time.strptime(aired[0], '%d %b %Y')[0:6])).strftime('%d/%m/%Y')
         except ValueError:
             pass
     return ''
