@@ -98,8 +98,21 @@ def ListAtoZ():
         ('M', 'm'), ('N', 'n'), ('O', 'o'), ('P', 'p'), ('Q', 'q'), ('R', 'r'),
         ('S', 's'), ('T', 't'), ('U', 'u'), ('V', 'v'), ('W', 'w'), ('X', 'x'),
         ('Y', 'y'), ('Z', 'z'), ('0-9', '0-9')]
-    for name, url in characters:
-        AddMenuEntry(name, url, 124, '', '', '')
+
+    if int(ADDON.getSetting('scrape_atoz')) == 1:
+        pDialog = xbmcgui.DialogProgressBG()
+        pDialog.create(translation(31019))
+        page = 1
+        total_pages = len(characters)
+        for name, url in characters:
+            GetAtoZPage(url)
+            percent = int(100*page/total_pages)
+            pDialog.update(percent,translation(31019),name)
+            page += 1
+        pDialog.close()
+    else:
+        for name, url in characters:
+            AddMenuEntry(name, url, 124, '', '', '')
 
 
 def GetAtoZPage(url):
