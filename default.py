@@ -1084,7 +1084,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         ymd = aired.split('-')
         date_string = ymd[2] + '/' + ymd[1] + '/' + ymd[0]
     else:
-        date_string = "01/01/1970"
+        date_string = ""
 
     # Modes 201-299 will create a new playable line, otherwise create a new directory line.
     if mode in (201, 202, 203):
@@ -1094,12 +1094,18 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
 
     listitem = xbmcgui.ListItem(label=name, label2=description,
                                 iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-    listitem.setInfo("video", {
-        "title": name,
-        "plot": description,
-        "plotoutline": description,
-        'date': date_string,
-        'aired': aired})
+    if aired:
+        listitem.setInfo("video", {
+            "title": name,
+            "plot": description,
+            "plotoutline": description,
+            "date": date_string,
+            "aired": aired})
+    else:
+        listitem.setInfo("video", {
+            "title": name,
+            "plot": description,
+            "plotoutline": description})
 
     video_streaminfo = {'codec': 'h264'}
     if not isFolder:
