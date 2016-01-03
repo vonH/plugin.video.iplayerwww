@@ -283,7 +283,7 @@ def ScrapeEpisodes(page_url):
             # <div class="r-image"  data-ip-type="group"
             # data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p037ty9z.jpg">
             image_match = re.search(
-                r'<div class="r-image"  data-ip-type="(.*?)" data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/(.*?)\.jpg"',
+                r'<div class="r-image".+?data-ip-type="(.*?)".+?data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/(.*?)\.jpg"',
                 li, flags=(re.DOTALL | re.MULTILINE))
             if image_match:
                 type = image_match.group(1)
@@ -302,7 +302,7 @@ def ScrapeEpisodes(page_url):
             aired = ''
             # <span class="release">\nFirst shown: 8 Jun 1967\n</span>
             release_match = re.search(
-                r'<span class="release">.*?First shown: (.*?)\n.*?</span>',
+                r'<span class="release">.*?First shown:\s*(.*?)\n.*?</span>',
                 li, flags=(re.DOTALL | re.MULTILINE))
             if release_match:
                 release = release_match.group(1)
@@ -314,7 +314,7 @@ def ScrapeEpisodes(page_url):
             # <a class="view-more-container sibling stat"
             #  href="/iplayer/search?q=doctor&amp;search_group_id=urn:bbc:programmes:b06qbs4n">
             episodes_match = re.search(
-                r'<a class="view-more-container.+?stat" href="(.*?)"',
+                r'<a class="view-more-container.+?stat".+?href="(.*?)"',
                 li, flags=(re.DOTALL | re.MULTILINE))
             if episodes_match:
                 episodes = episodes_match.group(1)
