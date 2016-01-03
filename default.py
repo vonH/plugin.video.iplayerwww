@@ -187,6 +187,7 @@ def ScrapeEpisodes(page_url):
 
     total_pages = 1
     current_page = 1
+    page_range = range(1)
     paginate = re.search(r'<div class="paginate.*?</div>',html)
     if paginate:
         if int(ADDON.getSetting('paginate_episodes')) == 0:
