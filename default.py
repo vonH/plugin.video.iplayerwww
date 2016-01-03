@@ -186,18 +186,34 @@ def ScrapeEpisodes(page_url):
     html = OpenURL(page_url).replace('amp;','')
 
     total_pages = 1
+    current_page = 1
     paginate = re.search(r'<div class="paginate.*?</div>',html)
     if paginate:
-        pages = re.findall(r'<li class="page.*?</li>',paginate.group(0))
-        if pages:
-            last = pages[-1]
-            last_page = re.search(r'<a href="(.*?page=)(.*?)">',last)
-            page_base_url = last_page.group(1)
-            total_pages = int(last_page.group(2))
+        if int(ADDON.getSetting('paginate_episodes')) == 0:
+            current_page_match = re.search(r'page=(\d*)', page_url)
+            if current_page_match:
+                current_page = int(current_page_match.group(1))
+            page_range = range(current_page, current_page+1)
+            next_page_match = re.search(r'<span class="next txt">.+?href="(.*?page=)(.*?)"', paginate.group(0))
+            if next_page_match:
+                page_base_url = next_page_match.group(1)
+                next_page = int(next_page_match.group(2))
+            else:
+                next_page = current_page
+            page_range = range(current_page, current_page+1)
+        else:
+            pages = re.findall(r'<li class="page.*?</li>',paginate.group(0))
+            if pages:
+                last = pages[-1]
+                last_page = re.search(r'<a href="(.*?page=)(.*?)">',last)
+                page_base_url = last_page.group(1)
+                total_pages = int(last_page.group(2))
+            page_range = range(1, total_pages+1)
 
-    for page in range(1, total_pages+1):
 
-        if page > 1:
+    for page in page_range:
+
+        if page > current_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
             html = OpenURL(page_url).replace('amp;','')
 
@@ -334,8 +350,13 @@ def ScrapeEpisodes(page_url):
         percent = int(100*page/total_pages)
         pDialog.update(percent,translation(31019))
 
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    if int(ADDON.getSetting('paginate_episodes')) == 0:
+        if current_page < next_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
+            AddMenuEntry('Next page', page_url, 128, '', '', '')
+    else:
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 
     pDialog.close()
 
