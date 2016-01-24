@@ -183,7 +183,7 @@ def ScrapeEpisodes(page_url):
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create(translation(31019))
 
-    html = OpenURL(page_url).replace('amp;','')
+    html = OpenURL(page_url).replace('amp;','').replace("&#39;","'")
 
     total_pages = 1
     current_page = 1
