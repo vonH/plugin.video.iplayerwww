@@ -120,7 +120,7 @@ def GetAtoZPage(url):
 
     Creates the list of programmes for one character.
     """
-    link = OpenURL('http://www.bbc.co.uk/iplayer/a-z/%s' % url)
+    link = OpenURL('http://www.bbc.co.uk/iplayer/a-z/%s' % url).replace('amp;','')
     match = re.compile(
         '<a href="/iplayer/brand/(.+?)".+?<span class="title">(.+?)</span>',
         re.DOTALL).findall(link)
@@ -189,6 +189,7 @@ def ScrapeEpisodes(page_url):
     current_page = 1
     page_range = range(1)
     paginate = re.search(r'<div class="paginate.*?</div>',html)
+    next_page = 1
     if paginate:
         if int(ADDON.getSetting('paginate_episodes')) == 0:
             current_page_match = re.search(r'page=(\d*)', page_url)
