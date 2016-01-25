@@ -13,6 +13,7 @@ import requests
 from requests.packages import urllib3
 import cookielib
 import json
+import HTMLParser
 
 import xbmc
 import xbmcaddon
@@ -183,12 +184,13 @@ def ScrapeEpisodes(page_url):
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create(translation(31019))
 
-    html = OpenURL(page_url).replace('amp;','')
+    html = OpenURL(page_url)
 
     total_pages = 1
     current_page = 1
     page_range = range(1)
     paginate = re.search(r'<div class="paginate.*?</div>',html)
+    next_page = 1
     if paginate:
         if int(ADDON.getSetting('paginate_episodes')) == 0:
             current_page_match = re.search(r'page=(\d*)', page_url)
@@ -216,7 +218,7 @@ def ScrapeEpisodes(page_url):
 
         if page > current_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
-            html = OpenURL(page_url).replace('amp;','')
+            html = OpenURL(page_url)
 
         # NOTE remove inner li to match outer li
 
@@ -369,7 +371,7 @@ def ListCategories():
     html = OpenURL('http://www.bbc.co.uk/iplayer')
     match = re.compile(
         '<a href="/iplayer/categories/(.+?)" class="stat">(.+?)</a>'
-        ).findall(html.replace('amp;', ''))
+        ).findall(html)
     for url, name in match:
         AddMenuEntry(name, url, 125, '', '', '')
 
@@ -384,7 +386,7 @@ def ListCategoryFilters(url):
     # Some categories offer filters, we want to provide these filters as options.
     match1 = re.findall(
         '<li class="filter"> <a class="name" href="/iplayer/categories/(.+?)"> (.+?)</a>',
-        html.replace('amp;', ''),
+        html,
         re.DOTALL)
     if match1:
         AddMenuEntry('All', url, 126, '', '', '')
@@ -425,7 +427,7 @@ def ListHighlights(highlights_url):
     """Creates a list of the programmes in the highlights section.
     """
 
-    html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url).replace('amp;','')
+    html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url)
 
     inner_anchors = re.findall(r'<a.*?(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
 
@@ -716,7 +718,7 @@ def ParseStreams(stream_id):
     # Parse the different streams and add them as new directory entries.
     match = re.compile(
         'connection authExpires=".+?href="(.+?)".+?supplier="mf_(.+?)".+?transferFormat="(.+?)"'
-        ).findall(html.replace('amp;', ''))
+        ).findall(html)
     for m3u8_url, supplier, transfer_format in match:
         tmp_sup = 0
         tmp_br = 0
@@ -746,7 +748,7 @@ def ParseStreams(stream_id):
     # It may be useful to parse these additional streams as a default as they offer additional bandwidths.
     match = re.compile(
         'kind="video".+?connection href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
-        ).findall(html.replace('amp;', ''))
+        ).findall(html)
     # print match
     unique = []
     [unique.append(item) for item in match if item not in unique]
@@ -779,7 +781,7 @@ def ParseStreams(stream_id):
             elif int(bandwidth) <= 2410000:
                 tmp_br = 5
             retlist.append((tmp_sup, tmp_br, url, resolution))
-    match = re.compile('service="captions".+?connection href="(.+?)"').findall(html.replace('amp;', ''))
+    match = re.compile('service="captions".+?connection href="(.+?)"').findall(html)
     # print "Subtitle URL: %s"%match
     # print retlist
     if not match:
@@ -915,7 +917,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
                 provider_url, channelname)
         html = OpenURL(url)
         # Use regexp to get the different versions using various bitrates
-        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html.replace('amp;', ''))
+        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
         streams_available = []
         for address, bitrate in match:
             url = address.replace('f4m', 'm3u8')
@@ -958,7 +960,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
                 provider_url, channelname)
         html = OpenURL(url)
         # Use regexp to get the different versions using various bitrates
-        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html.replace('amp;', ''))
+        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
         # Add provider name to the stream list.
         streams.extend([list(stream) + [provider_name] for stream in match])
 
@@ -1007,7 +1009,7 @@ def OpenURL(url):
         cookie_jar.save(ignore_discard=True, ignore_expires=True)
     except:
         pass
-    return r.content.decode('utf-8')
+    return HTMLParser.HTMLParser().unescape(r.content.decode('utf-8'))
 
 
 def OpenURLPost(url, post_data):
@@ -1208,9 +1210,9 @@ def download_subtitles(url):
                   'end_mil': end_mil[:3],
                   'text': m.group(7)}
 
-            ma['text'] = ma['text'].replace('&amp;', '&')
-            ma['text'] = ma['text'].replace('&gt;', '>')
-            ma['text'] = ma['text'].replace('&lt;', '<')
+            # ma['text'] = ma['text'].replace('&amp;', '&')
+            # ma['text'] = ma['text'].replace('&gt;', '>')
+            # ma['text'] = ma['text'].replace('&lt;', '<')
             ma['text'] = ma['text'].replace('<br />', '\n')
             ma['text'] = ma['text'].replace('<br/>', '\n')
             ma['text'] = re.sub('<.*?>', '', ma['text'])
