@@ -1356,7 +1356,8 @@ def ListFavourites(logged_in):
         more = initial_child.get('parent_position')
         if more:
             episodes_url = "http://www.bbc.co.uk/iplayer/episodes/" + id
-            AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(31013)), episodes_url, 128, image_url, '', '')
+            AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(31013)),
+                         episodes_url, 128, image_url, '', '')
 
 
 cookie_jar = InitialiseCookieJar()
