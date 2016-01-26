@@ -1343,12 +1343,20 @@ def ListFavourites(logged_in):
         url = "http://www.bbc.co.uk/iplayer/brand/%s" % (id)
         title = programme.get('title')
         initial_child = programme.get('initial_children')[0]
+        subtitle = initial_child.get('subtitle')
+        episode_title = title
+        if subtitle:
+            episode_title = title + ' - ' + subtitle
         image=initial_child.get('images')
         image_url=ParseImageUrl(image.get('standard'))
         synopses = initial_child.get('synopses')
         plot = synopses.get('small')
-        aired = ParseAired(initial_child.get('release_date'))
-        CheckAutoplay(title, url, image_url, plot, aired)
+        aired = FirstShownToAired(initial_child.get('release_date'))
+        CheckAutoplay(episode_title, url, image_url, plot, aired)
+        more = initial_child.get('parent_position')
+        if more:
+            episodes_url = "http://www.bbc.co.uk/iplayer/episodes/" + id
+            AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(31013)), episodes_url, 128, image_url, '', '')
 
 
 cookie_jar = InitialiseCookieJar()
