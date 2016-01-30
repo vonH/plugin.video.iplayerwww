@@ -56,6 +56,7 @@ def CATEGORIES():
     AddMenuEntry(translation(31005), 'url', 101, '', '', '')
     AddMenuEntry(translation(31006), 'url', 107, '', '', '')
     AddMenuEntry(translation(31007), 'url', 108, '', '', '')
+    AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
 
 
 # ListLive creates menu entries for all live channels.
@@ -127,6 +128,80 @@ def GetAtoZPage(url):
         re.DOTALL).findall(link)
     for programme_id, name in match:
         AddMenuEntry(name, programme_id, 121, '', '', '')
+
+
+def RadioListAtoZ():
+    """List programmes based on alphabetical order.
+
+    Only creates the corresponding directories for each character.
+    """
+    characters = [
+        ('A', 'a'), ('B', 'b'), ('C', 'c'), ('D', 'd'), ('E', 'e'), ('F', 'f'),
+        ('G', 'g'), ('H', 'h'), ('I', 'i'), ('J', 'j'), ('K', 'k'), ('L', 'l'),
+        ('M', 'm'), ('N', 'n'), ('O', 'o'), ('P', 'p'), ('Q', 'q'), ('R', 'r'),
+        ('S', 's'), ('T', 't'), ('U', 'u'), ('V', 'v'), ('W', 'w'), ('X', 'x'),
+        ('Y', 'y'), ('Z', 'z'), ('0-9', '@')]
+
+    if int(ADDON.getSetting('scrape_atoz')) == 1:
+        pDialog = xbmcgui.DialogProgressBG()
+        pDialog.create(translation(31019))
+        page = 1
+        total_pages = len(characters)
+        for name, url in characters:
+            RadioGetAtoZPage(url)
+            percent = int(100*page/total_pages)
+            pDialog.update(percent,translation(31019),name)
+            page += 1
+        pDialog.close()
+    else:
+        for name, url in characters:
+            AddMenuEntry(name, url, 134, '', '', '')
+
+
+def RadioGetAtoZPage(url):
+    """Allows to list programmes based on alphabetical order.
+
+    Creates the list of programmes for one character.
+    """
+    link = OpenURL('http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % url)
+    #print link.encode("utf8")
+    
+    programmes = link.split('<div class="programme ')
+    for programme in programmes:
+        
+        if not programme.startswith("programme--radio"):
+            continue
+        print programme.encode("utf8")
+
+        programme_id = ''
+        programme_id_match = re.search(r'data-pid="(.*?)"', programme)
+        if programme_id_match:
+            programme_id = programme_id_match.group(1)
+            
+        name = ''
+        name_match = re.search(r'<span property="name">(.*?)</span>', programme)
+        if name_match:
+            name = name_match.group(1)
+            
+        image = ''    
+        image_match = re.search(r'<meta property="image" content="(.*?)" />', programme)
+        if image_match:
+            image = image_match.group(1)
+            
+        synopsis = ''    
+        synopsis_match = re.search(r'<span property="description">(.*?)</span>', programme)
+        if synopsis_match:
+            synopsis = synopsis_match.group(1)
+                  
+        station = ''    
+        station_match = re.search(r'<p class="programme__service.+?<strong>(.*?)</strong>.*?</p>', programme, flags=(re.DOTALL | re.MULTILINE))
+        if station_match:
+            station = station_match.group(1)
+            
+        title = "[B]%s[/B] - %s" % (station, name)
+        
+        if programme_id and title and image and synopsis:
+            AddMenuEntry(title, programme_id, 121, image, synopsis, '')
 
 
 def ParseAired(aired):
@@ -1438,6 +1513,9 @@ elif mode == 108:
 
 elif mode == 109:
     ListChannelHighlights()
+    
+elif mode == 112:
+    RadioListAtoZ()
 
 # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
@@ -1463,6 +1541,9 @@ elif mode == 127:
 
 elif mode == 128:
     ScrapeEpisodes(url)
+    
+elif mode == 134:
+    RadioGetAtoZPage(url)
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:
