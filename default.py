@@ -194,14 +194,18 @@ def RadioGetAtoZPage(url):
             synopsis = synopsis_match.group(1)
                   
         station = ''    
-        station_match = re.search(r'<p class="programme__service.+?<strong>(.*?)</strong>.*?</p>', programme, flags=(re.DOTALL | re.MULTILINE))
+        station_match = re.search(r'<p class="programme__service.+?<strong>(.*?)</strong>.*?</p>', programme)
         if station_match:
             station = station_match.group(1)
             
         title = "[B]%s[/B] - %s" % (station, name)
         
         if programme_id and title and image and synopsis:
-            AddMenuEntry(title, programme_id, 121, image, synopsis, '')
+            AddMenuEntry(title, programme_id, 131, image, synopsis, '')
+            
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+        #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
 
 def ParseAired(aired):
@@ -241,6 +245,11 @@ def FirstShownToAired(first_shown):
 def GetEpisodes(url):
     new_url = 'http://www.bbc.co.uk/iplayer/episodes/%s' % url
     ScrapeEpisodes(new_url)
+
+
+def RadioGetEpisodes(url):
+    new_url = 'http://www.bbc.co.uk/programmes/%s/episodes/player' % url
+    RadioScrapeEpisodes(new_url)
 
 
 def GetGroup(url):
@@ -438,6 +447,197 @@ def ScrapeEpisodes(page_url):
 
     pDialog.close()
 
+
+def RadioScrapeEpisodes(page_url):
+    """Creates a list of programmes on one standard HTML page.
+
+    ScrapeEpisodes contains a number of special treatments, which are only needed for
+    specific pages, e.g. Search, but allows to use a single function for all kinds
+    of pages.
+    """
+
+    pDialog = xbmcgui.DialogProgressBG()
+    pDialog.create(translation(31019))
+
+    html = OpenURL(page_url)
+    print html.encode("utf8")
+
+    total_pages = 1
+    current_page = 1
+    page_range = range(1)
+    paginate = re.search(r'<div class="paginate.*?</div>',html)
+    next_page = 1
+    if paginate:
+        if int(ADDON.getSetting('paginate_episodes')) == 0:
+            current_page_match = re.search(r'page=(\d*)', page_url)
+            if current_page_match:
+                current_page = int(current_page_match.group(1))
+            page_range = range(current_page, current_page+1)
+            next_page_match = re.search(r'<span class="next txt">.+?href="(.*?page=)(.*?)"', paginate.group(0))
+            if next_page_match:
+                page_base_url = next_page_match.group(1)
+                next_page = int(next_page_match.group(2))
+            else:
+                next_page = current_page
+            page_range = range(current_page, current_page+1)
+        else:
+            pages = re.findall(r'<li class="page.*?</li>',paginate.group(0))
+            if pages:
+                last = pages[-1]
+                last_page = re.search(r'<a href="(.*?page=)(.*?)">',last)
+                page_base_url = last_page.group(1)
+                total_pages = int(last_page.group(2))
+            page_range = range(1, total_pages+1)
+
+
+    for page in page_range:
+
+        if page > current_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
+            html = OpenURL(page_url)
+
+        # NOTE remove inner li to match outer li
+
+        # <li data-version-type="hd">
+        html = re.compile(r'<li data-version-type.*?</li>',
+                          flags=(re.DOTALL | re.MULTILINE)).sub('', html)
+
+        # <li class="list-item programme"  data-ip-id="p026f2t4">
+        list_items = re.findall(r'<li class="list-item.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
+
+        list_item_num = 1
+
+        for li in list_items:
+
+            # <li class="list-item unavailable"  data-ip-id="b06sq9xj">
+            unavailable_match = re.search(
+                '<li class="list-item.*?unavailable.*?"',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if unavailable_match:
+                continue
+
+            # <li class="list-item search-group"  data-ip-id="b06rdtx0">
+            search_group = False
+            search_group_match = re.search(
+                '<li class="list-item.*?search-group.*?"',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if search_group_match:
+                search_group = True
+
+            main_url = None
+            # <a href="/iplayer/episode/p026gmw9/world-of-difference-the-models"
+            # title="World of Difference, The Models" class="list-item-link stat"
+            url_match = re.search(
+                r'<a.*?href="(.*?)".*?list-item-link.*?>',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if url_match:
+                url = url_match.group(1)
+                if url:
+                    main_url = 'http://www.bbc.co.uk' + url
+
+            name = ''
+            title = ''
+            #<div class="title top-title">World of Difference</div>
+            title_match = re.search(
+                r'<div class="title top-title">\s*(.*?)\s*</div>',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if title_match:
+                title = title_match.group(1)
+                name = title
+
+            subtitle = None
+            #<div class="subtitle">The Models</div>
+            subtitle_match = re.search(
+                r'<div class="subtitle">\s*(.*?)\s*</div>',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if subtitle_match:
+                subtitle = subtitle_match.group(1)
+                if subtitle:
+                    name = name + " - " + subtitle
+
+            icon = ''
+            type = None
+            # <div class="r-image"  data-ip-type="episode"
+            # data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p026vl1q.jpg">
+            # <div class="r-image"  data-ip-type="group"
+            # data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/p037ty9z.jpg">
+            image_match = re.search(
+                r'<div class="r-image".+?data-ip-type="(.*?)".+?data-ip-src="http://ichef.bbci.co.uk/images/ic/336x189/(.*?)\.jpg"',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if image_match:
+                type = image_match.group(1)
+                image = image_match.group(2)
+                if image:
+                    icon = "http://ichef.bbci.co.uk/images/ic/832x468/" + image + ".jpg"
+
+            synopsis = ''
+            # <p class="synopsis">What was it like to be a top fashion model 30 years ago? (1978)</p>
+            synopsis_match = re.search(
+                r'<p class="synopsis">\s*(.*?)\s*</p>',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if synopsis_match:
+                synopsis = synopsis_match.group(1)
+
+            aired = ''
+            # <span class="release">\nFirst shown: 8 Jun 1967\n</span>
+            release_match = re.search(
+                r'<span class="release">.*?First shown:\s*(.*?)\n.*?</span>',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if release_match:
+                release = release_match.group(1)
+                if release:
+                    aired = FirstShownToAired(release)
+
+            episodes = None
+            # <a class="view-more-container avail stat" href="/iplayer/episodes/p00db1jf" data-progress-state="">
+            # <a class="view-more-container sibling stat"
+            #  href="/iplayer/search?q=doctor&amp;search_group_id=urn:bbc:programmes:b06qbs4n">
+            episodes_match = re.search(
+                r'<a class="view-more-container.+?stat".+?href="(.*?)"',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if episodes_match:
+                episodes = episodes_match.group(1)
+
+            more = None
+            # <em class="view-more-heading">27</em>
+            more_match = re.search(
+                r'<em class="view-more-heading">(.*?)</em>',
+                li, flags=(re.DOTALL | re.MULTILINE))
+            if more_match:
+                more = more_match.group(1)
+
+            if episodes:
+                episodes_url = 'http://www.bbc.co.uk' + episodes
+                if search_group:
+                    AddMenuEntry('[B]%s[/B] - %s' % (title, translation(31018)),
+                                 episodes_url, 128, icon, '', '')
+                else:
+                    AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(31013)),
+                                 episodes_url, 128, icon, '', '')
+            elif more:
+                AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(31013)),
+                             main_url, 128, icon, '', '')
+
+            if type != "group":
+                CheckAutoplay(name , main_url, icon, synopsis, aired)
+
+            percent = int(100*(page+list_item_num/len(list_items))/total_pages)
+            pDialog.update(percent,translation(31019),name)
+
+            list_item_num += 1
+
+        percent = int(100*page/total_pages)
+        pDialog.update(percent,translation(31019))
+
+    if int(ADDON.getSetting('paginate_episodes')) == 0:
+        if current_page < next_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
+            AddMenuEntry('Next page', page_url, 128, '', '', '')
+    else:
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+
+    pDialog.close()
 
 def ListCategories():
     """Parses the available categories and creates directories for selecting one of them.
@@ -1542,6 +1742,9 @@ elif mode == 127:
 elif mode == 128:
     ScrapeEpisodes(url)
     
+elif mode == 131:
+    RadioGetEpisodes(url)
+
 elif mode == 134:
     RadioGetAtoZPage(url)
 
