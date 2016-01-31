@@ -856,18 +856,18 @@ def RadioAddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     streams = RadioParseStreams(stream_id)
     print streams
     suppliers = ['', 'Akamai', 'Limelight', 'Level3']
-    bitrates = [0, 128]
-    for supplier, bitrate, url, resolution in sorted(streams[0], key=itemgetter(1), reverse=True):
-        if bitrate in (5, 7):
+    for supplier, bitrate, url, encoding in sorted(streams[0], key=itemgetter(1), reverse=True):
+        bitrate = int(bitrate)
+        if bitrate >= 320:
             color = 'green'
-        elif bitrate == 6:
+        elif bitrate >= 192:
             color = 'blue'
-        elif bitrate in (3, 4):
+        elif bitrate >= 128:
             color = 'yellow'
         else:
             color = 'orange'
-        title = name + ' - [I][COLOR %s]%d Kbps[/COLOR] [COLOR lightgray]%s[/COLOR][/I]' % (
-            color, bitrates[bitrate], suppliers[supplier])
+        title = name + ' - [I][COLOR %s]%d Kbps %s[/COLOR] [COLOR lightgray]%s[/COLOR][/I]' % (
+            color, bitrate, encoding, suppliers[supplier])
         AddMenuEntry(title, url, 201, iconimage, description, '', '')
 
 
@@ -967,9 +967,9 @@ def RadioParseStreams(stream_id):
     html = OpenURL(NEW_URL)
     # Parse the different streams and add them as new directory entries.
     match = re.compile(
-        'connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
+        'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
         ).findall(html)
-    for m3u8_url, supplier, transfer_format in match:
+    for bitrate, encoding, m3u8_url, supplier, transfer_format in match:
         tmp_sup = 0
         tmp_br = 0
         if transfer_format == 'hls':
@@ -988,9 +988,7 @@ def RadioParseStreams(stream_id):
                 print stream
                 #url = "%s%s%s" % (m3u8_breakdown[0][0], stream, m3u8_breakdown[0][1])
                 url = stream
-                if int(bandwidth) == 128000:
-                    tmp_br = 1
-                retlist.append((tmp_sup, tmp_br, url, codecs))
+                retlist.append((tmp_sup, bitrate, url, encoding))
 
     ''' TODO
         # print "No streams found"
