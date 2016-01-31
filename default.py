@@ -171,7 +171,7 @@ def RadioGetAtoZPage(url):
         
         if not programme.startswith("programme--radio"):
             continue
-        print programme.encode("utf8")
+        #print programme.encode("utf8")
 
         programme_id = ''
         programme_id_match = re.search(r'data-pid="(.*?)"', programme)
@@ -458,13 +458,13 @@ def RadioScrapeEpisodes(page_url):
     """
 
     link = OpenURL(page_url)
-    print link.encode("utf8")
+    #print link.encode("utf8")
     
     title = ''
     title_match = re.search(r'<div class="br-masthead__title">.*?<a.*?title="(.*?)"', link)
     if title_match:
         title = title_match.group(1)
-        print title
+        #print title
 
     programmes = link.split('<div class="programme ')
     for programme in programmes:
@@ -496,7 +496,7 @@ def RadioScrapeEpisodes(page_url):
         full_title = "[B]%s[/B] - %s" % (title, name)
         
         if programme_id and title and image and synopsis:
-            AddMenuEntry(full_title, programme_id, 131, image, synopsis, '')
+            AddMenuEntry(full_title, programme_id, 132, image, synopsis, '')
             
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
@@ -850,6 +850,27 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
         AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
 
 
+def RadioAddAvailableStreamsDirectory(name, stream_id, iconimage, description):
+    """Will create one menu entry for each available stream of a particular stream_id"""
+    # print "Stream ID: %s"%stream_id
+    streams = RadioParseStreams(stream_id)
+    print streams
+    suppliers = ['', 'Akamai', 'Limelight', 'Level3']
+    bitrates = [0, 128]
+    for supplier, bitrate, url, resolution in sorted(streams[0], key=itemgetter(1), reverse=True):
+        if bitrate in (5, 7):
+            color = 'green'
+        elif bitrate == 6:
+            color = 'blue'
+        elif bitrate in (3, 4):
+            color = 'yellow'
+        else:
+            color = 'orange'
+        title = name + ' - [I][COLOR %s]%d Kbps[/COLOR] [COLOR lightgray]%s[/COLOR][/I]' % (
+            color, bitrates[bitrate], suppliers[supplier])
+        AddMenuEntry(title, url, 201, iconimage, description, '', '')
+
+
 def ParseStreams(stream_id):
     retlist = []
     # print "Parsing streams for PID: %s"%stream_id[0]
@@ -869,14 +890,16 @@ def ParseStreams(stream_id):
             elif supplier == 'limelight_uk_hls':
                 tmp_sup = 2
             m3u8_breakdown = re.compile('(.+?)iptv.+?m3u8(.+?)$').findall(m3u8_url)
+            print m3u8_breakdown
             # print m3u8_url
             m3u8_html = OpenURL(m3u8_url)
             m3u8_match = re.compile('BANDWIDTH=(.+?),.+?RESOLUTION=(.+?)\n(.+?)\n').findall(m3u8_html)
             for bandwidth, resolution, stream in m3u8_match:
                 # print bandwidth
                 # print resolution
-                # print stream
+                print stream
                 url = "%s%s%s" % (m3u8_breakdown[0][0], stream, m3u8_breakdown[0][1])
+                print url
                 if int(bandwidth) == 1012300:
                     tmp_br = 2
                 elif int(bandwidth) == 1799880:
@@ -936,7 +959,54 @@ def ParseStreams(stream_id):
             raise
     return retlist, match
 
+def RadioParseStreams(stream_id):
+    retlist = []
+    # print "Parsing streams for PID: %s"%stream_id[0]
+    # Open the page with the actual strem information and display the various available streams.
+    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s" % stream_id[0]
+    html = OpenURL(NEW_URL)
+    # Parse the different streams and add them as new directory entries.
+    match = re.compile(
+        'connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
+        ).findall(html)
+    for m3u8_url, supplier, transfer_format in match:
+        tmp_sup = 0
+        tmp_br = 0
+        if transfer_format == 'hls':
+            if supplier == 'akamai_hls_open':
+                tmp_sup = 1
+            elif supplier == 'limelight_hls_open': #NOTE: just guessing?
+                tmp_sup = 2
+            #m3u8_breakdown = re.compile('(.+?)iptv.+?m3u8(.+?)$').findall(m3u8_url)
+            # print m3u8_url
+            m3u8_html = OpenURL(m3u8_url)
+            print m3u8_html.encode("utf8")
+            m3u8_match = re.compile('BANDWIDTH=(.+?),.*?CODECS="(.+?)"\n(.+?)\n').findall(m3u8_html)
+            for bandwidth, codecs, stream in m3u8_match:
+                print bandwidth
+                print codecs
+                print stream
+                #url = "%s%s%s" % (m3u8_breakdown[0][0], stream, m3u8_breakdown[0][1])
+                url = stream
+                if int(bandwidth) == 128000:
+                    tmp_br = 1
+                retlist.append((tmp_sup, tmp_br, url, codecs))
 
+    ''' TODO
+        # print "No streams found"
+        check_geo = re.search(
+            '<error id="geolocation"/>', html)
+        if check_geo:
+            # print "Geoblock detected, raising error message"
+            dialog = xbmcgui.Dialog()
+            dialog.ok(translation(32000), translation(32001))
+            raise
+    '''
+    print retlist
+    print match
+    return retlist, match
+
+    
 def CheckAutoplay(name, url, iconimage, plot, aired=None):
     if ADDON.getSetting('streams_autoplay') == 'true':
         AddMenuEntry(name, url, 202, iconimage, plot, '', aired=aired)
@@ -949,6 +1019,29 @@ def ScrapeAvailableStreams(url):
     html = OpenURL(url)
     # Search for standard programmes.
     stream_id_st = re.compile('"vpid":"(.+?)"').findall(html)
+    # Optionally, Signed programmes can be searched for. These have a different ID.
+    if ADDON.getSetting('search_signed') == 'true':
+        stream_id_sl = re.compile('data-download-sl="bbc-ipd:download/.+?/(.+?)/sd/').findall(html)
+    else:
+        stream_id_sl = []
+    # Optionally, Audio Described programmes can be searched for. These have a different ID.
+    if ADDON.getSetting('search_ad') == 'true':
+        url_ad = re.compile('<a href="(.+?)" class="version link watch-ad-on"').findall(html)
+        url_tmp = "http://www.bbc.co.uk%s" % url_ad[0]
+        html = OpenURL(url_tmp)
+        stream_id_ad = re.compile('"vpid":"(.+?)"').findall(html)
+        # print stream_id_ad
+    else:
+        stream_id_ad = []
+    return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad}
+
+
+def RadioScrapeAvailableStreams(url):
+    # Open page and retrieve the stream ID
+    html = OpenURL(url)
+    # Search for standard programmes.
+    stream_id_st = re.compile('"vpid":"(.+?)"').findall(html)
+    print stream_id_st
     # Optionally, Signed programmes can be searched for. These have a different ID.
     if ADDON.getSetting('search_signed') == 'true':
         stream_id_sl = re.compile('data-download-sl="bbc-ipd:download/.+?/(.+?)/sd/').findall(html)
@@ -1028,8 +1121,22 @@ def AddAvailableStreamItem(name, url, iconimage, description):
 
 def GetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
+    print url
     stream_ids = ScrapeAvailableStreams(url)
     AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description)
+    # If we searched for Audio Described programmes and they have been found, append them to the list.
+    if stream_ids['stream_id_ad']:
+        AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage, description)
+    # If we search for Signed programmes and they have been found, append them to the list.
+    if stream_ids['stream_id_sl']:
+        AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage, description)
+
+
+def RadioGetAvailableStreams(name, url, iconimage, description):
+    """Calls AddAvailableStreamsDirectory based on user settings"""
+    print url
+    stream_ids = RadioScrapeAvailableStreams(url)
+    RadioAddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description)
     # If we searched for Audio Described programmes and they have been found, append them to the list.
     if stream_ids['stream_id_ad']:
         AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage, description)
@@ -1610,6 +1717,10 @@ elif mode == 128:
     
 elif mode == 131:
     RadioGetEpisodes(url)
+    
+elif mode == 132:
+    url = "http://www.bbc.co.uk/programmes/" + url
+    RadioGetAvailableStreams(name, url, iconimage, description)
 
 elif mode == 134:
     RadioGetAtoZPage(url)
