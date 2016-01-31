@@ -482,46 +482,68 @@ def RadioScrapeEpisodes(page_url):
     of pages.
     """
 
-    link = OpenURL(page_url)
-    #print link.encode("utf8")
+    html = OpenURL(page_url)
+    #print html.encode("utf8")
     
-    title = ''
-    title_match = re.search(r'<div class="br-masthead__title">.*?<a.*?title="(.*?)"', link)
-    if title_match:
-        title = title_match.group(1)
-        #print title
+    #TODO: optional pagination and progress bar
+    total_pages = 1
+    current_page = 1
+    page_range = range(1)
+    paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
+    next_page = 1
+    if paginate:
+        pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
+        if pages:
+            last = pages[-1]
+            last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
+            print last_page.group(2)
+            page_base_url = last_page.group(1)
+            total_pages = int(last_page.group(2))
+        page_range = range(1, total_pages+1)
 
-    programmes = link.split('<div class="programme ')
-    for programme in programmes:
-        
-        if not programme.startswith("programme--radio"):
-            continue
-        #print programme.encode("utf8")
+    for page in page_range:
 
-        programme_id = ''
-        programme_id_match = re.search(r'data-pid="(.*?)"', programme)
-        if programme_id_match:
-            programme_id = programme_id_match.group(1)
+        if page > current_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
+            html = OpenURL(page_url)
+    
+        title = ''
+        title_match = re.search(r'<div class="br-masthead__title">.*?<a.*?title="(.*?)"', html)
+        if title_match:
+            title = title_match.group(1)
+            #print title
+
+        programmes = html.split('<div class="programme ')
+        for programme in programmes:
             
-        name = ''
-        name_match = re.search(r'<span property="name">(.*?)</span>', programme)
-        if name_match:
-            name = name_match.group(1)
+            if not programme.startswith("programme--radio"):
+                continue
+            #print programme.encode("utf8")
+
+            programme_id = ''
+            programme_id_match = re.search(r'data-pid="(.*?)"', programme)
+            if programme_id_match:
+                programme_id = programme_id_match.group(1)
+                
+            name = ''
+            name_match = re.search(r'<span property="name">(.*?)</span>', programme)
+            if name_match:
+                name = name_match.group(1)
+                
+            image = ''    
+            image_match = re.search(r'<meta property="image" content="(.*?)" />', programme)
+            if image_match:
+                image = image_match.group(1)
+                
+            synopsis = ''    
+            synopsis_match = re.search(r'<span property="description">(.*?)</span>', programme)
+            if synopsis_match:
+                synopsis = synopsis_match.group(1)
+                      
+            full_title = "[B]%s[/B] - %s" % (title, name)
             
-        image = ''    
-        image_match = re.search(r'<meta property="image" content="(.*?)" />', programme)
-        if image_match:
-            image = image_match.group(1)
-            
-        synopsis = ''    
-        synopsis_match = re.search(r'<span property="description">(.*?)</span>', programme)
-        if synopsis_match:
-            synopsis = synopsis_match.group(1)
-                  
-        full_title = "[B]%s[/B] - %s" % (title, name)
-        
-        if programme_id and title and image and synopsis:
-            AddMenuEntry(full_title, programme_id, 132, image, synopsis, '')
+            if programme_id and title and image and synopsis:
+                AddMenuEntry(full_title, programme_id, 132, image, synopsis, '')
             
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
@@ -1064,22 +1086,7 @@ def RadioScrapeAvailableStreams(url):
     html = OpenURL(url)
     # Search for standard programmes.
     stream_id_st = re.compile('"vpid":"(.+?)"').findall(html)
-    print stream_id_st
-    # Optionally, Signed programmes can be searched for. These have a different ID.
-    if ADDON.getSetting('search_signed') == 'true':
-        stream_id_sl = re.compile('data-download-sl="bbc-ipd:download/.+?/(.+?)/sd/').findall(html)
-    else:
-        stream_id_sl = []
-    # Optionally, Audio Described programmes can be searched for. These have a different ID.
-    if ADDON.getSetting('search_ad') == 'true':
-        url_ad = re.compile('<a href="(.+?)" class="version link watch-ad-on"').findall(html)
-        url_tmp = "http://www.bbc.co.uk%s" % url_ad[0]
-        html = OpenURL(url_tmp)
-        stream_id_ad = re.compile('"vpid":"(.+?)"').findall(html)
-        # print stream_id_ad
-    else:
-        stream_id_ad = []
-    return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad}
+    return stream_id_st
 
 
 def AddAvailableStreamItem(name, url, iconimage, description):
@@ -1159,13 +1166,8 @@ def RadioGetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
     print url
     stream_ids = RadioScrapeAvailableStreams(url)
-    RadioAddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description)
-    # If we searched for Audio Described programmes and they have been found, append them to the list.
-    if stream_ids['stream_id_ad']:
-        AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage, description)
-    # If we search for Signed programmes and they have been found, append them to the list.
-    if stream_ids['stream_id_sl']:
-        AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage, description)
+    RadioAddAvailableStreamsDirectory(name, stream_ids, iconimage, description)
+
 
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
