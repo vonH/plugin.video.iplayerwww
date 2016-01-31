@@ -163,45 +163,70 @@ def RadioGetAtoZPage(url):
 
     Creates the list of programmes for one character.
     """
-    link = OpenURL('http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % url)
-    #print link.encode("utf8")
+    html = OpenURL('http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % url)
+    #print html.encode("utf8")
     
-    programmes = link.split('<div class="programme ')
-    for programme in programmes:
-        
-        if not programme.startswith("programme--radio"):
-            continue
-        #print programme.encode("utf8")
+    #TODO: optional pagination and progress bar
+    total_pages = 1
+    current_page = 1
+    page_range = range(1)
+    paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
+    next_page = 1
+    if paginate:
+        pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
+        if pages:
+            last = pages[-1]
+            last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
+            print last_page.group(2)
+            page_base_url = last_page.group(1)
+            total_pages = int(last_page.group(2))
+        page_range = range(1, total_pages+1)
 
-        programme_id = ''
-        programme_id_match = re.search(r'data-pid="(.*?)"', programme)
-        if programme_id_match:
-            programme_id = programme_id_match.group(1)
+    for page in page_range:
+
+        if page > current_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
+            html = OpenURL(page_url)
+    
+        programmes = html.split('<div class="programme ')
+        for programme in programmes:
             
-        name = ''
-        name_match = re.search(r'<span property="name">(.*?)</span>', programme)
-        if name_match:
-            name = name_match.group(1)
+            if not programme.startswith("programme--radio"):
+                continue
+            #print programme.encode("utf8")
             
-        image = ''    
-        image_match = re.search(r'<meta property="image" content="(.*?)" />', programme)
-        if image_match:
-            image = image_match.group(1)
+            if "available" not in programme: #TODO find a more robust test
+                continue
+
+            programme_id = ''
+            programme_id_match = re.search(r'data-pid="(.*?)"', programme)
+            if programme_id_match:
+                programme_id = programme_id_match.group(1)
+                
+            name = ''
+            name_match = re.search(r'<span property="name">(.*?)</span>', programme)
+            if name_match:
+                name = name_match.group(1)
+                
+            image = ''    
+            image_match = re.search(r'<meta property="image" content="(.*?)" />', programme)
+            if image_match:
+                image = image_match.group(1)
+                
+            synopsis = ''    
+            synopsis_match = re.search(r'<span property="description">(.*?)</span>', programme)
+            if synopsis_match:
+                synopsis = synopsis_match.group(1)
+                      
+            station = ''    
+            station_match = re.search(r'<p class="programme__service.+?<strong>(.*?)</strong>.*?</p>', programme)
+            if station_match:
+                station = station_match.group(1)
+                
+            title = "[B]%s[/B] - %s" % (station, name)
             
-        synopsis = ''    
-        synopsis_match = re.search(r'<span property="description">(.*?)</span>', programme)
-        if synopsis_match:
-            synopsis = synopsis_match.group(1)
-                  
-        station = ''    
-        station_match = re.search(r'<p class="programme__service.+?<strong>(.*?)</strong>.*?</p>', programme)
-        if station_match:
-            station = station_match.group(1)
-            
-        title = "[B]%s[/B] - %s" % (station, name)
-        
-        if programme_id and title and image and synopsis:
-            AddMenuEntry(title, programme_id, 131, image, synopsis, '')
+            if programme_id and title and image and synopsis:
+                AddMenuEntry(title, programme_id, 131, image, synopsis, '')
             
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
