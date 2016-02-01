@@ -57,6 +57,7 @@ def CATEGORIES():
     AddMenuEntry(translation(31006), 'url', 107, '', '', '')
     AddMenuEntry(translation(31007), 'url', 108, '', '', '')
     AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
+    AddMenuEntry("Radio Live", 'url', 113, '', '', '')
 
 
 # ListLive creates menu entries for all live channels.
@@ -88,6 +89,70 @@ def ListLive():
         else:
             AddMenuEntry(name, id, 123, iconimage, '', '')
 
+            
+def RadioListLive():
+    #BUG: some of these are wrong!!!
+    channel_list = [
+        ('bbc_radio_one', 'BBC Radio 1'),
+        ('bbc_1extra', 'BBC Radio 1Xtra'),
+        ('bbc_radio_two', 'BBC Radio 2'),
+        ('bbc_radio_three', 'BBC Radio 3'),
+        ('bbc_radio_fourfm', 'BBC Radio 4'),
+        ('bbc_radio_four_extra', 'BBC Radio 4 Extra'),
+        ('bbc_radio_five_live', 'BBC Radio 5 live'),
+        ('bbc_radio_five_live_sports_extra', 'BBC Radio 5 live sports extra'),
+        ('bbc_6music', 'BBC Radio 6 Music'),
+        ('bbc_asian_network', 'BBC Asian Network'),
+        ('worldserviceradio', 'BBC World Service'),
+        ('bbc_radio_scotland_fm', 'BBC Radio Scotland'),
+        ('bbc_radio_nan_gaidheal', u'BBC Radio nan Gàidheal'),
+        ('bbc_radio_ulster', 'BBC Radio Ulster'),
+        ('bbc_radio_foyle', 'BBC Radio Foyle'),
+        ('bbc_radio_wales_fm', 'BBC Radio Wales'),
+        ('bbc_radio_cymru', 'BBC Radio Cymru'),
+        ('bbc_radio_berkshire', 'BBC Radio Berkshire'),
+        ('bbc_radio_bristol', 'BBC Radio Bristol'),
+        ('bbc_radio_cambridgeshire', 'BBC Radio Cambridgeshire'),
+        ('bbc_radio_cornwall', 'BBC Radio Cornwall'),
+        ('bbc_coventry_and_warwickshire', 'BBC Coventry &amp; Warwickshire'),
+        ('bbc_radio_cumbria', 'BBC Radio Cumbria'),
+        ('bbc_radio_derby', 'BBC Radio Derby'),
+        ('bbc_radio_devon', 'BBC Radio Devon'),
+        ('bbc_essex', 'BBC Essex'),
+        ('bbc_radio_gloucestershire', 'BBC Radio Gloucestershire'),
+        ('bbc_radio_guernsey', 'BBC Radio Guernsey'),
+        ('bbc_hereford_and_worcester', 'BBC Hereford &amp; Worcester'),
+        ('bbc_radio_humberside', 'BBC Radio Humberside'),
+        ('bbc_radio_jersey', 'BBC Radio Jersey'),
+        ('bbc_radio_kent', 'BBC Radio Kent'),
+        ('bbc_radio_lancashire', 'BBC Radio Lancashire'),
+        ('bbc_radio_leeds', 'BBC Radio Leeds'),
+        ('bbc_radio_leicester', 'BBC Radio Leicester'),
+        ('bbc_radio_lincolnshire', 'BBC Radio Lincolnshire'),
+        ('bbc_radio_london', 'BBC Radio London'),
+        ('bbc_radio_manchester', 'BBC Radio Manchester'),
+        ('bbc_radio_merseyside', 'BBC Radio Merseyside'),
+        ('bbc_newcastle', 'BBC Newcastle'),
+        ('bbc_radio_norfolk', 'BBC Radio Norfolk'),
+        ('bbc_radio_northampton', 'BBC Radio Northampton'),
+        ('bbc_radio_nottingham', 'BBC Radio Nottingham'),
+        ('bbc_radio_oxford', 'BBC Radio Oxford'),
+        ('bbc_radio_sheffield', 'BBC Radio Sheffield'),
+        ('bbc_radio_shropshire', 'BBC Radio Shropshire'),
+        ('bbc_radio_solent', 'BBC Radio Solent'),
+        ('bbc_somerset', 'BBC Somerset'),
+        ('bbc_radio_stoke', 'BBC Radio Stoke'),
+        ('bbc_radio_suffolk', 'BBC Radio Suffolk'),
+        ('bbc_surrey', 'BBC Surrey'),
+        ('bbc_sussex', 'BBC Sussex'),
+        ('bbc_tees', 'BBC Tees'),
+        ('bbc_three_counties_radio', 'BBC Three Counties Radio'),
+        ('bbc_wiltshire', 'BBC Wiltshire'),
+        ('bbc_wm', 'BBC WM 95.6'),
+        ('bbc_radio_york', 'BBC Radio York'),
+    ]
+    for id, name in channel_list:
+        AddMenuEntry(name, id, 133, '', '', '')
 
 def ListAtoZ():
     """List programmes based on alphabetical order.
@@ -142,20 +207,8 @@ def RadioListAtoZ():
         ('S', 's'), ('T', 't'), ('U', 'u'), ('V', 'v'), ('W', 'w'), ('X', 'x'),
         ('Y', 'y'), ('Z', 'z'), ('0-9', '@')]
 
-    if int(ADDON.getSetting('scrape_atoz')) == 1:
-        pDialog = xbmcgui.DialogProgressBG()
-        pDialog.create(translation(31019))
-        page = 1
-        total_pages = len(characters)
-        for name, url in characters:
-            RadioGetAtoZPage(url)
-            percent = int(100*page/total_pages)
-            pDialog.update(percent,translation(31019),name)
-            page += 1
-        pDialog.close()
-    else:
-        for name, url in characters:
-            AddMenuEntry(name, url, 134, '', '', '')
+    for name, url in characters:
+        AddMenuEntry(name, url, 134, '', '', '')
 
 
 def RadioGetAtoZPage(url):
@@ -177,7 +230,7 @@ def RadioGetAtoZPage(url):
         if pages:
             last = pages[-1]
             last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
-            print last_page.group(2)
+            #print last_page.group(2)
             page_base_url = last_page.group(1)
             total_pages = int(last_page.group(2))
         page_range = range(1, total_pages+1)
@@ -496,7 +549,7 @@ def RadioScrapeEpisodes(page_url):
         if pages:
             last = pages[-1]
             last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
-            print last_page.group(2)
+            #print last_page.group(2)
             page_base_url = last_page.group(1)
             total_pages = int(last_page.group(2))
         page_range = range(1, total_pages+1)
@@ -901,7 +954,7 @@ def RadioAddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     """Will create one menu entry for each available stream of a particular stream_id"""
     # print "Stream ID: %s"%stream_id
     streams = RadioParseStreams(stream_id)
-    print streams
+    #print streams
     suppliers = ['', 'Akamai', 'Limelight', 'Level3']
     for supplier, bitrate, url, encoding in sorted(streams[0], key=itemgetter(1), reverse=True):
         bitrate = int(bitrate)
@@ -944,9 +997,9 @@ def ParseStreams(stream_id):
             for bandwidth, resolution, stream in m3u8_match:
                 # print bandwidth
                 # print resolution
-                print stream
+                #print stream
                 url = "%s%s%s" % (m3u8_breakdown[0][0], stream, m3u8_breakdown[0][1])
-                print url
+                #print url
                 if int(bandwidth) == 1012300:
                     tmp_br = 2
                 elif int(bandwidth) == 1799880:
@@ -1027,12 +1080,12 @@ def RadioParseStreams(stream_id):
             #m3u8_breakdown = re.compile('(.+?)iptv.+?m3u8(.+?)$').findall(m3u8_url)
             # print m3u8_url
             m3u8_html = OpenURL(m3u8_url)
-            print m3u8_html.encode("utf8")
+            #print m3u8_html.encode("utf8")
             m3u8_match = re.compile('BANDWIDTH=(.+?),.*?CODECS="(.+?)"\n(.+?)\n').findall(m3u8_html)
             for bandwidth, codecs, stream in m3u8_match:
-                print bandwidth
-                print codecs
-                print stream
+                #print bandwidth
+                #print codecs
+                #print stream
                 #url = "%s%s%s" % (m3u8_breakdown[0][0], stream, m3u8_breakdown[0][1])
                 url = stream
                 retlist.append((tmp_sup, bitrate, url, encoding))
@@ -1047,8 +1100,8 @@ def RadioParseStreams(stream_id):
             dialog.ok(translation(32000), translation(32001))
             raise
     '''
-    print retlist
-    print match
+    #print retlist
+    #print match
     return retlist, match
 
     
@@ -1151,7 +1204,7 @@ def AddAvailableStreamItem(name, url, iconimage, description):
 
 def GetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
-    print url
+    #print url
     stream_ids = ScrapeAvailableStreams(url)
     AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description)
     # If we searched for Audio Described programmes and they have been found, append them to the list.
@@ -1164,7 +1217,7 @@ def GetAvailableStreams(name, url, iconimage, description):
 
 def RadioGetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
-    print url
+    #print url
     stream_ids = RadioScrapeAvailableStreams(url)
     RadioAddAvailableStreamsDirectory(name, stream_ids, iconimage, description)
 
@@ -1256,6 +1309,46 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         # Finally add them to the selection menu.
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
+        
+def RadioAddAvailableLiveStreamsDirectory(name, channelname, iconimage):
+    """Retrieves the available live streams for a channel
+
+    Args:
+        name: only used for displaying the channel.
+        iconimage: only used for displaying the channel.
+        channelname: determines which channel is queried.
+    """
+    providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
+    streams = []
+    for provider_url, provider_name in providers:
+        # First we query the available streams from this website
+        #      http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hds/uk/high/llnw/bbc_radio_one.f4m
+        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hds/uk/high/%s/%s.f4m' % (provider_url, channelname)
+        html = OpenURL(url)
+        print html.encode("utf8")
+        # Use regexp to get the different versions using various bitrates
+        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
+        # Add provider name to the stream list.
+        streams.extend([list(stream) + [provider_name] for stream in match])
+
+    # Add each stream to the Kodi selection menu.
+    for address, bitrate, provider_name in sorted(streams, key=lambda x: int(x[1]), reverse=True):
+        url = address.replace('f4m', 'm3u8')
+        # For easier selection use colors to indicate high and low bitrate streams
+        bitrate = int(bitrate)
+        if bitrate > 192:
+            color = 'green'
+        elif bitrate > 128:
+            color = 'yellow'
+        elif bitrate > 64:
+            color = 'orange'
+        else:
+            color = 'red'
+
+        title = name + ' - [I][COLOR %s]%d Kbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (
+            color, bitrate , provider_name)
+        # Finally add them to the selection menu.
+        AddMenuEntry(title, url, 201, '', '', '')
 
 def InitialiseCookieJar():
     cookie_file = os.path.join(DIR_USERDATA,'iplayer.cookies')
@@ -1715,7 +1808,10 @@ elif mode == 109:
 elif mode == 112:
     RadioListAtoZ()
 
-# Modes 121-199 will create a sub directory menu entry
+elif mode == 113:
+    RadioListLive()
+
+    # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
     GetEpisodes(url)
 
@@ -1746,6 +1842,9 @@ elif mode == 131:
 elif mode == 132:
     url = "http://www.bbc.co.uk/programmes/" + url
     RadioGetAvailableStreams(name, url, iconimage, description)
+    
+elif mode == 133:
+    RadioAddAvailableLiveStreamsDirectory(name, url, iconimage)
 
 elif mode == 134:
     RadioGetAtoZPage(url)
