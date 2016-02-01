@@ -91,10 +91,9 @@ def ListLive():
 
             
 def RadioListLive():
-    #BUG: some of these are wrong!!!
     channel_list = [
         ('bbc_radio_one', 'BBC Radio 1'),
-        ('bbc_1extra', 'BBC Radio 1Xtra'),
+        ('bbc_1xtra', 'BBC Radio 1Xtra'),
         ('bbc_radio_two', 'BBC Radio 2'),
         ('bbc_radio_three', 'BBC Radio 3'),
         ('bbc_radio_fourfm', 'BBC Radio 4'),
@@ -103,7 +102,6 @@ def RadioListLive():
         ('bbc_radio_five_live_sports_extra', 'BBC Radio 5 live sports extra'),
         ('bbc_6music', 'BBC Radio 6 Music'),
         ('bbc_asian_network', 'BBC Asian Network'),
-        ('worldserviceradio', 'BBC World Service'),
         ('bbc_radio_scotland_fm', 'BBC Radio Scotland'),
         ('bbc_radio_nan_gaidheal', u'BBC Radio nan Gàidheal'),
         ('bbc_radio_ulster', 'BBC Radio Ulster'),
@@ -112,16 +110,16 @@ def RadioListLive():
         ('bbc_radio_cymru', 'BBC Radio Cymru'),
         ('bbc_radio_berkshire', 'BBC Radio Berkshire'),
         ('bbc_radio_bristol', 'BBC Radio Bristol'),
-        ('bbc_radio_cambridgeshire', 'BBC Radio Cambridgeshire'),
+        ('bbc_radio_cambridge', 'BBC Radio Cambridgeshire'),
         ('bbc_radio_cornwall', 'BBC Radio Cornwall'),
-        ('bbc_coventry_and_warwickshire', 'BBC Coventry &amp; Warwickshire'),
+        ('bbc_radio_coventry_warwickshire', 'BBC Coventry & Warwickshire'),
         ('bbc_radio_cumbria', 'BBC Radio Cumbria'),
         ('bbc_radio_derby', 'BBC Radio Derby'),
         ('bbc_radio_devon', 'BBC Radio Devon'),
-        ('bbc_essex', 'BBC Essex'),
+        ('bbc_radio_essex', 'BBC Essex'),
         ('bbc_radio_gloucestershire', 'BBC Radio Gloucestershire'),
         ('bbc_radio_guernsey', 'BBC Radio Guernsey'),
-        ('bbc_hereford_and_worcester', 'BBC Hereford &amp; Worcester'),
+        ('bbc_radio_hereford_worcester', 'BBC Hereford & Worcester'),
         ('bbc_radio_humberside', 'BBC Radio Humberside'),
         ('bbc_radio_jersey', 'BBC Radio Jersey'),
         ('bbc_radio_kent', 'BBC Radio Kent'),
@@ -129,10 +127,10 @@ def RadioListLive():
         ('bbc_radio_leeds', 'BBC Radio Leeds'),
         ('bbc_radio_leicester', 'BBC Radio Leicester'),
         ('bbc_radio_lincolnshire', 'BBC Radio Lincolnshire'),
-        ('bbc_radio_london', 'BBC Radio London'),
+        ('bbc_london', 'BBC Radio London'),
         ('bbc_radio_manchester', 'BBC Radio Manchester'),
         ('bbc_radio_merseyside', 'BBC Radio Merseyside'),
-        ('bbc_newcastle', 'BBC Newcastle'),
+        ('bbc_radio_newcastle', 'BBC Newcastle'),
         ('bbc_radio_norfolk', 'BBC Radio Norfolk'),
         ('bbc_radio_northampton', 'BBC Radio Northampton'),
         ('bbc_radio_nottingham', 'BBC Radio Nottingham'),
@@ -140,14 +138,14 @@ def RadioListLive():
         ('bbc_radio_sheffield', 'BBC Radio Sheffield'),
         ('bbc_radio_shropshire', 'BBC Radio Shropshire'),
         ('bbc_radio_solent', 'BBC Radio Solent'),
-        ('bbc_somerset', 'BBC Somerset'),
+        ('bbc_radio_somerset_sound', 'BBC Somerset'),
         ('bbc_radio_stoke', 'BBC Radio Stoke'),
         ('bbc_radio_suffolk', 'BBC Radio Suffolk'),
-        ('bbc_surrey', 'BBC Surrey'),
-        ('bbc_sussex', 'BBC Sussex'),
+        ('bbc_radio_surrey', 'BBC Surrey'),
+        ('bbc_radio_sussex', 'BBC Sussex'),
         ('bbc_tees', 'BBC Tees'),
         ('bbc_three_counties_radio', 'BBC Three Counties Radio'),
-        ('bbc_wiltshire', 'BBC Wiltshire'),
+        ('bbc_radio_wiltshire', 'BBC Wiltshire'),
         ('bbc_wm', 'BBC WM 95.6'),
         ('bbc_radio_york', 'BBC Radio York'),
     ]
@@ -1322,7 +1320,7 @@ def RadioAddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     streams = []
     for provider_url, provider_name in providers:
         # First we query the available streams from this website
-        #      http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hds/uk/high/llnw/bbc_radio_one.f4m
+        #TODO add high bitrate streams
         url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hds/uk/high/%s/%s.f4m' % (provider_url, channelname)
         html = OpenURL(url)
         print html.encode("utf8")
@@ -1348,7 +1346,10 @@ def RadioAddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         title = name + ' - [I][COLOR %s]%d Kbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (
             color, bitrate , provider_name)
         # Finally add them to the selection menu.
+        #TODO find radio icons
         AddMenuEntry(title, url, 201, '', '', '')
+        
+        
 
 def InitialiseCookieJar():
     cookie_file = os.path.join(DIR_USERDATA,'iplayer.cookies')
