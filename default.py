@@ -61,6 +61,7 @@ def CATEGORIES():
         AddMenuEntry("Live Radio", 'url', 113, '', '', '')
         AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
         AddMenuEntry("Radio Genres", 'url', 114, '', '', '')
+        AddMenuEntry("Radio Search", 'url', 115, '', '', '')
 
 
 # ListLive creates menu entries for all live channels.
@@ -1189,6 +1190,21 @@ def Search(search_entered):
     NEW_URL = 'http://www.bbc.co.uk/iplayer/search?q=%s' % search_entered
     ScrapeEpisodes(NEW_URL)
 
+    
+def RadioSearch(search_entered):
+    """Simply calls the online search function. The search is then evaluated in EvaluateSearch."""
+    if search_entered is None:
+        keyboard = xbmc.Keyboard('', 'Search iPlayer')
+        keyboard.doModal()
+        if keyboard.isConfirmed():
+            search_entered = keyboard.getText()
+
+    if search_entered is None:
+        return False
+
+    #NEW_URL = 'http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % search_entered
+    RadioGetAtoZPage(search_entered)
+    
 
 def ParseImageUrl(url):
     return url.replace("{recipe}", "288x162")
@@ -2093,6 +2109,9 @@ elif mode == 113:
     
 elif mode == 114:
     RadioListGenres()
+    
+elif mode == 115:
+    RadioSearch(keyword)
 
     # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
