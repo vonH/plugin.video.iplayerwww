@@ -47,17 +47,20 @@ if(not os.path.exists(DIR_USERDATA)):
     os.makedirs(DIR_USERDATA)
 
 def CATEGORIES():
-    AddMenuEntry(translation(31000), 'iplayer', 106, '', '', '')
-    AddMenuEntry(translation(31017), 'url', 109, '', '', '')
-    AddMenuEntry(translation(31001), 'url', 105, '', '', '')
-    AddMenuEntry(translation(31002), 'url', 102, '', '', '')
-    AddMenuEntry(translation(31003), 'url', 103, '', '', '')
-    AddMenuEntry(translation(31004), 'url', 104, '', '', '')
-    AddMenuEntry(translation(31005), 'url', 101, '', '', '')
-    AddMenuEntry(translation(31006), 'url', 107, '', '', '')
-    AddMenuEntry(translation(31007), 'url', 108, '', '', '')
-    AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
-    AddMenuEntry("Radio Live", 'url', 113, '', '', '')
+    if content_type == "video":
+        AddMenuEntry(translation(31000), 'iplayer', 106, '', '', '')
+        AddMenuEntry(translation(31017), 'url', 109, '', '', '')
+        AddMenuEntry(translation(31001), 'url', 105, '', '', '')
+        AddMenuEntry(translation(31002), 'url', 102, '', '', '')
+        AddMenuEntry(translation(31003), 'url', 103, '', '', '')
+        AddMenuEntry(translation(31004), 'url', 104, '', '', '')
+        AddMenuEntry(translation(31005), 'url', 101, '', '', '')
+        AddMenuEntry(translation(31006), 'url', 107, '', '', '')
+        AddMenuEntry(translation(31007), 'url', 108, '', '', '')
+    else:
+        AddMenuEntry("Live Radio", 'url', 113, '', '', '')
+        AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
+        AddMenuEntry("Radio Genres", 'url', 114, '', '', '')
 
 
 # ListLive creates menu entries for all live channels.
@@ -208,12 +211,151 @@ def RadioListAtoZ():
     for name, url in characters:
         AddMenuEntry(name, url, 134, '', '', '')
 
+        
+def RadioListGenres():
+    """List programmes based on alphabetical order.
+
+    Only creates the corresponding directories for each character.
+    """
+    genres = [
+        ('childrens', 'Children\'s'),
+        ('childrens/drama', 'Drama'),
+        ('childrens/entertainmentandcomedy', 'Entertainment & Comedy'),
+        ('childrens/factual', 'Factual'),
+        ('childrens/music', 'Music'),
+        ('comedy', 'Comedy'),
+        ('comedy/character', 'Character'),
+        ('comedy/impressionists', 'Impressionists'),
+        ('comedy/music', 'Music'),
+        ('comedy/satire', 'Satire'),
+        ('comedy/sitcoms', 'Sitcoms'),
+        ('comedy/sketch', 'Sketch'),
+        ('comedy/spoof', 'Spoof'),
+        ('comedy/standup', 'Standup'),
+        ('comedy/stunt', 'Stunt'),
+        ('drama', 'Drama'),
+        ('drama/actionandadventure', 'Action & Adventure'),
+        ('drama/biographical', 'Biographical'),
+        ('drama/classicandperiod', 'Classic & Period'),
+        ('drama/crime', 'Crime'),
+        ('drama/historical', 'Historical'),
+        ('drama/horrorandsupernatural', 'Horror & Supernatural'),
+        ('drama/legalandcourtroom', 'Legal & Courtroom'),
+        ('drama/medical', 'Medical'),
+        ('drama/musical', 'Musical'),
+        ('drama/political', 'Political'),
+        ('drama/psychological', 'Psychological'),
+        ('drama/relationshipsandromance', 'Relationships & Romance'),
+        ('drama/scifiandfantasy', 'SciFi & Fantasy'),
+        ('drama/soaps', 'Soaps'),
+        ('drama/spiritual', 'Spiritual'),
+        ('drama/thriller', 'Thriller'),
+        ('drama/waranddisaster', 'War & Disaster'),
+        ('drama/western', 'Western'),
+        ('entertainment', 'Entertainment'),
+        ('entertainment/varietyshows', 'Variety Shows'),
+        ('factual', 'Factual'),
+        ('factual/antiques', 'Antiques'),
+        ('factual/artscultureandthemedia', 'Arts, Culture & the Media'),
+        ('factual/beautyandstyle', 'Beauty & Style'),
+        ('factual/carsandmotors', 'Cars & Motors'),
+        ('factual/consumer', 'Consumer'),
+        ('factual/crimeandjustice', 'Crime & Justice'),
+        ('factual/disability', 'Disability'),
+        ('factual/familiesandrelationships', 'Families & Relationships'),
+        ('factual/foodanddrink', 'Food & Drink'),
+        ('factual/healthandwellbeing', 'Health & Wellbeing'),
+        ('factual/history', 'History'),
+        ('factual/homesandgardens', 'Homes & Gardens'),
+        ('factual/lifestories', 'Life Stories'),
+        ('factual/money', 'Money'),
+        ('factual/petsandanimals', 'Pets & Animals'),
+        ('factual/politics', 'Politics'),
+        ('factual/scienceandnature', 'Science & Nature'),
+        ('factual/travel', 'Travel'),
+        ('learning', 'Learning'),
+        ('learning/adults', 'Adults'),
+        ('learning/preschool', 'Pre-School'),
+        ('learning/primary', 'Primary'),
+        ('learning/secondary', 'Secondary'),
+        ('music', 'Music'),
+        ('music/classical', 'Classical'),
+        ('music/classicpopandrock', 'Classic Pop & Rock'),
+        ('music/country', 'Country'),
+        ('music/danceandelectronica', 'Dance & Electronica'),
+        ('music/desi', 'Desi'),
+        ('music/easylisteningsoundtracksandmusicals', 'Easy Listening, Soundtracks & Musicals'),
+        ('music/folk', 'Folk'),
+        ('music/hiphoprnbanddancehall', 'Hip Hop, RnB & Dancehall'),
+        ('music/jazzandblues', 'Jazz & Blues'),
+        ('music/popandchart', 'Pop & Chart'),
+        ('music/rockandindie', 'Rock & Indie'),
+        ('music/soulandreggae', 'Soul & Reggae'),
+        ('music/world', 'World'),
+        ('religionandethics', 'Religion & Ethics'),
+        ('sport', 'Sport'),
+        ('sport/americanfootball', 'American Football'),
+        ('sport/athletics', 'Athletics'),
+        ('sport/baseball', 'Baseball'),
+        ('sport/basketball', 'Basketball'),
+        ('sport/bobsleigh', 'Bobsleigh'),
+        ('sport/boxing', 'Boxing'),
+        ('sport/commonwealthgames', 'Commonwealth Games'),
+        ('sport/cricket', 'Cricket'),
+        ('sport/cycling', 'Cycling'),
+        ('sport/disabilitysport', 'Disability Sport'),
+        ('sport/football', 'Football'),
+        ('sport/formulaone', 'Formula One'),
+        ('sport/gaelicgames', 'Gaelic Games'),
+        ('sport/golf', 'Golf'),
+        ('sport/gymnastics', 'Gymnastics'),
+        ('sport/hockey', 'Hockey'),
+        ('sport/horseracing', 'Horse Racing'),
+        ('sport/icehockey', 'Ice Hockey'),
+        ('sport/motorsport', 'Motorsport'),
+        ('sport/netball', 'Netball'),
+        ('sport/olympics', 'Olympics'),
+        ('sport/rowing', 'Rowing'),
+        ('sport/rugbyleague', 'Rugby League'),
+        ('sport/rugbyunion', 'Rugby Union'),
+        ('sport/sailing', 'Sailing'),
+        ('sport/shinty', 'Shinty'),
+        ('sport/snooker', 'Snooker'),
+        ('sport/swimming', 'Swimming'),
+        ('sport/synchronisedswimming', 'Synchronised Swimming'),
+        ('sport/tabletennis', 'Table Tennis'),
+        ('sport/taekwondo', 'Taekwondo'),
+        ('sport/tennis', 'Tennis'),
+        ('sport/triathlon', 'Triathlon'),
+        ('sport/winterolympics', 'Winter Olympics'),
+        ('sport/wintersports', 'Winter Sports'),
+        ('weather', 'Weather'),
+        ]
+
+    group = ''
+    for url, name in genres:
+        if not "/" in url:
+            group = name
+            #print group
+            AddMenuEntry("[B]%s[/B]" % name, url, 135, '', '', '')
+        else:
+            #print group
+            AddMenuEntry("%s - %s " % (group, name), url, 135, '', '', '')
+ 
+    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED) 
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
+        
 
 def RadioGetAtoZPage(url):
     """Allows to list programmes based on alphabetical order.
 
     Creates the list of programmes for one character.
     """
+    pDialog = xbmcgui.DialogProgressBG()
+    pDialog.create(translation(31019))
+
     html = OpenURL('http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % url)
     #print html.encode("utf8")
     
@@ -238,6 +380,8 @@ def RadioGetAtoZPage(url):
         if page > current_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
             html = OpenURL(page_url)
+            
+        list_item_num = 1
     
         programmes = html.split('<div class="programme ')
         for programme in programmes:
@@ -278,12 +422,128 @@ def RadioGetAtoZPage(url):
             
             if programme_id and title and image and synopsis:
                 AddMenuEntry(title, programme_id, 131, image, synopsis, '')
-            
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+                
+            percent = int(100*(page+list_item_num/len(programmes))/total_pages)
+            pDialog.update(percent,translation(31019),name)
+
+            list_item_num += 1
+
+        percent = int(100*page/total_pages)
+        pDialog.update(percent,translation(31019))
+        
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
+    pDialog.close()
+    
+    
+    
+def RadioGetGenrePage(url):
+    """Allows to list programmes based on alphabetical order.
 
+    Creates the list of programmes for one character.
+    """
+    pDialog = xbmcgui.DialogProgressBG()
+    pDialog.create(translation(31019))
+
+    html = OpenURL('http://www.bbc.co.uk/radio/programmes/genres/%s/player/episodes' % url)
+    #print html.encode("utf8")
+    
+    #TODO: optional pagination and progress bar
+    total_pages = 1
+    current_page = 1
+    page_range = range(1)
+    paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
+    next_page = 1
+    if paginate:
+        pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
+        if pages:
+            last = pages[-1]
+            last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
+            #print last_page.group(2)
+            page_base_url = last_page.group(1)
+            total_pages = int(last_page.group(2))
+        page_range = range(1, total_pages+1)
+
+    for page in page_range:
+
+        if page > current_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
+            html = OpenURL(page_url)
+            
+        list_item_num = 1
+    
+        programmes = html.split('<div class="programme ')
+        for programme in programmes:
+            
+            if not programme.startswith("programme--radio"):
+                continue
+            #print programme.encode("utf8")
+            
+            if "available" not in programme: #TODO find a more robust test
+                continue
+
+            programme_id = ''
+            programme_id_match = re.search(r'data-pid="(.*?)"', programme)
+            if programme_id_match:
+                programme_id = programme_id_match.group(1)
+                #print programme_id
+                
+            name = ''
+            name_match = re.search(r'<span property="name">(.*?)</span>', programme)
+            if name_match:
+                name = name_match.group(1)
+                #print name
+                
+            #BUG not robust enough
+            subtitle = ''
+            subtitle_match = re.search(r'<span class="programme__subtitle.+?property="name">(.*?)</span>.*?property="name">(.*?)</span>', programme)
+            if subtitle_match:
+                series = subtitle_match.group(1)
+                episode = subtitle_match.group(2)
+                subtitle = "(%s, %s)" % (series, episode)
+                #print subtitle
+                
+            image = ''    
+            image_match = re.search(r'<meta property="image" content="(.*?)" />', programme)
+            if image_match:
+                image = image_match.group(1)
+                #print image
+                
+            synopsis = ''    
+            synopsis_match = re.search(r'<span property="description">(.*?)</span>', programme)
+            if synopsis_match:
+                synopsis = synopsis_match.group(1)
+                #print synopsis.encode("utf8")
+                      
+            station = ''    
+            station_match = re.search(r'<p class="programme__service.+?<strong>(.*?)</strong>.*?</p>', programme)
+            if station_match:
+                station = station_match.group(1)
+                #print station
+                
+            title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
+            #print title
+            
+            if programme_id and title and image and synopsis:
+                AddMenuEntry(title, programme_id, 132, image, synopsis, '')
+                
+            percent = int(100*(page+list_item_num/len(programmes))/total_pages)
+            pDialog.update(percent,translation(31019),name)
+
+            list_item_num += 1
+
+        percent = int(100*page/total_pages)
+        pDialog.update(percent,translation(31019))
+        
+    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
+    pDialog.close()
+    
+    
 def ParseAired(aired):
     """Parses a string format %d %b %Y to %d/%n/%Y otherwise empty string."""
     if aired:
@@ -532,7 +792,9 @@ def RadioScrapeEpisodes(page_url):
     specific pages, e.g. Search, but allows to use a single function for all kinds
     of pages.
     """
-
+    pDialog = xbmcgui.DialogProgressBG()
+    pDialog.create(translation(31019))
+    
     html = OpenURL(page_url)
     #print html.encode("utf8")
     
@@ -564,6 +826,8 @@ def RadioScrapeEpisodes(page_url):
             title = title_match.group(1)
             #print title
 
+        list_item_num = 1
+            
         programmes = html.split('<div class="programme ')
         for programme in programmes:
             
@@ -595,12 +859,21 @@ def RadioScrapeEpisodes(page_url):
             
             if programme_id and title and image and synopsis:
                 AddMenuEntry(full_title, programme_id, 132, image, synopsis, '')
+                
+            percent = int(100*(page+list_item_num/len(programmes))/total_pages)
+            pDialog.update(percent,translation(31019),name)
+
+            list_item_num += 1
+
+        percent = int(100*page/total_pages)
+        pDialog.update(percent,translation(31019))
+
             
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
-
+    pDialog.close()
 
 
 def ListCategories():
@@ -988,7 +1261,7 @@ def ParseStreams(stream_id):
             elif supplier == 'limelight_uk_hls':
                 tmp_sup = 2
             m3u8_breakdown = re.compile('(.+?)iptv.+?m3u8(.+?)$').findall(m3u8_url)
-            print m3u8_breakdown
+            #print m3u8_breakdown
             # print m3u8_url
             m3u8_html = OpenURL(m3u8_url)
             m3u8_match = re.compile('BANDWIDTH=(.+?),.+?RESOLUTION=(.+?)\n(.+?)\n').findall(m3u8_html)
@@ -1323,7 +1596,7 @@ def RadioAddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         #TODO add high bitrate streams
         url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hds/uk/high/%s/%s.f4m' % (provider_url, channelname)
         html = OpenURL(url)
-        print html.encode("utf8")
+        #print html.encode("utf8")
         # Use regexp to get the different versions using various bitrates
         match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
         # Add provider name to the stream list.
@@ -1731,6 +2004,8 @@ def ListFavourites(logged_in):
 
 cookie_jar = InitialiseCookieJar()
 params = get_params()
+print params
+content_type = None
 url = None
 name = None
 mode = None
@@ -1740,6 +2015,10 @@ subtitles_url = None
 logged_in = False
 keyword = None
 
+try:
+    content_type = utf8_unquote_plus(params["content_type"])
+except:
+    pass
 try:
     url = utf8_unquote_plus(params["url"])
 except:
@@ -1811,6 +2090,9 @@ elif mode == 112:
 
 elif mode == 113:
     RadioListLive()
+    
+elif mode == 114:
+    RadioListGenres()
 
     # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
@@ -1849,6 +2131,9 @@ elif mode == 133:
 
 elif mode == 134:
     RadioGetAtoZPage(url)
+    
+elif mode == 135:
+    RadioGetGenrePage(url)
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:
