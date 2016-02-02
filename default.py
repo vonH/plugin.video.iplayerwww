@@ -63,6 +63,7 @@ def CATEGORIES():
         AddMenuEntry("Radio Genres", 'url', 114, '', '', '')
         AddMenuEntry("Radio Search", 'url', 115, '', '', '')
         AddMenuEntry("Radio Most Popular", 'url', 116, '', '', '')
+        AddMenuEntry("Radio Favourites", 'url', 117, '', '', '')
 
 
 # ListLive creates menu entries for all live channels.
@@ -2078,6 +2079,74 @@ def ListFavourites(logged_in):
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
 
+def RadioListFavourites(logged_in):
+
+    if(CheckLogin(logged_in) == False):
+        CATEGORIES()
+        return
+
+    """Scrapes all episodes of the favourites page."""
+    html = OpenURL('http://www.bbc.co.uk/radio/favourites')
+    
+    programmes = html.split('<li class="my-item" data-appid="radio" ')
+    for programme in programmes:
+        
+        if not programme.startswith('data-type="tlec"'):
+            continue
+        #print programme.encode("utf8")
+        
+        #if "available" not in programme: #TODO find a more robust test
+        #    continue
+
+        series_id = ''
+        series_id_match = re.search(r'data-id="(.*?)"', programme)
+        if series_id_match:
+            series = series_id_match.group(1)
+            
+        programme_id = ''
+        programme_id_match = re.search(r'<a href="http://www.bbc.co.uk/programmes/(.*?)"', programme)
+        if programme_id_match:
+            programme_id = programme_id_match.group(1)
+            
+        name = ''
+        name_match = re.search(r'<span class="my-episode-brand" itemprop="name">(.*?)</span>', programme)
+        if name_match:
+            name = name_match.group(1)
+
+        episode = ''
+        episode_match = re.search(r'<span class="my-episode" itemprop="name">(.*?)</span>', programme)
+        if episode_match:
+            episode = "(%s)" % episode_match.group(1)
+            
+        image = ''    
+        image_match = re.search(r'itemprop="image" src="(.*?)"', programme)
+        if image_match:
+            image = image_match.group(1)
+            
+        synopsis = ''    
+        synopsis_match = re.search(r'<span class="my-item-info">(.*?)</span>', programme)
+        if synopsis_match:
+            synopsis = synopsis_match.group(1)
+                  
+        station = ''    
+        station_match = re.search(r'<span class="my-episode-broadcaster" itemprop="name">(.*?)\.</span>', programme)
+        if station_match:
+            station = station_match.group(1)
+            
+        title = "[B]%s - %s[/B]" % (station, name)
+        episode_title = "[B]%s[/B] - %s %s" % (station, name, episode)
+        
+        if series and title and image and synopsis:
+            AddMenuEntry(title, series, 131, image, synopsis, '')
+
+        if programme_id and episode_title and image and synopsis:
+            AddMenuEntry(episode_title, programme_id, 132, image, synopsis, '')
+
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
+    
+    
 cookie_jar = InitialiseCookieJar()
 params = get_params()
 print params
@@ -2175,6 +2244,9 @@ elif mode == 115:
 
 elif mode == 116:
     RadioListMostPopular()
+
+elif mode == 117:
+    RadioListFavourites(logged_in)
     
     # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
