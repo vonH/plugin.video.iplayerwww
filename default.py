@@ -62,6 +62,7 @@ def CATEGORIES():
         AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
         AddMenuEntry("Radio Genres", 'url', 114, '', '', '')
         AddMenuEntry("Radio Search", 'url', 115, '', '', '')
+        AddMenuEntry("Radio Most Popular", 'url', 116, '', '', '')
 
 
 # ListLive creates menu entries for all live channels.
@@ -1175,6 +1176,65 @@ def ListMostPopular():
     """Scrapes all episodes of the most popular page."""
     ScrapeEpisodes("http://www.bbc.co.uk/iplayer/group/most-popular")
 
+    
+def RadioListMostPopular():
+    html = OpenURL('http://www.bbc.co.uk/radio/popular')
+    #print html.encode("utf8")
+    
+    programmes = re.split(r'<li class="(episode|clip) typical-list-item', html)
+    for programme in programmes:
+        
+        if not programme.startswith(" item-idx-"):
+            continue
+        #print programme.encode("utf8")
+        
+        #if "available" not in programme: #TODO find a more robust test
+        #    continue
+
+        programme_id = ''
+        programme_id_match = re.search(r'<a href="/programmes/(.*?)"', programme)
+        if programme_id_match:
+            programme_id = programme_id_match.group(1)
+            #print programme_id
+            
+        name = ''
+        name_match = re.search(r'<img src=".*?" alt="(.*?)"', programme)
+        if name_match:
+            name = name_match.group(1)
+            #print name
+            
+        #BUG not robust enough
+        subtitle = ''
+        subtitle_match = re.search(r'<span class="subtitle">\s*(.+?)\s*</span>', programme)
+        if subtitle_match:
+            subtitle = "(%s)" % subtitle_match.group(1)
+            #print subtitle.encode("utf8")
+            
+        image = ''    
+        image_match = re.search(r'<img src="(.*?)"', programme)
+        if image_match:
+            image = image_match.group(1)
+            #print image
+                  
+        station = ''    
+        station_match = re.search(r'<span class="service_title">\s*(.+?)\s*</span>', programme)
+        if station_match:
+            station = station_match.group(1)
+            #print station
+            
+        title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
+        #print title.encode("utf8")
+        
+        if programme_id and title and image:
+            AddMenuEntry(title, programme_id, 132, image, ' ', '') #NOTE description can't be ''
+                
+        
+    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+    
+    
+    
 
 def Search(search_entered):
     """Simply calls the online search function. The search is then evaluated in EvaluateSearch."""
@@ -2113,6 +2173,9 @@ elif mode == 114:
 elif mode == 115:
     RadioSearch(keyword)
 
+elif mode == 116:
+    RadioListMostPopular()
+    
     # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
     GetEpisodes(url)
