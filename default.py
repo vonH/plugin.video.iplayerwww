@@ -458,7 +458,9 @@ def RadioGetAtoZPage(page_url):
             if series_id:
                 AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
             elif programme_id: #TODO maybe they are not always mutually exclusive
-                AddMenuEntry(title, programme_id, 132, image, synopsis, '')
+                #AddMenuEntry(title, programme_id, 132, image, synopsis, '')
+                url = "http://www.bbc.co.uk/programmes/%s" % programme_id
+                RadioCheckAutoplay(title, url, image, ' ', '')
                 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
             pDialog.update(percent,translation(31019),name)
@@ -471,7 +473,7 @@ def RadioGetAtoZPage(page_url):
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            print page_url
+            #print page_url
             AddMenuEntry('Next page', page_url, 134, '', '', '')
     else:
         #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
@@ -584,8 +586,10 @@ def RadioGetGenrePage(page_url):
             title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
             #print title
             
-            if programme_id and title and image and synopsis:
-                AddMenuEntry(title, programme_id, 132, image, synopsis, '')
+            if programme_id:
+                #AddMenuEntry(title, programme_id, 132, image, synopsis, '')
+                url = "http://www.bbc.co.uk/programmes/%s" % programme_id
+                RadioCheckAutoplay(title, url, image, ' ', '')
                 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
             pDialog.update(percent,translation(31019),name)
@@ -598,7 +602,7 @@ def RadioGetGenrePage(page_url):
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            print page_url
+            #print page_url
             AddMenuEntry('Next page', page_url, 135, '', '', '')
     else:
         #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
@@ -921,8 +925,10 @@ def RadioScrapeEpisodes(page_url):
                       
             full_title = "[B]%s[/B] - %s" % (title, name)
             
-            if programme_id and title and image and synopsis:
-                AddMenuEntry(full_title, programme_id, 132, image, synopsis, '')
+            if programme_id:
+                #AddMenuEntry(full_title, programme_id, 132, image, synopsis, '')
+                url = "http://www.bbc.co.uk/programmes/%s" % programme_id
+                RadioCheckAutoplay(full_title, url, image, ' ', '')
                 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
             pDialog.update(percent,translation(31019),name)
@@ -1288,7 +1294,9 @@ def RadioListMostPopular():
         #print title.encode("utf8")
         
         if programme_id and title and image:
-            AddMenuEntry(title, programme_id, 132, image, ' ', '') #NOTE description can't be ''
+            url = "http://www.bbc.co.uk/programmes/%s" % programme_id
+            RadioCheckAutoplay(title, url, image, ' ', '')
+            #AddMenuEntry(title, programme_id, 132, image, ' ', '') #NOTE description can't be ''
                 
         
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
@@ -1520,7 +1528,14 @@ def CheckAutoplay(name, url, iconimage, plot, aired=None):
     else:
         AddMenuEntry(name, url, 122, iconimage, plot, '', aired=aired)
 
+        
+def RadioCheckAutoplay(name, url, iconimage, plot, aired=None):
+    if ADDON.getSetting('streams_autoplay') == 'true':
+        AddMenuEntry(name, url, 212, iconimage, plot, '', aired=aired)
+    else:
+        AddMenuEntry(name, url, 132, iconimage, plot, '', aired=aired)
 
+        
 def ScrapeAvailableStreams(url):
     # Open page and retrieve the stream ID
     html = OpenURL(url)
@@ -1611,6 +1626,67 @@ def AddAvailableStreamItem(name, url, iconimage, description):
     PlayStream(name, match[0][2], iconimage, description, subtitles_url)
 
 
+def RadioAddAvailableStreamItem(name, url, iconimage, description):
+    """Play a streamm based on settings for preferred catchup source and bitrate."""
+    stream_ids = RadioScrapeAvailableStreams(url)
+    #print stream_ids
+
+    streams_all = RadioParseStreams(stream_ids)
+    #print streams_all
+
+    streams = streams_all[0]
+    #print streams
+    source = int(ADDON.getSetting('catchup_source'))
+    bitrate = int(ADDON.getSetting('catchup_bitrate'))
+    bitrate = 0
+    # print "Selected source is %s"%source
+    # print "Selected bitrate is %s"%bitrate
+    # print streams
+    if source > 0:
+        if bitrate > 0:
+            # Case 1: Selected source and selected bitrate
+            match = [x for x in streams if ((x[0] == source) and (x[1] == bitrate))]
+            if len(match) == 0:
+                # Fallback: Use same bitrate but different supplier.
+                match = [x for x in streams if (x[1] == bitrate)]
+                if len(match) == 0:
+                    # Second Fallback: Use any lower bitrate from selected source.
+                    match = [x for x in streams if (x[0] == source) and (x[1] in range(1, bitrate))]
+                    match.sort(key=lambda x: x[1], reverse=True)
+                    if len(match) == 0:
+                        # Third Fallback: Use any lower bitrate from any source.
+                        match = [x for x in streams if (x[1] in range(1, bitrate))]
+                        match.sort(key=lambda x: x[1], reverse=True)
+        else:
+            # Case 2: Selected source and any bitrate
+            match = [x for x in streams if (x[0] == source)]
+            if len(match) == 0:
+                # Fallback: Use any source and any bitrate
+                match = streams
+            match.sort(key=lambda x: x[1], reverse=True)
+    else:
+        if bitrate > 0:
+            # Case 3: Any source and selected bitrate
+            match = [x for x in streams if (x[1] == bitrate)]
+            if len(match) == 0:
+                # Fallback: Use any source and any lower bitrate
+                match = streams
+                match = [x for x in streams if (x[1] in range(1, bitrate))]
+                match.sort(key=lambda x: x[1], reverse=True)
+        else:
+            # Case 4: Any source and any bitrate
+            # Play highest available bitrate
+            match = streams
+            match.sort(key=lambda x: x[1], reverse=True)
+    #print name
+    #print match[0][2]
+    #print iconimage
+    #print description
+    #print subtitles_url
+    RadioPlayStream(name, match[0][2], iconimage, description, subtitles_url)
+
+    
+    
 def GetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
     #print url
@@ -1842,6 +1918,24 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
                 xbmc.sleep(500)
         xbmc.Player().setSubtitles(subtitles_file)
 
+        
+def RadioPlayStream(name, url, iconimage, description, subtitles_url):
+    #print url
+    html = OpenURL(url)
+    #print html
+    check_geo = re.search(
+        '<H1>Access Denied</H1>', html)
+    if check_geo or not html:
+        # print "Geoblock detected, raising error message"
+        dialog = xbmcgui.Dialog()
+        dialog.ok(translation(32000), translation(32001))
+        raise
+    liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
+    liz.setInfo(type='Audio', infoLabels={'Title': name})
+    liz.setProperty("IsPlayable", "true")
+    liz.setPath(url)
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
+        
 
 def get_params():
     param = []
@@ -1890,7 +1984,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         date_string = ""
 
     # Modes 201-299 will create a new playable line, otherwise create a new directory line.
-    if mode in (201, 202, 203):
+    if mode in (201, 202, 203, 211, 212, 213): #, 211, 212, 213
         isFolder = False
     else:
         isFolder = True
@@ -2198,11 +2292,13 @@ def RadioListFavourites(logged_in):
         title = "[B]%s - %s[/B]" % (station, name)
         episode_title = "[B]%s[/B] - %s %s" % (station, name, episode)
         
-        if series and title and image and synopsis:
+        if series:
             AddMenuEntry(title, series, 131, image, synopsis, '')
 
-        if programme_id and episode_title and image and synopsis:
-            AddMenuEntry(episode_title, programme_id, 132, image, synopsis, '')
+        if programme_id:
+            #AddMenuEntry(episode_title, programme_id, 132, image, synopsis, '')
+            url = "http://www.bbc.co.uk/programmes/%s" % programme_id
+            RadioCheckAutoplay(episode_title, url, image, ' ', '')
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
@@ -2339,7 +2435,7 @@ elif mode == 131:
     RadioGetEpisodes(url)
     
 elif mode == 132:
-    url = "http://www.bbc.co.uk/programmes/" + url
+    #url = "http://www.bbc.co.uk/programmes/" + url
     RadioGetAvailableStreams(name, url, iconimage, description)
     
 elif mode == 133:
@@ -2360,5 +2456,14 @@ elif mode == 202:
 
 elif mode == 203:
     AddAvailableLiveStreamItem(name, url, iconimage)
+    
+elif mode == 211:
+    RadioPlayStream(name, url, iconimage, description, subtitles_url)
+
+elif mode == 212:
+    RadioAddAvailableStreamItem(name, url, iconimage, description)
+    
+elif mode == 213:
+    RadioAddAvailableLiveStreamItem(name, url, iconimage)
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
