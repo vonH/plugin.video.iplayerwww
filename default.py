@@ -212,6 +212,7 @@ def RadioListAtoZ():
         ('Y', 'y'), ('Z', 'z'), ('0-9', '@')]
 
     for name, url in characters:
+        url = 'http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % url
         AddMenuEntry(name, url, 134, '', '', '')
 
         
@@ -351,7 +352,7 @@ def RadioListGenres():
 
         
 
-def RadioGetAtoZPage(url):
+def RadioGetAtoZPage(page_url):
     """Allows to list programmes based on alphabetical order.
 
     Creates the list of programmes for one character.
@@ -359,7 +360,7 @@ def RadioGetAtoZPage(url):
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create(translation(31019))
 
-    html = OpenURL('http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % url)
+    html = OpenURL(page_url)
     #print html.encode("utf8")
     
     #TODO: optional pagination and progress bar
@@ -369,14 +370,26 @@ def RadioGetAtoZPage(url):
     paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
     next_page = 1
     if paginate:
-        pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
-        if pages:
-            last = pages[-1]
-            last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
-            #print last_page.group(2)
-            page_base_url = last_page.group(1)
-            total_pages = int(last_page.group(2))
-        page_range = range(1, total_pages+1)
+        if int(ADDON.getSetting('paginate_episodes')) == 0:
+            current_page_match = re.search(r'page=(\d*)', page_url)
+            if current_page_match:
+                current_page = int(current_page_match.group(1))
+            page_range = range(current_page, current_page+1)
+            next_page_match = re.search(r'<li class="pagination__next"><a href="(.*?page=)(.*?)">', paginate.group(0))
+            if next_page_match:
+                page_base_url = next_page_match.group(1)
+                next_page = int(next_page_match.group(2))
+            else:
+                next_page = current_page
+            page_range = range(current_page, current_page+1)
+        else:
+            pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
+            if pages:
+                last = pages[-1]
+                last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
+                page_base_url = last_page.group(1)
+                total_pages = int(last_page.group(2))
+            page_range = range(1, total_pages+1)
 
     for page in page_range:
 
@@ -443,10 +456,16 @@ def RadioGetAtoZPage(url):
 
         percent = int(100*page/total_pages)
         pDialog.update(percent,translation(31019))
-        
-    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
+    if int(ADDON.getSetting('paginate_episodes')) == 0:
+        if current_page < next_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
+            print page_url
+            AddMenuEntry('Next page', page_url, 134, '', '', '')
+    else:
+        #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
     pDialog.close()
     
