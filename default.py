@@ -338,13 +338,12 @@ def RadioListGenres():
 
     group = ''
     for url, name in genres:
+        new_url = 'http://www.bbc.co.uk/radio/programmes/genres/%s/player/episodes' % url
         if not "/" in url:
             group = name
-            #print group
-            AddMenuEntry("[B]%s[/B]" % name, url, 135, '', '', '')
+            AddMenuEntry("[B]%s[/B]" % name, new_url, 135, '', '', '')
         else:
-            #print group
-            AddMenuEntry("%s - %s " % (group, name), url, 135, '', '', '')
+            AddMenuEntry("%s - %s " % (group, name), new_url, 135, '', '', '')
  
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED) 
@@ -471,7 +470,7 @@ def RadioGetAtoZPage(page_url):
     
     
     
-def RadioGetGenrePage(url):
+def RadioGetGenrePage(page_url):
     """Allows to list programmes based on alphabetical order.
 
     Creates the list of programmes for one character.
@@ -479,7 +478,7 @@ def RadioGetGenrePage(url):
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create(translation(31019))
 
-    html = OpenURL('http://www.bbc.co.uk/radio/programmes/genres/%s/player/episodes' % url)
+    html = OpenURL(page_url)
     #print html.encode("utf8")
     
     #TODO: optional pagination and progress bar
@@ -489,14 +488,26 @@ def RadioGetGenrePage(url):
     paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
     next_page = 1
     if paginate:
-        pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
-        if pages:
-            last = pages[-1]
-            last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
-            #print last_page.group(2)
-            page_base_url = last_page.group(1)
-            total_pages = int(last_page.group(2))
-        page_range = range(1, total_pages+1)
+        if int(ADDON.getSetting('paginate_episodes')) == 0:
+            current_page_match = re.search(r'page=(\d*)', page_url)
+            if current_page_match:
+                current_page = int(current_page_match.group(1))
+            page_range = range(current_page, current_page+1)
+            next_page_match = re.search(r'<li class="pagination__next"><a href="(.*?page=)(.*?)">', paginate.group(0))
+            if next_page_match:
+                page_base_url = next_page_match.group(1)
+                next_page = int(next_page_match.group(2))
+            else:
+                next_page = current_page
+            page_range = range(current_page, current_page+1)
+        else:
+            pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
+            if pages:
+                last = pages[-1]
+                last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
+                page_base_url = last_page.group(1)
+                total_pages = int(last_page.group(2))
+            page_range = range(1, total_pages+1)
 
     for page in page_range:
 
@@ -530,11 +541,14 @@ def RadioGetGenrePage(url):
                 
             #BUG not robust enough
             subtitle = ''
-            subtitle_match = re.search(r'<span class="programme__subtitle.+?property="name">(.*?)</span>.*?property="name">(.*?)</span>', programme)
+            subtitle_match = re.search(r'<span class="programme__subtitle.+?property="name">(.*?)</span>(.*?property="name">(.*?)</span>)?', programme)
             if subtitle_match:
                 series = subtitle_match.group(1)
-                episode = subtitle_match.group(2)
-                subtitle = "(%s, %s)" % (series, episode)
+                episode = subtitle_match.group(3)
+                if episode:
+                    subtitle = "(%s, %s)" % (series, episode)
+                else:
+                    subtitle = "(%s)" % series
                 #print subtitle
                 
             image = ''    
@@ -568,10 +582,16 @@ def RadioGetGenrePage(url):
 
         percent = int(100*page/total_pages)
         pDialog.update(percent,translation(31019))
-        
-    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
+    if int(ADDON.getSetting('paginate_episodes')) == 0:
+        if current_page < next_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
+            print page_url
+            AddMenuEntry('Next page', page_url, 135, '', '', '')
+    else:
+        #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
     pDialog.close()
     
