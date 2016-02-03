@@ -156,7 +156,11 @@ def RadioListLive():
         ('bbc_radio_york', 'BBC Radio York'),
     ]
     for id, name in channel_list:
-        AddMenuEntry(name, id, 133, '', '', '')
+        #AddMenuEntry(name, id, 133, '', '', '')
+        if ADDON.getSetting('streams_autoplay') == 'true':
+            AddMenuEntry(name, id, 213, '', '', '')
+        else:
+            AddMenuEntry(name, id, 133, '', '', '')
 
 def ListAtoZ():
     """List programmes based on alphabetical order.
@@ -1752,6 +1756,45 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
             PlayStream(name, streams_available[0][1], iconimage, '', '')
 
 
+def RadioAddAvailableLiveStreamItem(name, channelname, iconimage):
+    """Play a live stream based on settings for preferred live source and bitrate."""
+    stream_bitrates = [128] #TODO add more bitrates
+    if int(ADDON.getSetting('live_source')) == 1:
+        providers = [('ak', 'Akamai')]
+    elif int(ADDON.getSetting('live_source')) == 2:
+        providers = [('llnw', 'Limelight')]
+    else:
+        providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
+    bitrate_selected = int(ADDON.getSetting('live_bitrate'))
+    for provider_url, provider_name in providers:
+        # First we query the available streams from this website
+
+        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hds/uk/high/%s/%s.f4m' % (provider_url, channelname)
+        html = OpenURL(url)
+        # Use regexp to get the different versions using various bitrates
+        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
+        streams_available = []
+        for address, bitrate in match:
+            url = address.replace('f4m', 'm3u8')
+            streams_available.append((int(bitrate), url))
+        streams_available.sort(key=lambda x: x[0], reverse=True)
+        # print streams_available
+        # Play the prefered option
+        if bitrate_selected > 0:
+            match = [x for x in streams_available if (x[0] == stream_bitrates[bitrate_selected])]
+            if len(match) == 0:
+                # Fallback: Use any lower bitrate from any source.
+                match = [x for x in streams_available if (x[0] in range(1, stream_bitrates[bitrate_selected - 1] + 1))]
+                match.sort(key=lambda x: x[0], reverse=True)
+            # print "Selected bitrate is %s"%stream_bitrates[bitrate_selected]
+            # print match
+            # print "Playing %s from %s with bitrate %s"%(name, match[0][1], match [0][0])
+            RadioPlayStream(name, match[0][1], iconimage, '', '')
+        # Play the fastest available stream of the preferred provider
+        else:
+            RadioPlayStream(name, streams_available[0][1], iconimage, '', '')
+
+            
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     """Retrieves the available live streams for a channel
 
@@ -2435,7 +2478,6 @@ elif mode == 131:
     RadioGetEpisodes(url)
     
 elif mode == 132:
-    #url = "http://www.bbc.co.uk/programmes/" + url
     RadioGetAvailableStreams(name, url, iconimage, description)
     
 elif mode == 133:
