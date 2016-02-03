@@ -394,37 +394,47 @@ def RadioGetAtoZPage(url):
             #print programme.encode("utf8")
             
             if "available" not in programme: #TODO find a more robust test
+                #print programme.encode("utf8")
                 continue
+                
+            series_id = ''
+            series_id_match = re.search(r'<a class="iplayer-text js-lazylink__link" href="/programmes/(.+?)/episodes/player"', programme)
+            if series_id_match:
+                series_id = series_id_match.group(1)
+                #print series_id
 
             programme_id = ''
-            programme_id_match = re.search(r'data-pid="(.*?)"', programme)
+            programme_id_match = re.search(r'data-pid="(.+?)"', programme)
             if programme_id_match:
                 programme_id = programme_id_match.group(1)
                 
             name = ''
-            name_match = re.search(r'<span property="name">(.*?)</span>', programme)
+            name_match = re.search(r'<span property="name">(.+?)</span>', programme)
             if name_match:
                 name = name_match.group(1)
                 
             image = ''    
-            image_match = re.search(r'<meta property="image" content="(.*?)" />', programme)
+            image_match = re.search(r'<meta property="image" content="(.+?)" />', programme)
             if image_match:
                 image = image_match.group(1)
                 
             synopsis = ''    
-            synopsis_match = re.search(r'<span property="description">(.*?)</span>', programme)
+            synopsis_match = re.search(r'<span property="description">(.+?)</span>', programme)
             if synopsis_match:
                 synopsis = synopsis_match.group(1)
                       
             station = ''    
-            station_match = re.search(r'<p class="programme__service.+?<strong>(.*?)</strong>.*?</p>', programme)
+            station_match = re.search(r'<p class="programme__service.+?<strong>(.+?)</strong>.*?</p>', programme)
             if station_match:
                 station = station_match.group(1)
                 
+            series_title = "[B]%s - %s[/B]" % (station, name)
             title = "[B]%s[/B] - %s" % (station, name)
             
-            if programme_id and title and image and synopsis:
-                AddMenuEntry(title, programme_id, 131, image, synopsis, '')
+            if series_id:
+                AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
+            elif programme_id: #TODO maybe they are not always mutually exclusive
+                AddMenuEntry(title, programme_id, 132, image, synopsis, '')
                 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
             pDialog.update(percent,translation(31019),name)
@@ -1567,7 +1577,8 @@ def RadioGetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
     #print url
     stream_ids = RadioScrapeAvailableStreams(url)
-    RadioAddAvailableStreamsDirectory(name, stream_ids, iconimage, description)
+    if stream_ids:
+        RadioAddAvailableStreamsDirectory(name, stream_ids, iconimage, description)
 
 
 
