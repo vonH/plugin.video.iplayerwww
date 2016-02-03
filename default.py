@@ -425,6 +425,18 @@ def RadioGetAtoZPage(page_url):
             if name_match:
                 name = name_match.group(1)
                 
+            #BUG not robust enough
+            subtitle = ''
+            subtitle_match = re.search(r'<span class="programme__subtitle.+?property="name">(.*?)</span>(.*?property="name">(.*?)</span>)?', programme)
+            if subtitle_match:
+                series = subtitle_match.group(1)
+                episode = subtitle_match.group(3)
+                if episode:
+                    subtitle = "(%s, %s)" % (series, episode)
+                else:
+                    subtitle = "(%s)" % series
+                #print subtitle
+                
             image = ''    
             image_match = re.search(r'<meta property="image" content="(.+?)" />', programme)
             if image_match:
@@ -441,7 +453,7 @@ def RadioGetAtoZPage(page_url):
                 station = station_match.group(1)
                 
             series_title = "[B]%s - %s[/B]" % (station, name)
-            title = "[B]%s[/B] - %s" % (station, name)
+            title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
             
             if series_id:
                 AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
@@ -1312,8 +1324,8 @@ def RadioSearch(search_entered):
     if search_entered is None:
         return False
 
-    #NEW_URL = 'http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % search_entered
-    RadioGetAtoZPage(search_entered)
+    url = 'http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % search_entered
+    RadioGetAtoZPage(url)
     
 
 def ParseImageUrl(url):
