@@ -313,7 +313,7 @@ def ScrapeEpisodes(page_url):
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry('Next page', page_url, 128, '', '', '')
+            Common.AddMenuEntry(Common.translation(31020), page_url, 128, '', '', '')
     else:
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)

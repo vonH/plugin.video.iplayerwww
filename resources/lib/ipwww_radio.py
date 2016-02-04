@@ -499,7 +499,7 @@ def GetAtoZPage(page_url):
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry('Next page', page_url, 134, '', '', '')
+            Common.AddMenuEntry(Common.translation(31020), page_url, 134, '', '', '')
     else:
         #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -615,7 +615,7 @@ def GetGenrePage(page_url):
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry('Next page', page_url, 135, '', '', '')
+            Common.AddMenuEntry(Common.translation(31020), page_url, 135, '', '', '')
     else:
         #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
