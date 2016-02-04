@@ -530,7 +530,7 @@ def ListHighlights(highlights_url):
         if data_object_type:
             object_type = data_object_type.group(1)
             if object_type == "episode-backfill":
-                if (highlights_url not in ['tv/bbcnews', 'tv/bbcparliament']):
+                if (highlights_url not in ['tv/bbcnews', 'tv/bbcparliament', 'tv/s4c']):
                     continue
 
         episode_id = ''
