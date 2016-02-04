@@ -50,7 +50,6 @@ def get_params():
 
 
 params = get_params()
-print params
 content_type = None
 url = None
 name = None
@@ -63,10 +62,7 @@ keyword = None
 
 
 def CATEGORIES():
-    print "Content type:"
-    print content_type
     if content_type == "video":
-        print "Creating video directory"
         Common.AddMenuEntry(Common.translation(31000), 'iplayer', 106, '', '', '')
         Common.AddMenuEntry(Common.translation(31017), 'url', 109, '', '', '')
         Common.AddMenuEntry(Common.translation(31001), 'url', 105, '', '', '')
@@ -77,7 +73,6 @@ def CATEGORIES():
         Common.AddMenuEntry(Common.translation(31006), 'url', 107, '', '', '')
         Common.AddMenuEntry(Common.translation(31007), 'url', 108, '', '', '')
     elif content_type == "audio":
-        print "Creating radio directory"
         Common.AddMenuEntry("Live National Radio HQ", 'url', 118, '', '', '')
         Common.AddMenuEntry("Live Radio", 'url', 113, '', '', '')
         Common.AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
@@ -88,10 +83,7 @@ def CATEGORIES():
 
 
 try:
-    print "Attempting to get content type"
-    print content_type
     content_type = Common.utf8_unquote_plus(params["content_type"])
-    print content_type
 except:
     pass
 try:
