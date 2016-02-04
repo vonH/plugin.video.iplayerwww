@@ -59,6 +59,7 @@ def CATEGORIES():
         AddMenuEntry(translation(31006), 'url', 107, '', '', '')
         AddMenuEntry(translation(31007), 'url', 108, '', '', '')
     elif content_type == "audio":
+        AddMenuEntry("Live National Radio HQ", 'url', 118, '', '', '')
         AddMenuEntry("Live Radio", 'url', 113, '', '', '')
         AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
         AddMenuEntry("Radio Genres", 'url', 114, '', '', '')
@@ -95,6 +96,7 @@ def ListLive():
             AddMenuEntry(name, id, 203, iconimage, '', '')
         else:
             AddMenuEntry(name, id, 123, iconimage, '', '')
+
 
 
 def RadioListLive():
@@ -162,6 +164,27 @@ def RadioListLive():
             AddMenuEntry(name, id, 213, '', '', '')
         else:
             AddMenuEntry(name, id, 133, '', '', '')
+
+
+
+def RadioListLiveHQ():
+    channel_list = [
+        ('bbc_radio_one', 'BBC Radio 1'),
+        ('bbc_1xtra', 'BBC Radio 1Xtra'),
+        ('bbc_radio_two', 'BBC Radio 2'),
+        ('bbc_radio_three', 'BBC Radio 3'),
+        ('bbc_radio_fourfm', 'BBC Radio 4 FM'),
+        ('bbc_radio_fourlw', 'BBC Radio 4 LW'),
+        ('bbc_radio_four_extra', 'BBC Radio 4 Extra'),
+        ('bbc_radio_five_live', 'BBC Radio 5 live'),
+        ('bbc_radio_five_live_sports_extra', 'BBC Radio 5 live sports extra'),
+        ('bbc_6music', 'BBC Radio 6 Music'),
+        ('bbc_asian_network', 'BBC Asian Network'),
+    ]
+    for id, name in channel_list:
+        #AddMenuEntry(name, id, 133, '', '', '')
+        #url = "http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/%s.m3u8" % id
+        AddMenuEntry(name, id, 214, '', '', '')
 
 
 
@@ -1737,6 +1760,22 @@ def RadioAddAvailableLiveStreamItem(name, channelname, iconimage):
             RadioPlayStream(name, streams_available[0][1], iconimage, '', '')
 
 
+
+def RadioAddAvailableLiveStreamItemHQ(name, channelname, iconimage):
+    """Play a live stream based on settings for preferred live source and bitrate."""
+
+    if int(ADDON.getSetting('live_source')) == 1:
+        providers = [('ak', 'Akamai')]
+    elif int(ADDON.getSetting('live_source')) == 2:
+        providers = [('llnw', 'Limelight')]
+    else:
+        providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
+
+    for provider_url, provider_name in providers:
+        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/%s/%s.m3u8' % (provider_url, channelname)
+        RadioPlayStream(name, url, iconimage, '', '')
+
+
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     """Retrieves the available live streams for a channel
 
@@ -1964,7 +2003,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         date_string = ""
 
     # Modes 201-299 will create a new playable line, otherwise create a new directory line.
-    if mode in (201, 202, 203, 211, 212, 213):
+    if mode in (201, 202, 203, 211, 212, 213, 214):
         isFolder = False
     else:
         isFolder = True
@@ -2381,6 +2420,9 @@ elif mode == 116:
 elif mode == 117:
     RadioListFavourites(logged_in)
 
+elif mode == 118:
+    RadioListLiveHQ()
+
     # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
     GetEpisodes(url)
@@ -2439,5 +2481,8 @@ elif mode == 212:
 
 elif mode == 213:
     RadioAddAvailableLiveStreamItem(name, url, iconimage)
+
+elif mode == 214:
+    RadioAddAvailableLiveStreamItemHQ(name, url, iconimage)
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
