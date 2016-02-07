@@ -283,7 +283,7 @@ def AddAvailableStreamItem(name, url, iconimage, description):
             match = streams
             match.sort(key=lambda x: x[1], reverse=True)
 
-    PlayStream(name, match[0][2], iconimage, description, subtitles_url)
+    PlayStream(name, match[0][2], iconimage, description, '')
 
 
 def ListAtoZ():
