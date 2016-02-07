@@ -661,7 +661,7 @@ def ListLiveHQ():
 def ListFavourites(logged_in):
 
     if(Common.CheckLogin(logged_in) == False):
-        CATEGORIES()
+        Common.CreateBaseDirectory('audio')
         return
 
     """Scrapes all episodes of the favourites page."""

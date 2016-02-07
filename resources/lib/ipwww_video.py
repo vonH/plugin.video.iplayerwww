@@ -851,7 +851,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
 def ListWatching(logged_in):
 
     if(Common.CheckLogin(logged_in) == False):
-        CATEGORIES()
+        Common.CreateBaseDirectory('video')
         return
 
     identity_cookie = None
@@ -882,7 +882,7 @@ def ListWatching(logged_in):
 def ListFavourites(logged_in):
 
     if(Common.CheckLogin(logged_in) == False):
-        CATEGORIES()
+        Common.CreateBaseDirectory('video')
         return
 
     """Scrapes all episodes of the favourites page."""
