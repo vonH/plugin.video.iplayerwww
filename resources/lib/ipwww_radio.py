@@ -256,129 +256,24 @@ def ListGenres():
 
     Only creates the corresponding directories for each character.
     """
-    genres = [
-        ('childrens', 'Children\'s'),
-        ('childrens/drama', 'Drama'),
-        ('childrens/entertainmentandcomedy', 'Entertainment & Comedy'),
-        ('childrens/factual', 'Factual'),
-        ('childrens/music', 'Music'),
-        ('comedy', 'Comedy'),
-        ('comedy/character', 'Character'),
-        ('comedy/impressionists', 'Impressionists'),
-        ('comedy/music', 'Music'),
-        ('comedy/satire', 'Satire'),
-        ('comedy/sitcoms', 'Sitcoms'),
-        ('comedy/sketch', 'Sketch'),
-        ('comedy/spoof', 'Spoof'),
-        ('comedy/standup', 'Standup'),
-        ('comedy/stunt', 'Stunt'),
-        ('drama', 'Drama'),
-        ('drama/actionandadventure', 'Action & Adventure'),
-        ('drama/biographical', 'Biographical'),
-        ('drama/classicandperiod', 'Classic & Period'),
-        ('drama/crime', 'Crime'),
-        ('drama/historical', 'Historical'),
-        ('drama/horrorandsupernatural', 'Horror & Supernatural'),
-        ('drama/legalandcourtroom', 'Legal & Courtroom'),
-        ('drama/medical', 'Medical'),
-        ('drama/musical', 'Musical'),
-        ('drama/political', 'Political'),
-        ('drama/psychological', 'Psychological'),
-        ('drama/relationshipsandromance', 'Relationships & Romance'),
-        ('drama/scifiandfantasy', 'SciFi & Fantasy'),
-        ('drama/soaps', 'Soaps'),
-        ('drama/spiritual', 'Spiritual'),
-        ('drama/thriller', 'Thriller'),
-        ('drama/waranddisaster', 'War & Disaster'),
-        ('drama/western', 'Western'),
-        ('entertainment', 'Entertainment'),
-        ('entertainment/varietyshows', 'Variety Shows'),
-        ('factual', 'Factual'),
-        ('factual/antiques', 'Antiques'),
-        ('factual/artscultureandthemedia', 'Arts, Culture & the Media'),
-        ('factual/beautyandstyle', 'Beauty & Style'),
-        ('factual/carsandmotors', 'Cars & Motors'),
-        ('factual/consumer', 'Consumer'),
-        ('factual/crimeandjustice', 'Crime & Justice'),
-        ('factual/disability', 'Disability'),
-        ('factual/familiesandrelationships', 'Families & Relationships'),
-        ('factual/foodanddrink', 'Food & Drink'),
-        ('factual/healthandwellbeing', 'Health & Wellbeing'),
-        ('factual/history', 'History'),
-        ('factual/homesandgardens', 'Homes & Gardens'),
-        ('factual/lifestories', 'Life Stories'),
-        ('factual/money', 'Money'),
-        ('factual/petsandanimals', 'Pets & Animals'),
-        ('factual/politics', 'Politics'),
-        ('factual/scienceandnature', 'Science & Nature'),
-        ('factual/travel', 'Travel'),
-        ('learning', 'Learning'),
-        ('learning/adults', 'Adults'),
-        ('learning/preschool', 'Pre-School'),
-        ('learning/primary', 'Primary'),
-        ('learning/secondary', 'Secondary'),
-        ('music', 'Music'),
-        ('music/classical', 'Classical'),
-        ('music/classicpopandrock', 'Classic Pop & Rock'),
-        ('music/country', 'Country'),
-        ('music/danceandelectronica', 'Dance & Electronica'),
-        ('music/desi', 'Desi'),
-        ('music/easylisteningsoundtracksandmusicals', 'Easy Listening, Soundtracks & Musicals'),
-        ('music/folk', 'Folk'),
-        ('music/hiphoprnbanddancehall', 'Hip Hop, RnB & Dancehall'),
-        ('music/jazzandblues', 'Jazz & Blues'),
-        ('music/popandchart', 'Pop & Chart'),
-        ('music/rockandindie', 'Rock & Indie'),
-        ('music/soulandreggae', 'Soul & Reggae'),
-        ('music/world', 'World'),
-        ('religionandethics', 'Religion & Ethics'),
-        ('sport', 'Sport'),
-        ('sport/americanfootball', 'American Football'),
-        ('sport/athletics', 'Athletics'),
-        ('sport/baseball', 'Baseball'),
-        ('sport/basketball', 'Basketball'),
-        ('sport/bobsleigh', 'Bobsleigh'),
-        ('sport/boxing', 'Boxing'),
-        ('sport/commonwealthgames', 'Commonwealth Games'),
-        ('sport/cricket', 'Cricket'),
-        ('sport/cycling', 'Cycling'),
-        ('sport/disabilitysport', 'Disability Sport'),
-        ('sport/football', 'Football'),
-        ('sport/formulaone', 'Formula One'),
-        ('sport/gaelicgames', 'Gaelic Games'),
-        ('sport/golf', 'Golf'),
-        ('sport/gymnastics', 'Gymnastics'),
-        ('sport/hockey', 'Hockey'),
-        ('sport/horseracing', 'Horse Racing'),
-        ('sport/icehockey', 'Ice Hockey'),
-        ('sport/motorsport', 'Motorsport'),
-        ('sport/netball', 'Netball'),
-        ('sport/olympics', 'Olympics'),
-        ('sport/rowing', 'Rowing'),
-        ('sport/rugbyleague', 'Rugby League'),
-        ('sport/rugbyunion', 'Rugby Union'),
-        ('sport/sailing', 'Sailing'),
-        ('sport/shinty', 'Shinty'),
-        ('sport/snooker', 'Snooker'),
-        ('sport/swimming', 'Swimming'),
-        ('sport/synchronisedswimming', 'Synchronised Swimming'),
-        ('sport/tabletennis', 'Table Tennis'),
-        ('sport/taekwondo', 'Taekwondo'),
-        ('sport/tennis', 'Tennis'),
-        ('sport/triathlon', 'Triathlon'),
-        ('sport/winterolympics', 'Winter Olympics'),
-        ('sport/wintersports', 'Winter Sports'),
-        ('weather', 'Weather'),
-        ]
+    genres = []
+    html = Common.OpenURL('http://www.bbc.co.uk/radio/programmes/genres')
+    mains = html.split('<li class="category br-keyline highlight-box--list">')
 
-    group = ''
-    for url, name in genres:
-        new_url = 'http://www.bbc.co.uk/radio/programmes/genres/%s/player/episodes' % url
-        if not "/" in url:
-            group = name
+    for main in mains:
+        current_main_match = re.search(r'<a.+?class="beta box-link".+?href="(.+?)">(.+?)</a>',main)
+        if current_main_match:
+            genres.append((current_main_match.group(1), current_main_match.group(2), True))
+            current_sub_match = re.findall(r'<a.+?class="box-link".+?href="(.+?)">(.+?)</a>',main)
+            for sub_match_url, sub_match_name in current_sub_match:
+                genres.append((sub_match_url, current_main_match.group(2)+' - '+sub_match_name, False))
+
+    for url, name, group in genres:
+        new_url = 'http://www.bbc.co.uk%s/player/episodes' % url
+        if group:
             Common.AddMenuEntry("[B]%s[/B]" % name, new_url, 135, '', '', '')
         else:
-            Common.AddMenuEntry("%s - %s " % (group, name), new_url, 135, '', '', '')
+            Common.AddMenuEntry("%s" % name, new_url, 135, '', '', '')
 
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
