@@ -23,6 +23,7 @@ try:
     import ipwww_radio as Radio
     Video.ADDON = ADDON
     Radio.ADDON = ADDON
+    Common.ADDON = ADDON
 except ImportError, error:
     print error
     print sys.path
