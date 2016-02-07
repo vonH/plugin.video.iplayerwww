@@ -80,6 +80,40 @@ def CATEGORIES():
         Common.AddMenuEntry(Common.translation(30304), 'url', 115, '', '', '')
         Common.AddMenuEntry(Common.translation(30301), 'url', 116, '', '', '')
         Common.AddMenuEntry(Common.translation(30307), 'url', 117, '', '', '')
+    else:
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30300)),
+                            'iplayer', 106, '', '', '')
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30317)),
+                            'url', 109, '', '', '')
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30301)),
+                            'url', 105, '', '', '')
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30302)),
+                            'url', 102, '', '', '')
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30303)),
+                            'url', 103, '', '', '')
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30304)),
+                            'url', 104, '', '', '')
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30305)),
+                            'url', 101, '', '', '')
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30306)),
+                            'url', 107, '', '', '')
+        Common.AddMenuEntry((Common.translation(30323)+Common.translation(30307)),
+                            'url', 108, '', '', '')
+        Common.AddMenuEntry((Common.translation(30324)+Common.translation(30322)),
+                            'url', 118, '', '', '')
+        Common.AddMenuEntry((Common.translation(30324)+Common.translation(30321)),
+                            'url', 113, '', '', '')
+        Common.AddMenuEntry((Common.translation(30324)+Common.translation(30302)),
+                            'url', 112, '', '', '')
+        Common.AddMenuEntry((Common.translation(30324)+Common.translation(30303)),
+                            'url', 114, '', '', '')
+        Common.AddMenuEntry((Common.translation(30324)+Common.translation(30304)),
+                            'url', 115, '', '', '')
+        Common.AddMenuEntry((Common.translation(30324)+Common.translation(30301)),
+                            'url', 116, '', '', '')
+        Common.AddMenuEntry((Common.translation(30324)+Common.translation(30307)),
+                            'url', 117, '', '', '')
+        
 
 
 try:
