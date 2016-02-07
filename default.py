@@ -15,6 +15,7 @@ __plugin_handle__ = int(sys.argv[1])
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 sys.path.insert(0, os.path.join(xbmcaddon.Addon("plugin.video.iplayerwww").getAddonInfo("path"),
                                 'resources', 'lib'))
+cookie_jar = None
 
 
 try:
@@ -22,8 +23,10 @@ try:
     import ipwww_video as Video
     import ipwww_radio as Radio
     Video.ADDON = ADDON
+    Video.cookie_jar = cookie_jar
     Radio.ADDON = ADDON
     Common.ADDON = ADDON
+    Common.cookie_jar = cookie_jar
 except ImportError, error:
     print error
     print sys.path

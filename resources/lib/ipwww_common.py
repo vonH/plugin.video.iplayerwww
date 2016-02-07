@@ -6,7 +6,6 @@ import re
 import requests
 from requests.packages import urllib3
 import cookielib
-import json
 import urllib
 import HTMLParser
 import codecs
@@ -30,7 +29,6 @@ def GetAddonInfo():
 __addonid__ = "plugin.video.iplayerwww"
 __addoninfo__ = GetAddonInfo()
 DIR_USERDATA = xbmc.translatePath(__addoninfo__["profile"])
-cookie_jar = None
 
 
 if(not os.path.exists(DIR_USERDATA)):
