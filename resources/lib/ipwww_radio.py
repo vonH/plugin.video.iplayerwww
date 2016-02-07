@@ -22,7 +22,7 @@ def ScrapeEpisodes(page_url):
     of pages.
     """
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create(Common.translation(31019))
+    pDialog.create(Common.translation(30319))
 
     html = Common.OpenURL(page_url)
     #print html.encode("utf8")
@@ -88,12 +88,12 @@ def ScrapeEpisodes(page_url):
                 CheckAutoplay(full_title, url, image, ' ', '')
 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
-            pDialog.update(percent,Common.translation(31019),name)
+            pDialog.update(percent,Common.translation(30319),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,Common.translation(31019))
+        pDialog.update(percent,Common.translation(30319))
 
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -204,7 +204,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     if check_geo or not html:
         # print "Geoblock detected, raising error message"
         dialog = xbmcgui.Dialog()
-        dialog.ok(Common.translation(32000), Common.translation(32001))
+        dialog.ok(Common.translation(30400), Common.translation(30401))
         raise
     liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
     liz.setInfo(type='Audio', infoLabels={'Title': name})
@@ -391,7 +391,7 @@ def GetAtoZPage(page_url):
     Creates the list of programmes for one character.
     """
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create(Common.translation(31019))
+    pDialog.create(Common.translation(30319))
 
     html = Common.OpenURL(page_url)
 
@@ -489,17 +489,17 @@ def GetAtoZPage(page_url):
                 CheckAutoplay(title, url, image, ' ', '')
 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
-            pDialog.update(percent,Common.translation(31019),name)
+            pDialog.update(percent,Common.translation(30319),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,Common.translation(31019))
+        pDialog.update(percent,Common.translation(30319))
 
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry(Common.translation(31020), page_url, 134, '', '', '')
+            Common.AddMenuEntry(Common.translation(30320), page_url, 134, '', '', '')
     else:
         #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -514,7 +514,7 @@ def GetGenrePage(page_url):
     Creates the list of programmes for one character.
     """
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create(Common.translation(31019))
+    pDialog.create(Common.translation(30319))
 
     html = Common.OpenURL(page_url)
 
@@ -605,17 +605,17 @@ def GetGenrePage(page_url):
                 CheckAutoplay(title, url, image, ' ', '')
 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
-            pDialog.update(percent,Common.translation(31019),name)
+            pDialog.update(percent,Common.translation(30319),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,Common.translation(31019))
+        pDialog.update(percent,Common.translation(30319))
 
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry(Common.translation(31020), page_url, 135, '', '', '')
+            Common.AddMenuEntry(Common.translation(30320), page_url, 135, '', '', '')
     else:
         #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)

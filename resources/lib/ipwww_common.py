@@ -153,9 +153,9 @@ def SignInBBCiD():
                'rememberme':'0'}
     r = OpenURLPost(sign_in_url, post_data)
     if (r.status_code == 302):
-        xbmcgui.Dialog().notification(translation(31008), translation(31009))
+        xbmcgui.Dialog().notification(translation(30308), translation(30309))
     else:
-        xbmcgui.Dialog().notification(translation(31008), translation(31010))
+        xbmcgui.Dialog().notification(translation(30308), translation(30310))
 
 
 def SignOutBBCiD():
@@ -176,17 +176,17 @@ def CheckLogin(logged_in):
         logged_in = True
         return True
     elif ADDON.getSetting('bbc_id_enabled') != 'true':
-        xbmcgui.Dialog().ok(translation(31008), translation(31011))
+        xbmcgui.Dialog().ok(translation(30308), translation(30311))
     else:
-        attemptLogin = xbmcgui.Dialog().yesno(translation(31008), translation(31012))
+        attemptLogin = xbmcgui.Dialog().yesno(translation(30308), translation(30312))
         if attemptLogin:
             SignInBBCiD()
             if(StatusBBCiD()):
-                xbmcgui.Dialog().notification(translation(31008), translation(31009))
+                xbmcgui.Dialog().notification(translation(30308), translation(30309))
                 logged_in = True;
                 return True;
             else:
-                xbmcgui.Dialog().notification(translation(31008), translation(31010))
+                xbmcgui.Dialog().notification(translation(30308), translation(30310))
 
     return False
 
@@ -198,7 +198,7 @@ def InitialiseCookieJar():
         try:
             cj.load(ignore_discard=True, ignore_expires=True)
         except:
-            xbmcgui.Dialog().notification(translation(32000), translation(32002), xbmcgui.NOTIFICATION_ERROR)
+            xbmcgui.Dialog().notification(translation(30400), translation(30402), xbmcgui.NOTIFICATION_ERROR)
     return cj
 
 cookie_jar = InitialiseCookieJar()
@@ -210,7 +210,7 @@ def OpenURL(url):
         r = requests.get(url, headers=headers, cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
-        dialog.ok(translation(32000), "%s" % e)
+        dialog.ok(translation(30400), "%s" % e)
         sys.exit(1)
     try:
         for cookie in r.cookies:
@@ -232,7 +232,7 @@ def OpenURLPost(url, post_data):
         r = requests.post(url, headers=headers, data=post_data, allow_redirects=False, cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
-        dialog.ok(translation(32000), "%s" % e)
+        dialog.ok(translation(30400), "%s" % e)
         sys.exit(1)
     try:
         for cookie in r.cookies:

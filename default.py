@@ -63,23 +63,23 @@ keyword = None
 
 def CATEGORIES():
     if content_type == "video":
-        Common.AddMenuEntry(Common.translation(31000), 'iplayer', 106, '', '', '')
-        Common.AddMenuEntry(Common.translation(31017), 'url', 109, '', '', '')
-        Common.AddMenuEntry(Common.translation(31001), 'url', 105, '', '', '')
-        Common.AddMenuEntry(Common.translation(31002), 'url', 102, '', '', '')
-        Common.AddMenuEntry(Common.translation(31003), 'url', 103, '', '', '')
-        Common.AddMenuEntry(Common.translation(31004), 'url', 104, '', '', '')
-        Common.AddMenuEntry(Common.translation(31005), 'url', 101, '', '', '')
-        Common.AddMenuEntry(Common.translation(31006), 'url', 107, '', '', '')
-        Common.AddMenuEntry(Common.translation(31007), 'url', 108, '', '', '')
+        Common.AddMenuEntry(Common.translation(30300), 'iplayer', 106, '', '', '')
+        Common.AddMenuEntry(Common.translation(30317), 'url', 109, '', '', '')
+        Common.AddMenuEntry(Common.translation(30301), 'url', 105, '', '', '')
+        Common.AddMenuEntry(Common.translation(30302), 'url', 102, '', '', '')
+        Common.AddMenuEntry(Common.translation(30303), 'url', 103, '', '', '')
+        Common.AddMenuEntry(Common.translation(30304), 'url', 104, '', '', '')
+        Common.AddMenuEntry(Common.translation(30305), 'url', 101, '', '', '')
+        Common.AddMenuEntry(Common.translation(30306), 'url', 107, '', '', '')
+        Common.AddMenuEntry(Common.translation(30307), 'url', 108, '', '', '')
     elif content_type == "audio":
-        Common.AddMenuEntry("Live National Radio HQ", 'url', 118, '', '', '')
-        Common.AddMenuEntry("Live Radio", 'url', 113, '', '', '')
-        Common.AddMenuEntry("Radio A-Z", 'url', 112, '', '', '')
-        Common.AddMenuEntry("Radio Genres", 'url', 114, '', '', '')
-        Common.AddMenuEntry("Radio Search", 'url', 115, '', '', '')
-        Common.AddMenuEntry("Radio Most Popular", 'url', 116, '', '', '')
-        Common.AddMenuEntry("Radio Favourites", 'url', 117, '', '', '')
+        Common.AddMenuEntry(Common.translation(30322), 'url', 118, '', '', '')
+        Common.AddMenuEntry(Common.translation(30321), 'url', 113, '', '', '')
+        Common.AddMenuEntry(Common.translation(30302), 'url', 112, '', '', '')
+        Common.AddMenuEntry(Common.translation(30303), 'url', 114, '', '', '')
+        Common.AddMenuEntry(Common.translation(30304), 'url', 115, '', '', '')
+        Common.AddMenuEntry(Common.translation(30301), 'url', 116, '', '', '')
+        Common.AddMenuEntry(Common.translation(30307), 'url', 117, '', '', '')
 
 
 try:

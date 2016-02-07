@@ -58,13 +58,13 @@ def ListAtoZ():
 
     if int(ADDON.getSetting('scrape_atoz')) == 1:
         pDialog = xbmcgui.DialogProgressBG()
-        pDialog.create(Common.translation(31019))
+        pDialog.create(Common.translation(30319))
         page = 1
         total_pages = len(characters)
         for name, url in characters:
             GetAtoZPage(url)
             percent = int(100*page/total_pages)
-            pDialog.update(percent,Common.translation(31019),name)
+            pDialog.update(percent,Common.translation(30319),name)
             page += 1
         pDialog.close()
     else:
@@ -139,7 +139,7 @@ def ScrapeEpisodes(page_url):
     """
 
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create(Common.translation(31019))
+    pDialog.create(Common.translation(30319))
 
     html = Common.OpenURL(page_url)
 
@@ -290,30 +290,30 @@ def ScrapeEpisodes(page_url):
             if episodes:
                 episodes_url = 'http://www.bbc.co.uk' + episodes
                 if search_group:
-                    Common.AddMenuEntry('[B]%s[/B] - %s' % (title, Common.translation(31018)),
+                    Common.AddMenuEntry('[B]%s[/B] - %s' % (title, Common.translation(30318)),
                                  episodes_url, 128, icon, '', '')
                 else:
-                    Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(31013)),
+                    Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(30313)),
                                  episodes_url, 128, icon, '', '')
             elif more:
-                Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(31013)),
+                Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(30313)),
                              main_url, 128, icon, '', '')
 
             if type != "group":
                 CheckAutoplay(name , main_url, icon, synopsis, aired)
 
             percent = int(100*(page+list_item_num/len(list_items))/total_pages)
-            pDialog.update(percent,Common.translation(31019),name)
+            pDialog.update(percent,Common.translation(30319),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,Common.translation(31019))
+        pDialog.update(percent,Common.translation(30319))
 
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry(Common.translation(31020), page_url, 128, '', '', '')
+            Common.AddMenuEntry(Common.translation(30320), page_url, 128, '', '', '')
     else:
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
@@ -454,7 +454,7 @@ def ListHighlights(highlights_url):
                              [position_match.group(1),
                              name, group_type])
 
-        Common.AddMenuEntry('[B]%s: %s[/B] - %s %s' % (Common.translation(31014), name, count, Common.translation(31015)),
+        Common.AddMenuEntry('[B]%s: %s[/B] - %s %s' % (Common.translation(30314), name, count, Common.translation(30315)),
                      url, 128, '', '', '')
 
     # Some programmes show up twice in HTML, once inside the groups, once outside.
@@ -509,7 +509,7 @@ def ListHighlights(highlights_url):
         episodelist.append(
                     [episode_id,
                     name,
-                    "%s %s" % (Common.translation(31016), position),
+                    "%s %s" % (Common.translation(30316), position),
                     'DefaultVideo.png',
                     '']
                     )
@@ -907,7 +907,7 @@ def ListFavourites(logged_in):
         more = programme.get('count')
         if more:
             episodes_url = "http://www.bbc.co.uk/iplayer/episodes/" + id
-            Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(31013)),
+            Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(30313)),
                          episodes_url, 128, image_url, '', '')
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
@@ -921,7 +921,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     if check_geo or not html:
         # print "Geoblock detected, raising error message"
         dialog = xbmcgui.Dialog()
-        dialog.ok(Common.translation(32000), Common.translation(32001))
+        dialog.ok(Common.translation(30400), Common.translation(30401))
         raise
     liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
     liz.setInfo(type='Video', infoLabels={'Title': name})
@@ -1051,7 +1051,7 @@ def ParseStreams(stream_id):
         if check_geo:
             # print "Geoblock detected, raising error message"
             dialog = xbmcgui.Dialog()
-            dialog.ok(Common.translation(32000), Common.translation(32001))
+            dialog.ok(Common.translation(30400), Common.translation(30401))
             raise
     return retlist, match
 
