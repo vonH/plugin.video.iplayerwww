@@ -660,7 +660,7 @@ def ListLiveHQ():
 
 def ListFavourites(logged_in):
 
-    if(CheckLogin(logged_in) == False):
+    if(Common.CheckLogin(logged_in) == False):
         CATEGORIES()
         return
 

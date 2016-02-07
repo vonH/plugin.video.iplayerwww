@@ -849,7 +849,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
 
 def ListWatching(logged_in):
 
-    if(CheckLogin(logged_in) == False):
+    if(Common.CheckLogin(logged_in) == False):
         CATEGORIES()
         return
 
@@ -880,7 +880,7 @@ def ListWatching(logged_in):
 
 def ListFavourites(logged_in):
 
-    if(CheckLogin(logged_in) == False):
+    if(Common.CheckLogin(logged_in) == False):
         CATEGORIES()
         return
 
