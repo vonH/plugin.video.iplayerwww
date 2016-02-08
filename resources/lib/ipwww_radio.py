@@ -106,9 +106,9 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
     
     stream_bitrates = [128] #TODO add more bitrates
-    if int(ADDON.getSetting('live_source')) == 1:
+    if int(ADDON.getSetting('radio_source')) == 1:
         providers = [('ak', 'Akamai')]
-    elif int(ADDON.getSetting('live_source')) == 2:
+    elif int(ADDON.getSetting('radio_source')) == 2:
         providers = [('llnw', 'Limelight')]
     else:
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
@@ -143,9 +143,9 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
 def AddAvailableLiveStreamItemHQ(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
 
-    if int(ADDON.getSetting('live_source')) == 1:
+    if int(ADDON.getSetting('radio_source')) == 1:
         providers = [('ak', 'Akamai')]
-    elif int(ADDON.getSetting('live_source')) == 2:
+    elif int(ADDON.getSetting('radio_source')) == 2:
         providers = [('llnw', 'Limelight')]
     else:
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
@@ -238,52 +238,21 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
 def AddAvailableStreamItem(name, url, iconimage, description):
     """Play a streamm based on settings for preferred catchup source and bitrate."""
     stream_ids = ScrapeAvailableStreams(url)
-
     streams_all = ParseStreams(stream_ids)
-
     streams = streams_all[0]
-
-    source = int(ADDON.getSetting('catchup_source'))
-    bitrate = int(ADDON.getSetting('catchup_bitrate'))
-    bitrate = 0
-
+    source = int(ADDON.getSetting('radio_source'))
     if source > 0:
-        if bitrate > 0:
-            # Case 1: Selected source and selected bitrate
-            match = [x for x in streams if ((x[0] == source) and (x[1] == bitrate))]
-            if len(match) == 0:
-                # Fallback: Use same bitrate but different supplier.
-                match = [x for x in streams if (x[1] == bitrate)]
-                if len(match) == 0:
-                    # Second Fallback: Use any lower bitrate from selected source.
-                    match = [x for x in streams if (x[0] == source) and (x[1] in range(1, bitrate))]
-                    match.sort(key=lambda x: x[1], reverse=True)
-                    if len(match) == 0:
-                        # Third Fallback: Use any lower bitrate from any source.
-                        match = [x for x in streams if (x[1] in range(1, bitrate))]
-                        match.sort(key=lambda x: x[1], reverse=True)
-        else:
-            # Case 2: Selected source and any bitrate
-            match = [x for x in streams if (x[0] == source)]
-            if len(match) == 0:
-                # Fallback: Use any source and any bitrate
-                match = streams
-            match.sort(key=lambda x: x[1], reverse=True)
-    else:
-        if bitrate > 0:
-            # Case 3: Any source and selected bitrate
-            match = [x for x in streams if (x[1] == bitrate)]
-            if len(match) == 0:
-                # Fallback: Use any source and any lower bitrate
-                match = streams
-                match = [x for x in streams if (x[1] in range(1, bitrate))]
-                match.sort(key=lambda x: x[1], reverse=True)
-        else:
-            # Case 4: Any source and any bitrate
-            # Play highest available bitrate
+        # Case 1: Selected source
+        match = [x for x in streams if (x[0] == source)]
+        if len(match) == 0:
+            # Fallback: Use any source and any bitrate
             match = streams
-            match.sort(key=lambda x: x[1], reverse=True)
-
+        match.sort(key=lambda x: x[1], reverse=True)
+    else:
+        # Case 3: Any source
+        # Play highest available bitrate
+        match = streams
+        match.sort(key=lambda x: x[1], reverse=True)
     PlayStream(name, match[0][2], iconimage, description, '')
 
 
