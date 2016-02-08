@@ -905,7 +905,10 @@ def ListFavourites(logged_in):
         image_url=Common.ParseImageUrl(image.get('standard'))
         synopses = initial_child.get('synopses')
         plot = synopses.get('small')
-        aired = FirstShownToAired(initial_child.get('release_date'))
+        try:
+            aired = FirstShownToAired(initial_child.get('release_date'))
+        except:
+            aired = ''
         CheckAutoplay(episode_title, url, image_url, plot, aired)
         more = programme.get('count')
         if more:
