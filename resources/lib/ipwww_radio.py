@@ -104,6 +104,7 @@ def ScrapeEpisodes(page_url):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
+    
     stream_bitrates = [128] #TODO add more bitrates
     if int(ADDON.getSetting('live_source')) == 1:
         providers = [('ak', 'Akamai')]
@@ -111,7 +112,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
         providers = [('llnw', 'Limelight')]
     else:
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-    bitrate_selected = int(ADDON.getSetting('live_bitrate'))
+    bitrate_selected = 0 #int(ADDON.getSetting('live_bitrate'))
     for provider_url, provider_name in providers:
         # First we query the available streams from this website
 
