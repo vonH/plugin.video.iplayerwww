@@ -855,7 +855,7 @@ def ListWatching(logged_in):
         return
 
     identity_cookie = None
-    for cookie in cookie_jar:
+    for cookie in Common.common_cookie_jar:
         if (cookie.name == 'IDENTITY'):
             identity_cookie = cookie.value
             break
@@ -873,7 +873,7 @@ def ListWatching(logged_in):
         episode_id = episode.get('id')
         plot = episode.get('synopses').get('large') or " "
         aired = episode.get('release_date')
-        image_url = ParseImageUrl(episode.get('images').get('standard'))
+        image_url = Common.ParseImageUrl(episode.get('images').get('standard'))
         aired = ParseAired(aired)
         url="http://www.bbc.co.uk/iplayer/episode/%s" % (episode_id)
         CheckAutoplay(title, url, image_url, plot, aired)
@@ -900,7 +900,7 @@ def ListFavourites(logged_in):
         if subtitle:
             episode_title = title + ' - ' + subtitle
         image=initial_child.get('images')
-        image_url=ParseImageUrl(image.get('standard'))
+        image_url=Common.ParseImageUrl(image.get('standard'))
         synopses = initial_child.get('synopses')
         plot = synopses.get('small')
         aired = FirstShownToAired(initial_child.get('release_date'))

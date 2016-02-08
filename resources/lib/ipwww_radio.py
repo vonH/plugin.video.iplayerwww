@@ -659,7 +659,6 @@ def ListLiveHQ():
 
 
 def ListFavourites(logged_in):
-
     if(Common.CheckLogin(logged_in) == False):
         Common.CreateBaseDirectory('audio')
         return
