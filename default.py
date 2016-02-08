@@ -28,8 +28,6 @@ try:
     Common.ADDON = ADDON
     Common.cookie_jar = cookie_jar
 except ImportError, error:
-    print error
-    print sys.path
     d = xbmcgui.Dialog()
     d.ok(str(error), 'Please check you installed this plugin correctly.')
     raise

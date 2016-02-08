@@ -15,6 +15,7 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
+
 def GetAddonInfo():
     addon_info = {}
     addon_info["id"] = __addonid__
@@ -199,13 +200,13 @@ def InitialiseCookieJar():
             xbmcgui.Dialog().notification(translation(30400), translation(30402), xbmcgui.NOTIFICATION_ERROR)
     return cj
 
-cookie_jar = InitialiseCookieJar()
+common_cookie_jar = InitialiseCookieJar()
 
 
 def OpenURL(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/43.0'}
     try:
-        r = requests.get(url, headers=headers, cookies=cookie_jar)
+        r = requests.get(url, headers=headers, cookies=common_cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), "%s" % e)
@@ -213,13 +214,14 @@ def OpenURL(url):
     try:
         for cookie in r.cookies:
             cookie_jar.set_cookie(cookie)
-        cookie_jar.save(ignore_discard=True, ignore_expires=True)
+        common_cookie_jar.save(ignore_discard=True, ignore_expires=True)
     except:
         pass
     return HTMLParser.HTMLParser().unescape(r.content.decode('utf-8'))
 
 
 def OpenURLPost(url, post_data):
+
     headers = {
                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/43.0',
                'Host':'ssl.bbc.co.uk',
@@ -227,15 +229,15 @@ def OpenURLPost(url, post_data):
                'Referer':'https://ssl.bbc.co.uk/id/signin',
                'Content-Type':'application/x-www-form-urlencoded'}
     try:
-        r = requests.post(url, headers=headers, data=post_data, allow_redirects=False, cookies=cookie_jar)
+        r = requests.post(url, headers=headers, data=post_data, allow_redirects=False, cookies=common_cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), "%s" % e)
         sys.exit(1)
     try:
         for cookie in r.cookies:
-            cookie_jar.set_cookie(cookie)
-        cookie_jar.save(ignore_discard=True, ignore_expires=True)
+            common_cookie_jar.set_cookie(cookie)
+        common_cookie_jar.save(ignore_discard=True, ignore_expires=True)
     except:
         pass
     return r
