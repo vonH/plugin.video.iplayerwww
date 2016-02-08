@@ -3,7 +3,8 @@
 import sys
 import re
 from operator import itemgetter
-import ipwww_common as Common
+from ipwww_common import translation, AddMenuEntry, OpenURL, \
+                         CheckLogin, CreateBaseDirectory
 
 import xbmc
 import xbmcgui
@@ -22,9 +23,9 @@ def ScrapeEpisodes(page_url):
     of pages.
     """
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create(Common.translation(30319))
+    pDialog.create(translation(30319))
 
-    html = Common.OpenURL(page_url)
+    html = OpenURL(page_url)
     #print html.encode("utf8")
 
     #TODO: optional pagination and progress bar
@@ -46,7 +47,7 @@ def ScrapeEpisodes(page_url):
 
         if page > current_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
-            html = Common.OpenURL(page_url)
+            html = OpenURL(page_url)
 
         title = ''
         title_match = re.search(r'<div class="br-masthead__title">.*?<a.*?title="(.*?)"', html)
@@ -88,12 +89,12 @@ def ScrapeEpisodes(page_url):
                 CheckAutoplay(full_title, url, image, ' ', '')
 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
-            pDialog.update(percent,Common.translation(30319),name)
+            pDialog.update(percent,translation(30319),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,Common.translation(30319))
+        pDialog.update(percent,translation(30319))
 
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -117,7 +118,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
         # First we query the available streams from this website
 
         url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hds/uk/high/%s/%s.f4m' % (provider_url, channelname)
-        html = Common.OpenURL(url)
+        html = OpenURL(url)
         # Use regexp to get the different versions using various bitrates
         match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
         streams_available = []
@@ -169,7 +170,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         # First we query the available streams from this website
         #TODO add high bitrate streams
         url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hds/uk/high/%s/%s.f4m' % (provider_url, channelname)
-        html = Common.OpenURL(url)
+        html = OpenURL(url)
 
         # Use regexp to get the different versions using various bitrates
         match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
@@ -194,18 +195,18 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             color, bitrate , provider_name)
         # Finally add them to the selection menu.
         #TODO find radio icons
-        Common.AddMenuEntry(title, url, 201, '', '', '')
+        AddMenuEntry(title, url, 201, '', '', '')
 
 
 def PlayStream(name, url, iconimage, description, subtitles_url):
-    html = Common.OpenURL(url)
+    html = OpenURL(url)
 
     check_geo = re.search(
         '<H1>Access Denied</H1>', html)
     if check_geo or not html:
         # print "Geoblock detected, raising error message"
         dialog = xbmcgui.Dialog()
-        dialog.ok(Common.translation(30400), Common.translation(30401))
+        dialog.ok(translation(30400), translation(30401))
         raise
     liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
     liz.setInfo(type='Audio', infoLabels={'Title': name})
@@ -232,7 +233,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
             color = 'orange'
         title = name + ' - [I][COLOR %s]%d Kbps %s[/COLOR] [COLOR lightgray]%s[/COLOR][/I]' % (
             color, bitrate, encoding, suppliers[supplier])
-        Common.AddMenuEntry(title, url, 201, iconimage, description, '', '')
+        AddMenuEntry(title, url, 201, iconimage, description, '', '')
 
 
 def AddAvailableStreamItem(name, url, iconimage, description):
@@ -270,7 +271,7 @@ def ListAtoZ():
 
     for name, url in characters:
         url = 'http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % url
-        Common.AddMenuEntry(name, url, 134, '', '', '')
+        AddMenuEntry(name, url, 134, '', '', '')
 
 
 def ListGenres():
@@ -279,7 +280,7 @@ def ListGenres():
     Only creates the corresponding directories for each character.
     """
     genres = []
-    html = Common.OpenURL('http://www.bbc.co.uk/radio/programmes/genres')
+    html = OpenURL('http://www.bbc.co.uk/radio/programmes/genres')
     mains = html.split('<li class="category br-keyline highlight-box--list">')
 
     for main in mains:
@@ -293,9 +294,9 @@ def ListGenres():
     for url, name, group in genres:
         new_url = 'http://www.bbc.co.uk%s/player/episodes' % url
         if group:
-            Common.AddMenuEntry("[B]%s[/B]" % name, new_url, 135, '', '', '')
+            AddMenuEntry("[B]%s[/B]" % name, new_url, 135, '', '', '')
         else:
-            Common.AddMenuEntry("%s" % name, new_url, 135, '', '', '')
+            AddMenuEntry("%s" % name, new_url, 135, '', '', '')
 
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -308,9 +309,9 @@ def GetAtoZPage(page_url):
     Creates the list of programmes for one character.
     """
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create(Common.translation(30319))
+    pDialog.create(translation(30319))
 
-    html = Common.OpenURL(page_url)
+    html = OpenURL(page_url)
 
     total_pages = 1
     current_page = 1
@@ -343,7 +344,7 @@ def GetAtoZPage(page_url):
 
         if page > current_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
-            html = Common.OpenURL(page_url)
+            html = OpenURL(page_url)
 
         list_item_num = 1
 
@@ -400,23 +401,23 @@ def GetAtoZPage(page_url):
             title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
 
             if series_id:
-                Common.AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
+                AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
             elif programme_id: #TODO maybe they are not always mutually exclusive
                 url = "http://www.bbc.co.uk/programmes/%s" % programme_id
                 CheckAutoplay(title, url, image, ' ', '')
 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
-            pDialog.update(percent,Common.translation(30319),name)
+            pDialog.update(percent,translation(30319),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,Common.translation(30319))
+        pDialog.update(percent,translation(30319))
 
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry(Common.translation(30320), page_url, 134, '', '', '')
+            AddMenuEntry(translation(30320), page_url, 134, '', '', '')
     else:
         #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -431,9 +432,9 @@ def GetGenrePage(page_url):
     Creates the list of programmes for one character.
     """
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create(Common.translation(30319))
+    pDialog.create(translation(30319))
 
-    html = Common.OpenURL(page_url)
+    html = OpenURL(page_url)
 
     total_pages = 1
     current_page = 1
@@ -466,7 +467,7 @@ def GetGenrePage(page_url):
 
         if page > current_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
-            html = Common.OpenURL(page_url)
+            html = OpenURL(page_url)
 
         list_item_num = 1
 
@@ -522,17 +523,17 @@ def GetGenrePage(page_url):
                 CheckAutoplay(title, url, image, ' ', '')
 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
-            pDialog.update(percent,Common.translation(30319),name)
+            pDialog.update(percent,translation(30319),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,Common.translation(30319))
+        pDialog.update(percent,translation(30319))
 
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry(Common.translation(30320), page_url, 135, '', '', '')
+            AddMenuEntry(translation(30320), page_url, 135, '', '', '')
     else:
         #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -601,11 +602,11 @@ def ListLive():
         ('bbc_radio_york', 'BBC Radio York'),
     ]
     for id, name in channel_list:
-        #Common.AddMenuEntry(name, id, 133, '', '', '')
+        #AddMenuEntry(name, id, 133, '', '', '')
         if ADDON.getSetting('streams_autoplay') == 'true':
-            Common.AddMenuEntry(name, id, 213, '', '', '')
+            AddMenuEntry(name, id, 213, '', '', '')
         else:
-            Common.AddMenuEntry(name, id, 133, '', '', '')
+            AddMenuEntry(name, id, 133, '', '', '')
 
 
 def ListLiveHQ():
@@ -623,18 +624,18 @@ def ListLiveHQ():
         ('bbc_asian_network', 'BBC Asian Network'),
     ]
     for id, name in channel_list:
-        #Common.AddMenuEntry(name, id, 133, '', '', '')
+        #AddMenuEntry(name, id, 133, '', '', '')
         #url = "http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/%s.m3u8" % id
-        Common.AddMenuEntry(name, id, 214, '', '', '')
+        AddMenuEntry(name, id, 214, '', '', '')
 
 
 def ListFavourites(logged_in):
-    if(Common.CheckLogin(logged_in) == False):
-        Common.CreateBaseDirectory('audio')
+    if(CheckLogin(logged_in) == False):
+        CreateBaseDirectory('audio')
         return
 
     """Scrapes all episodes of the favourites page."""
-    html = Common.OpenURL('http://www.bbc.co.uk/radio/favourites')
+    html = OpenURL('http://www.bbc.co.uk/radio/favourites')
 
     programmes = html.split('<li class="my-item" data-appid="radio" ')
     for programme in programmes:
@@ -681,7 +682,7 @@ def ListFavourites(logged_in):
         episode_title = "[B]%s[/B] - %s %s" % (station, name, episode)
 
         if series:
-            Common.AddMenuEntry(title, series, 131, image, synopsis, '')
+            AddMenuEntry(title, series, 131, image, synopsis, '')
 
         if programme_id:
             url = "http://www.bbc.co.uk/programmes/%s" % programme_id
@@ -692,7 +693,7 @@ def ListFavourites(logged_in):
 
 
 def ListMostPopular():
-    html = Common.OpenURL('http://www.bbc.co.uk/radio/popular')
+    html = OpenURL('http://www.bbc.co.uk/radio/popular')
     #print html.encode("utf8")
 
     programmes = re.split(r'<li class="(episode|clip) typical-list-item', html)
@@ -765,7 +766,7 @@ def ParseStreams(stream_id):
     # print "Parsing streams for PID: %s"%stream_id[0]
     # Open the page with the actual strem information and display the various available streams.
     NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s" % stream_id[0]
-    html = Common.OpenURL(NEW_URL)
+    html = OpenURL(NEW_URL)
     # Parse the different streams and add them as new directory entries.
     match = re.compile(
         'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
@@ -779,7 +780,7 @@ def ParseStreams(stream_id):
             elif supplier == 'limelight_hls_open': #NOTE: just guessing?
                 tmp_sup = 2
 
-            m3u8_html = Common.OpenURL(m3u8_url)
+            m3u8_html = OpenURL(m3u8_url)
             m3u8_match = re.compile('BANDWIDTH=(.+?),.*?CODECS="(.+?)"\n(.+?)\n').findall(m3u8_html)
             for bandwidth, codecs, stream in m3u8_match:
                 url = stream
@@ -790,7 +791,7 @@ def ParseStreams(stream_id):
 
 def ScrapeAvailableStreams(url):
     # Open page and retrieve the stream ID
-    html = Common.OpenURL(url)
+    html = OpenURL(url)
     # Search for standard programmes.
     stream_id_st = re.compile('"vpid":"(.+?)"').findall(html)
     return stream_id_st
@@ -798,7 +799,7 @@ def ScrapeAvailableStreams(url):
 
 def CheckAutoplay(name, url, iconimage, plot, aired=None):
     if ADDON.getSetting('streams_autoplay') == 'true':
-        Common.AddMenuEntry(name, url, 212, iconimage, plot, '', aired=aired)
+        AddMenuEntry(name, url, 212, iconimage, plot, '', aired=aired)
     else:
-        Common.AddMenuEntry(name, url, 132, iconimage, plot, '', aired=aired)
+        AddMenuEntry(name, url, 132, iconimage, plot, '', aired=aired)
 

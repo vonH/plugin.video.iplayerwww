@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.join(xbmcaddon.Addon("plugin.video.iplayerwww").getAd
 
 try:
     import ipwww_common as Common
+    from ipwww_common import utf8_unquote_plus, CreateBaseDirectory
     import ipwww_video as Video
     import ipwww_radio as Radio
     Video.ADDON = ADDON
@@ -61,19 +62,19 @@ keyword = None
 
 
 try:
-    content_type = Common.utf8_unquote_plus(params["content_type"])
+    content_type = utf8_unquote_plus(params["content_type"])
 except:
     pass
 try:
-    url = Common.utf8_unquote_plus(params["url"])
+    url = utf8_unquote_plus(params["url"])
 except:
     pass
 try:
-    name = Common.utf8_unquote_plus(params["name"])
+    name = utf8_unquote_plus(params["name"])
 except:
     pass
 try:
-    iconimage = Common.utf8_unquote_plus(params["iconimage"])
+    iconimage = utf8_unquote_plus(params["iconimage"])
 except:
     pass
 try:
@@ -81,11 +82,11 @@ try:
 except:
     pass
 try:
-    description = Common.utf8_unquote_plus(params["description"])
+    description = utf8_unquote_plus(params["description"])
 except:
     pass
 try:
-    subtitles_url = Common.utf8_unquote_plus(params["subtitles_url"])
+    subtitles_url = utf8_unquote_plus(params["subtitles_url"])
 except:
     pass
 try:
@@ -93,7 +94,7 @@ try:
 except:
     pass
 try:
-    keyword = Common.utf8_unquote_plus(params["keyword"])
+    keyword = utf8_unquote_plus(params["keyword"])
 except:
     pass
 
@@ -101,7 +102,7 @@ except:
 
 # These are the modes which tell the plugin where to go.
 if mode is None or url is None or len(url) < 1:
-    Common.CreateBaseDirectory(content_type)
+    CreateBaseDirectory(content_type)
 
 # Modes 101-119 will create a main directory menu entry
 elif mode == 101:

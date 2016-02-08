@@ -9,7 +9,9 @@ import datetime
 import time
 import json
 from operator import itemgetter
-import ipwww_common as Common
+from ipwww_common import translation, AddMenuEntry, OpenURL, \
+                         CheckLogin, CreateBaseDirectory, GetCookieJar, \
+                         ParseImageUrl, download_subtitles
 
 import xbmc
 import xbmcgui
@@ -40,9 +42,9 @@ def ListLive():
         iconimage = xbmc.translatePath(
             os.path.join('special://home/addons/plugin.video.iplayerwww/media', img + '.png'))
         if ADDON.getSetting('streams_autoplay') == 'true':
-            Common.AddMenuEntry(name, id, 203, iconimage, '', '')
+            AddMenuEntry(name, id, 203, iconimage, '', '')
         else:
-            Common.AddMenuEntry(name, id, 123, iconimage, '', '')
+            AddMenuEntry(name, id, 123, iconimage, '', '')
 
 
 def ListAtoZ():
@@ -59,18 +61,18 @@ def ListAtoZ():
 
     if int(ADDON.getSetting('scrape_atoz')) == 1:
         pDialog = xbmcgui.DialogProgressBG()
-        pDialog.create(Common.translation(30319))
+        pDialog.create(translation(30319))
         page = 1
         total_pages = len(characters)
         for name, url in characters:
             GetAtoZPage(url)
             percent = int(100*page/total_pages)
-            pDialog.update(percent,Common.translation(30319),name)
+            pDialog.update(percent,translation(30319),name)
             page += 1
         pDialog.close()
     else:
         for name, url in characters:
-            Common.AddMenuEntry(name, url, 124, '', '', '')
+            AddMenuEntry(name, url, 124, '', '', '')
 
 
 def GetAtoZPage(url):
@@ -78,12 +80,12 @@ def GetAtoZPage(url):
 
     Creates the list of programmes for one character.
     """
-    link = Common.OpenURL('http://www.bbc.co.uk/iplayer/a-z/%s' % url)
+    link = OpenURL('http://www.bbc.co.uk/iplayer/a-z/%s' % url)
     match = re.compile(
         '<a href="/iplayer/brand/(.+?)".+?<span class="title">(.+?)</span>',
         re.DOTALL).findall(link)
     for programme_id, name in match:
-        Common.AddMenuEntry(name, programme_id, 121, '', '', '')
+        AddMenuEntry(name, programme_id, 121, '', '', '')
 
 
 def ParseAired(aired):
@@ -140,9 +142,9 @@ def ScrapeEpisodes(page_url):
     """
 
     pDialog = xbmcgui.DialogProgressBG()
-    pDialog.create(Common.translation(30319))
+    pDialog.create(translation(30319))
 
-    html = Common.OpenURL(page_url)
+    html = OpenURL(page_url)
 
     total_pages = 1
     current_page = 1
@@ -176,7 +178,7 @@ def ScrapeEpisodes(page_url):
 
         if page > current_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
-            html = Common.OpenURL(page_url)
+            html = OpenURL(page_url)
 
         # NOTE remove inner li to match outer li
 
@@ -291,30 +293,30 @@ def ScrapeEpisodes(page_url):
             if episodes:
                 episodes_url = 'http://www.bbc.co.uk' + episodes
                 if search_group:
-                    Common.AddMenuEntry('[B]%s[/B] - %s' % (title, Common.translation(30318)),
+                    AddMenuEntry('[B]%s[/B] - %s' % (title, translation(30318)),
                                  episodes_url, 128, icon, '', '')
                 else:
-                    Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(30313)),
+                    AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(30313)),
                                  episodes_url, 128, icon, '', '')
             elif more:
-                Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(30313)),
+                AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(30313)),
                              main_url, 128, icon, '', '')
 
             if type != "group":
                 CheckAutoplay(name , main_url, icon, synopsis, aired)
 
             percent = int(100*(page+list_item_num/len(list_items))/total_pages)
-            pDialog.update(percent,Common.translation(30319),name)
+            pDialog.update(percent,translation(30319),name)
 
             list_item_num += 1
 
         percent = int(100*page/total_pages)
-        pDialog.update(percent,Common.translation(30319))
+        pDialog.update(percent,translation(30319))
 
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            Common.AddMenuEntry(Common.translation(30320), page_url, 128, '', '', '')
+            AddMenuEntry(translation(30320), page_url, 128, '', '', '')
     else:
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
@@ -326,12 +328,12 @@ def ListCategories():
     """Parses the available categories and creates directories for selecting one of them.
     The category names are scraped from the website.
     """
-    html = Common.OpenURL('http://www.bbc.co.uk/iplayer')
+    html = OpenURL('http://www.bbc.co.uk/iplayer')
     match = re.compile(
         '<a href="/iplayer/categories/(.+?)" class="stat">(.+?)</a>'
         ).findall(html)
     for url, name in match:
-        Common.AddMenuEntry(name, url, 125, '', '', '')
+        AddMenuEntry(name, url, 125, '', '', '')
 
 
 def ListCategoryFilters(url):
@@ -340,16 +342,16 @@ def ListCategoryFilters(url):
     """
     NEW_URL = 'http://www.bbc.co.uk/iplayer/categories/%s/all?sort=atoz' % url
     # Read selected category's page.
-    html = Common.OpenURL(NEW_URL)
+    html = OpenURL(NEW_URL)
     # Some categories offer filters, we want to provide these filters as options.
     match1 = re.findall(
         '<li class="filter"> <a class="name" href="/iplayer/categories/(.+?)"> (.+?)</a>',
         html,
         re.DOTALL)
     if match1:
-        Common.AddMenuEntry('All', url, 126, '', '', '')
+        AddMenuEntry('All', url, 126, '', '', '')
         for url, name in match1:
-            Common.AddMenuEntry(name, url, 126, '', '', '')
+            AddMenuEntry(name, url, 126, '', '', '')
     else:
         GetFilteredCategory(url)
 
@@ -378,14 +380,14 @@ def ListChannelHighlights():
     for id, img, name in channel_list:
         iconimage = xbmc.translatePath(
             os.path.join('special://home/addons/plugin.video.iplayerwww/media', img + '.png'))
-        Common.AddMenuEntry(name, id, 106, iconimage, '', '')
+        AddMenuEntry(name, id, 106, iconimage, '', '')
 
 
 def ListHighlights(highlights_url):
     """Creates a list of the programmes in the highlights section.
     """
 
-    html = Common.OpenURL('http://www.bbc.co.uk/%s' % highlights_url)
+    html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url)
 
     inner_anchors = re.findall(r'<a.*?(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
 
@@ -455,7 +457,7 @@ def ListHighlights(highlights_url):
                              [position_match.group(1),
                              name, group_type])
 
-        Common.AddMenuEntry('[B]%s: %s[/B] - %s %s' % (Common.translation(30314), name, count, Common.translation(30315)),
+        AddMenuEntry('[B]%s: %s[/B] - %s %s' % (translation(30314), name, count, translation(30315)),
                      url, 128, '', '', '')
 
     # Some programmes show up twice in HTML, once inside the groups, once outside.
@@ -510,7 +512,7 @@ def ListHighlights(highlights_url):
         episodelist.append(
                     [episode_id,
                     name,
-                    "%s %s" % (Common.translation(30316), position),
+                    "%s %s" % (translation(30316), position),
                     'DefaultVideo.png',
                     '']
                     )
@@ -602,7 +604,7 @@ def ListHighlights(highlights_url):
                 add_entry = False
         if add_entry:
             if object_type == "editorial-promo":
-                Common.AddMenuEntry('[B]%s[/B]' % (name), episode_id, 128, icon, '', '')
+                AddMenuEntry('[B]%s[/B]' % (name), episode_id, 128, icon, '', '')
             else:
                 CheckAutoplay(name, url, icon, desc, aired)
 
@@ -779,7 +781,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
         else:
             url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
                 provider_url, channelname)
-        html = Common.OpenURL(url)
+        html = OpenURL(url)
         # Use regexp to get the different versions using various bitrates
         match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
         streams_available = []
@@ -822,7 +824,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         else:
             url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
                 provider_url, channelname)
-        html = Common.OpenURL(url)
+        html = OpenURL(url)
         # Use regexp to get the different versions using various bitrates
         match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
         # Add provider name to the stream list.
@@ -845,24 +847,24 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (
             color, bitrate / 1000, provider_name)
         # Finally add them to the selection menu.
-        Common.AddMenuEntry(title, url, 201, iconimage, '', '')
+        AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
 def ListWatching(logged_in):
 
-    if(Common.CheckLogin(logged_in) == False):
-        Common.CreateBaseDirectory('video')
+    if(CheckLogin(logged_in) == False):
+        CreateBaseDirectory('video')
         return
 
     identity_cookie = None
     cookie_jar = None
-    cookie_jar = Common.GetCookieJar()
+    cookie_jar = GetCookieJar()
     for cookie in cookie_jar:
         if (cookie.name == 'IDENTITY'):
             identity_cookie = cookie.value
             break
     url = "https://ibl.api.bbci.co.uk/ibl/v1/user/watching?identity_cookie=%s" % identity_cookie
-    html = Common.OpenURL(url)
+    html = OpenURL(url)
     json_data = json.loads(html)
     watching_list = json_data.get('watching').get('elements')
     for watching in watching_list:
@@ -875,7 +877,7 @@ def ListWatching(logged_in):
         episode_id = episode.get('id')
         plot = episode.get('synopses').get('large') or " "
         aired = episode.get('release_date')
-        image_url = Common.ParseImageUrl(episode.get('images').get('standard'))
+        image_url = ParseImageUrl(episode.get('images').get('standard'))
         aired = ParseAired(aired)
         url="http://www.bbc.co.uk/iplayer/episode/%s" % (episode_id)
         CheckAutoplay(title, url, image_url, plot, aired)
@@ -883,12 +885,12 @@ def ListWatching(logged_in):
 
 def ListFavourites(logged_in):
 
-    if(Common.CheckLogin(logged_in) == False):
-        Common.CreateBaseDirectory('video')
+    if(CheckLogin(logged_in) == False):
+        CreateBaseDirectory('video')
         return
 
     """Scrapes all episodes of the favourites page."""
-    html = Common.OpenURL('http://www.bbc.co.uk/iplayer/usercomponents/favourites/programmes.json')
+    html = OpenURL('http://www.bbc.co.uk/iplayer/usercomponents/favourites/programmes.json')
     json_data = json.loads(html)
     # favourites = json_data.get('favourites')
     programmes = json_data.get('programmes')
@@ -902,7 +904,7 @@ def ListFavourites(logged_in):
         if subtitle:
             episode_title = title + ' - ' + subtitle
         image=initial_child.get('images')
-        image_url=Common.ParseImageUrl(image.get('standard'))
+        image_url=ParseImageUrl(image.get('standard'))
         synopses = initial_child.get('synopses')
         plot = synopses.get('small')
         try:
@@ -913,7 +915,7 @@ def ListFavourites(logged_in):
         more = programme.get('count')
         if more:
             episodes_url = "http://www.bbc.co.uk/iplayer/episodes/" + id
-            Common.AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, Common.translation(30313)),
+            AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(30313)),
                          episodes_url, 128, image_url, '', '')
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
@@ -921,20 +923,20 @@ def ListFavourites(logged_in):
 
 
 def PlayStream(name, url, iconimage, description, subtitles_url):
-    html = Common.OpenURL(url)
+    html = OpenURL(url)
     check_geo = re.search(
         '<H1>Access Denied</H1>', html)
     if check_geo or not html:
         # print "Geoblock detected, raising error message"
         dialog = xbmcgui.Dialog()
-        dialog.ok(Common.translation(30400), Common.translation(30401))
+        dialog.ok(translation(30400), translation(30401))
         raise
     liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
     liz.setInfo(type='Video', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
-        subtitles_file = Common.download_subtitles(subtitles_url)
+        subtitles_file = download_subtitles(subtitles_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
         # Successfully started playing something?
@@ -970,7 +972,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
             color = 'orange'
         title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR lightgray]%s[/COLOR][/I]' % (
             color, bitrates[bitrate] / 1000, suppliers[supplier])
-        Common.AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
+        AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
 
 
 def ParseStreams(stream_id):
@@ -978,7 +980,7 @@ def ParseStreams(stream_id):
     # print "Parsing streams for PID: %s"%stream_id[0]
     # Open the page with the actual strem information and display the various available streams.
     NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s" % stream_id[0]
-    html = Common.OpenURL(NEW_URL)
+    html = OpenURL(NEW_URL)
     # Parse the different streams and add them as new directory entries.
     match = re.compile(
         'connection authExpires=".+?href="(.+?)".+?supplier="mf_(.+?)".+?transferFormat="(.+?)"'
@@ -994,7 +996,7 @@ def ParseStreams(stream_id):
             m3u8_breakdown = re.compile('(.+?)iptv.+?m3u8(.+?)$').findall(m3u8_url)
             #print m3u8_breakdown
             # print m3u8_url
-            m3u8_html = Common.OpenURL(m3u8_url)
+            m3u8_html = OpenURL(m3u8_url)
             m3u8_match = re.compile('BANDWIDTH=(.+?),.+?RESOLUTION=(.+?)\n(.+?)\n').findall(m3u8_html)
             for bandwidth, resolution, stream in m3u8_match:
                 # print bandwidth
@@ -1030,7 +1032,7 @@ def ParseStreams(stream_id):
             m3u8_breakdown = re.compile('.+?master.m3u8(.+?)$').findall(m3u8_url)
         # print m3u8_url
         # print m3u8_breakdown
-        m3u8_html = Common.OpenURL(m3u8_url)
+        m3u8_html = OpenURL(m3u8_url)
         # print m3u8_html
         m3u8_match = re.compile('BANDWIDTH=(.+?),RESOLUTION=(.+?),.+?\n(.+?)\n').findall(m3u8_html)
         # print m3u8_match
@@ -1057,14 +1059,14 @@ def ParseStreams(stream_id):
         if check_geo:
             # print "Geoblock detected, raising error message"
             dialog = xbmcgui.Dialog()
-            dialog.ok(Common.translation(30400), Common.translation(30401))
+            dialog.ok(translation(30400), translation(30401))
             raise
     return retlist, match
 
 
 def ScrapeAvailableStreams(url):
     # Open page and retrieve the stream ID
-    html = Common.OpenURL(url)
+    html = OpenURL(url)
     # Search for standard programmes.
     stream_id_st = re.compile('"vpid":"(.+?)"').findall(html)
     # Optionally, Signed programmes can be searched for. These have a different ID.
@@ -1076,7 +1078,7 @@ def ScrapeAvailableStreams(url):
     if ADDON.getSetting('search_ad') == 'true':
         url_ad = re.compile('<a href="(.+?)" class="version link watch-ad-on"').findall(html)
         url_tmp = "http://www.bbc.co.uk%s" % url_ad[0]
-        html = Common.OpenURL(url_tmp)
+        html = OpenURL(url_tmp)
         stream_id_ad = re.compile('"vpid":"(.+?)"').findall(html)
         # print stream_id_ad
     else:
@@ -1086,7 +1088,7 @@ def ScrapeAvailableStreams(url):
 
 def CheckAutoplay(name, url, iconimage, plot, aired=None):
     if ADDON.getSetting('streams_autoplay') == 'true':
-        Common.AddMenuEntry(name, url, 202, iconimage, plot, '', aired=aired)
+        AddMenuEntry(name, url, 202, iconimage, plot, '', aired=aired)
     else:
-        Common.AddMenuEntry(name, url, 122, iconimage, plot, '', aired=aired)
+        AddMenuEntry(name, url, 122, iconimage, plot, '', aired=aired)
 
