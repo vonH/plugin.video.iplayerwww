@@ -45,7 +45,7 @@ re_subtitles = re.compile('^\s*<p.*?begin=\"(.*?)(\.([0-9]+))?\"\s+.*?end=\"(.*?
 
 
 def ParseImageUrl(url):
-    return url.replace("{recipe}", "288x162")
+    return url.replace("{recipe}", "832x468")
 
 
 def download_subtitles(url):
