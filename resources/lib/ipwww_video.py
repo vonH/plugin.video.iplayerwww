@@ -855,7 +855,9 @@ def ListWatching(logged_in):
         return
 
     identity_cookie = None
-    for cookie in Common.common_cookie_jar:
+    cookie_jar = None
+    cookie_jar = Common.GetCookieJar()
+    for cookie in cookie_jar:
         if (cookie.name == 'IDENTITY'):
             identity_cookie = cookie.value
             break
