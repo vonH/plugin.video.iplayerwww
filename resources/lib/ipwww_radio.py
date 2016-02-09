@@ -284,6 +284,10 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
 def AddAvailableStreamItem(name, url, iconimage, description):
     """Play a streamm based on settings for preferred catchup source and bitrate."""
     stream_ids = ScrapeAvailableStreams(url)
+    if len(stream_ids) < 1:
+        #TODO check CBeeBies for special cases
+        xbmcgui.Dialog().ok(translation(30325), translation(30326))
+        return
     streams_all = ParseStreams(stream_ids)
     streams = streams_all[0]
     source = int(ADDON.getSetting('radio_source'))
