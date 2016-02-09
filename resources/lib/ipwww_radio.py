@@ -287,7 +287,7 @@ def AddAvailableStreamItem(name, url, iconimage, description):
     stream_ids = ScrapeAvailableStreams(url)
     if len(stream_ids) < 1:
         #TODO check CBeeBies for special cases
-        xbmcgui.Dialog().ok(translation(30325), translation(30326))
+        xbmcgui.Dialog().ok(translation(30403), translation(30404))
         return
     streams_all = ParseStreams(stream_ids)
     streams = streams_all[0]
