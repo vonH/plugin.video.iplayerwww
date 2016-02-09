@@ -557,7 +557,7 @@ def Search(search_entered):
         return False
 
     url = 'http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % search_entered
-    GetAtoZPage(url)
+    GetPage(url)
 
 
 def GetAvailableStreams(name, url, iconimage, description):
