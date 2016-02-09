@@ -187,11 +187,8 @@ elif mode == 132:
 elif mode == 133:
     Radio.AddAvailableLiveStreamsDirectory(name, url, iconimage)
 
-elif mode == 134:
-    Radio.GetAtoZPage(url)
-
-elif mode == 135:
-    Radio.GetGenrePage(url)
+elif mode == 136:
+    Radio.GetPage(url)
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:
