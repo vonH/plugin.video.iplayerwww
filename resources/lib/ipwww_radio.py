@@ -25,7 +25,7 @@ def GetPage(page_url, just_episodes=False):
     paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
     next_page = 1
     if paginate:
-        if int(ADDON.getSetting('paginate_episodes')) == 0:
+        if int(ADDON.getSetting('radio_paginate_episodes')) == 0:
             current_page_match = re.search(r'page=(\d*)', page_url)
             if current_page_match:
                 current_page = int(current_page_match.group(1))
@@ -129,7 +129,7 @@ def GetPage(page_url, just_episodes=False):
         percent = int(100*page/total_pages)
         pDialog.update(percent,translation(30319))
 
-    if int(ADDON.getSetting('paginate_episodes')) == 0:
+    if int(ADDON.getSetting('radio_paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
             AddMenuEntry(translation(30320), page_url, 136, '', '', '')

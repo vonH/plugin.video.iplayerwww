@@ -1,5 +1,8 @@
 <strings>
   <string id="30100">General</string>
+  <string id="30101">Video settings</string>
+  <string id="30102">Radio settings</string>
+  <string id="30103">Common settings</string>
   <string id="30110">Play Signed programmes when available</string>
   <string id="30120">Play Audio Described programmes when available</string>
   <string id="30130">Use subtitles when available</string>
