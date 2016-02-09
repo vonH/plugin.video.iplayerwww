@@ -53,7 +53,7 @@ def GetPage(page_url, just_episodes=False):
             html = OpenURL(page_url)
 
         masthead_title = ''
-        masthead_title_match = re.search(r'<div class="br-masthead__title">.*?<a.*?title="(.*?)"', html)
+        masthead_title_match = re.search(r'<div.+?id="programmes-main-content".*?<span property="name">(.+?)</span>', html)
         if masthead_title_match:
             masthead_title = masthead_title_match.group(1)
 
