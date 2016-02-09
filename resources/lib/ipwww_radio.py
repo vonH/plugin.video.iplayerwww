@@ -91,7 +91,8 @@ def GetPage(page_url, just_episodes=False):
                 if episode:
                     subtitle = "(%s, %s)" % (series, episode)
                 else:
-                    subtitle = "(%s)" % series
+                    if series.strip():
+                        subtitle = "(%s)" % series
 
             image = ''
             image_match = re.search(r'<meta property="image" content="(.+?)" />', programme)
@@ -525,7 +526,8 @@ def ListMostPopular():
         subtitle = ''
         subtitle_match = re.search(r'<span class="subtitle">\s*(.+?)\s*</span>', programme)
         if subtitle_match:
-            subtitle = "(%s)" % subtitle_match.group(1)
+            if subtitle_match.group(1).strip():
+                subtitle = "(%s)" % subtitle_match.group(1)
 
         image = ''
         image_match = re.search(r'<img src="(.*?)"', programme)
