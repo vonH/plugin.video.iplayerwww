@@ -10,11 +10,12 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
-def GetPage(page_url, just_episodes=False):
-    """Allows to list programmes based on alphabetical order.
 
-    Creates the list of programmes for one character.
+def GetPage(page_url, just_episodes=False):
     """
+    Generic Radio page scraper.
+    """
+
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create(translation(30319))
 
@@ -159,7 +160,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
         providers = [('llnw', 'Limelight')]
     else:
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-    bitrate_selected = 0 #int(ADDON.getSetting('live_bitrate'))
+    bitrate_selected = 0 #TODO int(ADDON.getSetting('live_bitrate'))
     for provider_url, provider_name in providers:
         # First we query the available streams from this website
 
