@@ -12,9 +12,7 @@ import xbmcplugin
 
 
 def GetPage(page_url, just_episodes=False):
-    """
-    Generic Radio page scraper.
-    """
+    """   Generic Radio page scraper.   """
 
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create(translation(30319))
@@ -410,7 +408,6 @@ def ListLive():
         ('bbc_radio_york', 'BBC Radio York'),
     ]
     for id, name in channel_list:
-        #AddMenuEntry(name, id, 133, '', '', '')
         if ADDON.getSetting('streams_autoplay') == 'true':
             AddMenuEntry(name, id, 213, '', '', '')
         else:
@@ -435,6 +432,7 @@ def ListLiveHQ():
         #AddMenuEntry(name, id, 133, '', '', '')
         #url = "http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/%s.m3u8" % id
         AddMenuEntry(name, id, 214, '', '', '')
+
 
 
 def ListFavourites(logged_in):
@@ -500,9 +498,9 @@ def ListFavourites(logged_in):
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
 
+
 def ListMostPopular():
     html = OpenURL('http://www.bbc.co.uk/radio/popular')
-    #print html.encode("utf8")
 
     programmes = re.split(r'<li class="(episode|clip) typical-list-item', html)
     for programme in programmes:
@@ -563,7 +561,7 @@ def Search(search_entered):
 
 def GetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
-    #print url
+
     stream_ids = ScrapeAvailableStreams(url)
     if stream_ids:
         AddAvailableStreamsDirectory(name, stream_ids, iconimage, description)
