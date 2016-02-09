@@ -133,10 +133,10 @@ def GetPage(page_url, just_episodes=False):
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
             AddMenuEntry(translation(30320), page_url, 136, '', '', '')
-    else:
-        #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
-        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
+    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
 
     pDialog.close()
 
