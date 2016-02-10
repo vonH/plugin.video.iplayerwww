@@ -1,6 +1,7 @@
 v2.0.0~beta
 Added support for radio.
 Broke up code into different files.
+Added option to sign out BBCiD.
 
 v1.3.5
 Fix for Unicode characters in subtitles.
