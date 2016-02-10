@@ -160,7 +160,9 @@ def SignInBBCiD():
 
 def SignOutBBCiD():
     sign_out_url="https://ssl.bbc.co.uk/id/signout"
-    OpenURL(sign_out_url)
+    OpenURL(sign_out_url, discard=False)
+    # TODO: Check if the sign out was really successful.
+    xbmcgui.Dialog().notification(translation(30326), translation(30309))
 
 
 def StatusBBCiD():
@@ -196,7 +198,7 @@ def InitialiseCookieJar():
     cj = cookielib.LWPCookieJar(cookie_file)
     if(os.path.exists(cookie_file)):
         try:
-            cj.load(ignore_discard=True, ignore_expires=True)
+            cj.load(ignore_discard=True)
         except:
             xbmcgui.Dialog().notification(translation(30400), translation(30402), xbmcgui.NOTIFICATION_ERROR)
     return cj
@@ -204,7 +206,7 @@ def InitialiseCookieJar():
 cookie_jar = InitialiseCookieJar()
 
 
-def OpenURL(url):
+def OpenURL(url, discard=True):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/43.0'}
     try:
         r = requests.get(url, headers=headers, cookies=cookie_jar)
@@ -215,7 +217,7 @@ def OpenURL(url):
     try:
         for cookie in r.cookies:
             cookie_jar.set_cookie(cookie)
-        cookie_jar.save(ignore_discard=True, ignore_expires=True)
+        cookie_jar.save(ignore_discard=discard)
     except:
         pass
     return HTMLParser.HTMLParser().unescape(r.content.decode('utf-8'))
@@ -238,7 +240,7 @@ def OpenURLPost(url, post_data):
     try:
         for cookie in r.cookies:
             cookie_jar.set_cookie(cookie)
-        cookie_jar.save(ignore_discard=True, ignore_expires=True)
+        cookie_jar.save(ignore_discard=True)
     except:
         pass
     return r
@@ -278,6 +280,9 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     # Modes 201-299 will create a new playable line, otherwise create a new directory line.
     if mode in (201, 202, 203, 211, 212, 213, 214):
         isFolder = False
+    # Mode 119 is not a folder, but it is also not a playable.
+    elif mode == 119:
+        isFolder = False
     else:
         isFolder = True
 
@@ -308,7 +313,11 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         if subtitles_url:
             listitem.addStreamInfo('subtitle', {'language': 'en'})
 
-    listitem.setProperty("IsPlayable", str(not isFolder).lower())
+    # Mode 119 is not a folder, but it is also not a playable.
+    if mode == 119:
+        listitem.setProperty("IsPlayable", 'false')
+    else:
+        listitem.setProperty("IsPlayable", str(not isFolder).lower())
     listitem.setProperty("IsFolder", str(isFolder).lower())
     listitem.setProperty("Property(Addon.Name)", "iPlayer WWW")
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
@@ -328,6 +337,7 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry(translation(30305), 'url', 101, '', '', '')
         AddMenuEntry(translation(30306), 'url', 107, '', '', '')
         AddMenuEntry(translation(30307), 'url', 108, '', '', '')
+        AddMenuEntry(translation(30325), 'url', 119, '', '', '')
     elif content_type == "audio":
         AddMenuEntry(translation(30322), 'url', 118, '', '', '')
         AddMenuEntry(translation(30321), 'url', 113, '', '', '')
@@ -336,6 +346,7 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry(translation(30304), 'url', 115, '', '', '')
         AddMenuEntry(translation(30301), 'url', 116, '', '', '')
         AddMenuEntry(translation(30307), 'url', 117, '', '', '')
+        AddMenuEntry(translation(30325), 'url', 119, '', '', '')
     else:
         AddMenuEntry((translation(30323)+translation(30300)),
                             'iplayer', 106, '', '', '')
@@ -369,3 +380,5 @@ def CreateBaseDirectory(content_type):
                             'url', 116, '', '', '')
         AddMenuEntry((translation(30324)+translation(30307)),
                             'url', 117, '', '', '')
+        AddMenuEntry(translation(30325), 'url', 119, '', '', '')
+

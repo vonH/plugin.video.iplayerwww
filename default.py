@@ -153,6 +153,9 @@ elif mode == 117:
 elif mode == 118:
     Radio.ListLiveHQ()
 
+elif mode == 119:
+    Common.SignOutBBCiD()
+
     # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
     Video.GetEpisodes(url)
