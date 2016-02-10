@@ -53,7 +53,7 @@ def GetPage(page_url, just_episodes=False):
             html = OpenURL(page_url)
 
         masthead_title = ''
-        masthead_title_match = re.search(r'<div class="br-masthead__title">.*?<a.*?title="(.*?)"', html)
+        masthead_title_match = re.search(r'<div.+?id="programmes-main-content".*?<span property="name">(.+?)</span>', html)
         if masthead_title_match:
             masthead_title = masthead_title_match.group(1)
 
@@ -91,7 +91,8 @@ def GetPage(page_url, just_episodes=False):
                 if episode:
                     subtitle = "(%s, %s)" % (series, episode)
                 else:
-                    subtitle = "(%s)" % series
+                    if series.strip():
+                        subtitle = "(%s)" % series
 
             image = ''
             image_match = re.search(r'<meta property="image" content="(.+?)" />', programme)
@@ -284,6 +285,10 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
 def AddAvailableStreamItem(name, url, iconimage, description):
     """Play a streamm based on settings for preferred catchup source and bitrate."""
     stream_ids = ScrapeAvailableStreams(url)
+    if len(stream_ids) < 1:
+        #TODO check CBeeBies for special cases
+        xbmcgui.Dialog().ok(translation(30403), translation(30404))
+        return
     streams_all = ParseStreams(stream_ids)
     streams = streams_all[0]
     source = int(ADDON.getSetting('radio_source'))
@@ -521,7 +526,8 @@ def ListMostPopular():
         subtitle = ''
         subtitle_match = re.search(r'<span class="subtitle">\s*(.+?)\s*</span>', programme)
         if subtitle_match:
-            subtitle = "(%s)" % subtitle_match.group(1)
+            if subtitle_match.group(1).strip():
+                subtitle = "(%s)" % subtitle_match.group(1)
 
         image = ''
         image_match = re.search(r'<img src="(.*?)"', programme)
