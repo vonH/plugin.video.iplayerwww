@@ -9,6 +9,9 @@ from ipwww_common import translation, AddMenuEntry, OpenURL, \
 import xbmc
 import xbmcgui
 import xbmcplugin
+import xbmcaddon
+
+ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 
 def GetPage(page_url, just_episodes=False):

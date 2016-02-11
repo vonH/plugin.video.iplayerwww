@@ -16,6 +16,10 @@ from ipwww_common import translation, AddMenuEntry, OpenURL, \
 import xbmc
 import xbmcgui
 import xbmcplugin
+import xbmcaddon
+
+ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
+
 
 # ListLive creates menu entries for all live channels.
 def ListLive():

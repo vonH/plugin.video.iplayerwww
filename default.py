@@ -13,8 +13,7 @@ import xbmcplugin
 
 __plugin_handle__ = int(sys.argv[1])
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
-sys.path.insert(0, os.path.join(xbmcaddon.Addon("plugin.video.iplayerwww").getAddonInfo("path"),
-                                'resources', 'lib'))
+sys.path.insert(0, os.path.join(ADDON.getAddonInfo("path"), 'resources', 'lib'))
 
 
 try:
@@ -22,9 +21,6 @@ try:
     from ipwww_common import utf8_unquote_plus, CreateBaseDirectory
     import ipwww_video as Video
     import ipwww_radio as Radio
-    Video.ADDON = ADDON
-    Radio.ADDON = ADDON
-    Common.ADDON = ADDON
 except ImportError, error:
     d = xbmcgui.Dialog()
     d.ok(str(error), 'Please check you installed this plugin correctly.')

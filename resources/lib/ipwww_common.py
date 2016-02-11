@@ -15,6 +15,8 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
+ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
+
 
 def GetAddonInfo():
     addon_info = {}
@@ -175,8 +177,10 @@ def SignOutBBCiD():
     sign_out_url="https://ssl.bbc.co.uk/id/signout"
     OpenURL(sign_out_url)
     cookie_jar.clear_session_cookies()
-    # TODO: Check if the sign out was really successful.
-    xbmcgui.Dialog().notification(translation(30326), translation(30309))
+    if (StatusBBCiD()):
+        xbmcgui.Dialog().notification(translation(30326), translation(30310))
+    else:
+        xbmcgui.Dialog().notification(translation(30326), translation(30309))
 
 
 def StatusBBCiD():
