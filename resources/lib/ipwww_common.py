@@ -139,6 +139,19 @@ def download_subtitles(url):
     return outfile
 
 
+def InitialiseCookieJar():
+    cookie_file = os.path.join(DIR_USERDATA,'iplayer.cookies')
+    cj = cookielib.LWPCookieJar(cookie_file)
+    if(os.path.exists(cookie_file)):
+        try:
+            cj.load(ignore_discard=True)
+        except:
+            xbmcgui.Dialog().notification(translation(30400), translation(30402), xbmcgui.NOTIFICATION_ERROR)
+    return cj
+
+cookie_jar = InitialiseCookieJar()
+
+
 def SignInBBCiD():
     #Below is required to get around an ssl issue
     urllib3.disable_warnings()
@@ -160,7 +173,8 @@ def SignInBBCiD():
 
 def SignOutBBCiD():
     sign_out_url="https://ssl.bbc.co.uk/id/signout"
-    OpenURL(sign_out_url, discard=False)
+    OpenURL(sign_out_url)
+    cookie_jar.clear_session_cookies()
     # TODO: Check if the sign out was really successful.
     xbmcgui.Dialog().notification(translation(30326), translation(30309))
 
@@ -193,20 +207,7 @@ def CheckLogin(logged_in):
     return False
 
 
-def InitialiseCookieJar():
-    cookie_file = os.path.join(DIR_USERDATA,'iplayer.cookies')
-    cj = cookielib.LWPCookieJar(cookie_file)
-    if(os.path.exists(cookie_file)):
-        try:
-            cj.load(ignore_discard=True)
-        except:
-            xbmcgui.Dialog().notification(translation(30400), translation(30402), xbmcgui.NOTIFICATION_ERROR)
-    return cj
-
-cookie_jar = InitialiseCookieJar()
-
-
-def OpenURL(url, discard=True):
+def OpenURL(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:38.0) Gecko/20100101 Firefox/43.0'}
     try:
         r = requests.get(url, headers=headers, cookies=cookie_jar)
@@ -217,7 +218,9 @@ def OpenURL(url, discard=True):
     try:
         for cookie in r.cookies:
             cookie_jar.set_cookie(cookie)
-        cookie_jar.save(ignore_discard=discard)
+        #Set ignore_discard to overcome issue of not having session
+        #as cookie_jar is reinitialised for each action.
+        cookie_jar.save(ignore_discard=True)
     except:
         pass
     return HTMLParser.HTMLParser().unescape(r.content.decode('utf-8'))
@@ -240,6 +243,8 @@ def OpenURLPost(url, post_data):
     try:
         for cookie in r.cookies:
             cookie_jar.set_cookie(cookie)
+        #Set ignore_discard to overcome issue of not having session
+        #as cookie_jar is reinitialised for each action.
         cookie_jar.save(ignore_discard=True)
     except:
         pass
