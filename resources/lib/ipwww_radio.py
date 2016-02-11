@@ -107,7 +107,7 @@ def GetPage(page_url, just_episodes=False):
             station = ''
             station_match = re.search(r'<p class="programme__service.+?<strong>(.+?)</strong>.*?</p>', programme)
             if station_match:
-                station = station_match.group(1)
+                station = station_match.group(1).strip()
 
             series_title = "[B]%s - %s[/B]" % (station, name)
             if just_episodes:
@@ -133,7 +133,7 @@ def GetPage(page_url, just_episodes=False):
     if int(ADDON.getSetting('radio_paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            AddMenuEntry(translation(30320), page_url, 136, '', '', '')
+            AddMenuEntry(" [COLOR orange]%s >>[/COLOR]" % translation(30320), page_url, 136, '', '', '')
 
     #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
@@ -487,7 +487,7 @@ def ListFavourites(logged_in):
         station = ''
         station_match = re.search(r'<span class="my-episode-broadcaster" itemprop="name">(.*?)\.</span>', programme)
         if station_match:
-            station = station_match.group(1)
+            station = station_match.group(1).strip()
 
         title = "[B]%s - %s[/B]" % (station, name)
         episode_title = "[B]%s[/B] - %s %s" % (station, name, episode)
