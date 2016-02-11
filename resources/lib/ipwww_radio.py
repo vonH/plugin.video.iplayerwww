@@ -107,7 +107,7 @@ def GetPage(page_url, just_episodes=False):
             station = ''
             station_match = re.search(r'<p class="programme__service.+?<strong>(.+?)</strong>.*?</p>', programme)
             if station_match:
-                station = station_match.group(1)
+                station = station_match.group(1).strip()
 
             series_title = "[B]%s - %s[/B]" % (station, name)
             if just_episodes:
@@ -487,7 +487,7 @@ def ListFavourites(logged_in):
         station = ''
         station_match = re.search(r'<span class="my-episode-broadcaster" itemprop="name">(.*?)\.</span>', programme)
         if station_match:
-            station = station_match.group(1)
+            station = station_match.group(1).strip()
 
         title = "[B]%s - %s[/B]" % (station, name)
         episode_title = "[B]%s[/B] - %s %s" % (station, name, episode)
