@@ -1,4 +1,4 @@
-v2.0.0~beta
+v2.0.0
 Added support for radio.
 Broke up code into different files.
 Added option to sign out BBCiD.
