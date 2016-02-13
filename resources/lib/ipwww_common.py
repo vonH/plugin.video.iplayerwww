@@ -5,6 +5,7 @@ import os
 import re
 import requests
 from requests.packages import urllib3
+urllib3.disable_warnings()
 import cookielib
 import urllib
 import HTMLParser
