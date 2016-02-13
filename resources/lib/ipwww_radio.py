@@ -437,8 +437,6 @@ def ListLiveHQ():
         ('bbc_asian_network', 'BBC Asian Network'),
     ]
     for id, name in channel_list:
-        #AddMenuEntry(name, id, 133, '', '', '')
-        #url = "http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/%s.m3u8" % id
         AddMenuEntry(name, id, 214, '', '', '')
 
 
