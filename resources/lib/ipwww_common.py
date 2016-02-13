@@ -5,6 +5,7 @@ import os
 import re
 import requests
 from requests.packages import urllib3
+#Below is required to get around an ssl issue
 urllib3.disable_warnings()
 import cookielib
 import urllib
@@ -156,8 +157,6 @@ cookie_jar = InitialiseCookieJar()
 
 
 def SignInBBCiD():
-    #Below is required to get around an ssl issue
-    urllib3.disable_warnings()
     sign_in_url="https://ssl.bbc.co.uk/id/signin"
 
     username=ADDON.getSetting('bbc_id_username')
