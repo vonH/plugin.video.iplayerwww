@@ -343,6 +343,7 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry(translation(30317), 'url', 109, '', '', '')
         AddMenuEntry(translation(30301), 'url', 105, '', '', '')
         AddMenuEntry(translation(30302), 'url', 102, '', '', '')
+        AddMenuEntry(translation(30327), 'url', 120, '', '', '')
         AddMenuEntry(translation(30303), 'url', 103, '', '', '')
         AddMenuEntry(translation(30304), 'url', 104, '', '', '')
         AddMenuEntry(translation(30305), 'url', 101, '', '', '')
@@ -367,6 +368,8 @@ def CreateBaseDirectory(content_type):
                             'url', 105, '', '', '')
         AddMenuEntry((translation(30323)+translation(30302)),
                             'url', 102, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30327)),
+                            'url', 120, '', '', '')
         AddMenuEntry((translation(30323)+translation(30303)),
                             'url', 103, '', '', '')
         AddMenuEntry((translation(30323)+translation(30304)),
