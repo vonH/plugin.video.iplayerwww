@@ -322,9 +322,9 @@ def ScrapeEpisodes(page_url):
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
             AddMenuEntry(" [COLOR orange]%s >>[/COLOR]" % translation(30320), page_url, 128, '', '', '')
 
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
     pDialog.close()
 
@@ -619,10 +619,9 @@ def ListHighlights(highlights_url):
         if ((ADDON.getSetting('suppress_incomplete') == 'false') or (not episode[4] == '')):
             CheckAutoplay(episode[1], episode_url, episode[3], episode[2], episode[4])
 
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
-
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
 def ListMostPopular():
     """Scrapes all episodes of the most popular page."""
