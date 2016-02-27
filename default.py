@@ -206,8 +206,6 @@ elif mode == 212:
 elif mode == 213:
     Radio.AddAvailableLiveStreamItem(name, url, iconimage)
 
-elif mode == 214:
-    Radio.AddAvailableLiveStreamItemHQ(name, url, iconimage)
 
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))

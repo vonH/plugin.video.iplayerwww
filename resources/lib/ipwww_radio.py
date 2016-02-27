@@ -11,6 +11,8 @@ import xbmcgui
 import xbmcplugin
 import xbmcaddon
 
+import random
+
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 
@@ -225,19 +227,18 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
 
     streams = ParseStreams(stream_id)
 
-    suppliers = ['', 'Akamai', 'Limelight', 'Level3']
     for supplier, bitrate, url, encoding in sorted(streams[0], key=itemgetter(1), reverse=True):
         bitrate = int(bitrate)
         if bitrate >= 320:
             color = 'green'
-        elif bitrate >= 192:
-            color = 'blue'
         elif bitrate >= 128:
             color = 'yellow'
-        else:
+        elif bitrate >= 96:
             color = 'orange'
+        else:
+            color = 'red'
         title = name + ' - [I][COLOR %s]%d Kbps %s[/COLOR] [COLOR lightgray]%s[/COLOR][/I]' % (
-            color, bitrate, encoding, suppliers[supplier])
+            color, bitrate, encoding, supplier)
         AddMenuEntry(title, url, 201, iconimage, description, '', '')
 
 
@@ -264,6 +265,7 @@ def AddAvailableStreamItem(name, url, iconimage, description):
         match = streams
         match.sort(key=lambda x: x[1], reverse=True)
     PlayStream(name, match[0][2], iconimage, description, '')
+
 
 
 def ListAtoZ():
@@ -506,7 +508,6 @@ def Search(search_entered):
 
 def GetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
-
     stream_ids = ScrapeAvailableStreams(url)
     if stream_ids:
         AddAvailableStreamsDirectory(name, stream_ids, iconimage, description)
@@ -516,26 +517,16 @@ def ParseStreams(stream_id):
     retlist = []
     # print "Parsing streams for PID: %s"%stream_id[0]
     # Open the page with the actual strem information and display the various available streams.
-    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s" % stream_id[0]
+    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/apple-ipad-hls/vpid/%s/proto/http?cb=%d" % (stream_id[0], random.randrange(10000,99999)) #NOTE magic from get_iplayer
+
     html = OpenURL(NEW_URL)
+
     # Parse the different streams and add them as new directory entries.
     match = re.compile(
         'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
         ).findall(html)
-    for bitrate, encoding, m3u8_url, supplier, transfer_format in match:
-        tmp_sup = 0
-        tmp_br = 0
-        if transfer_format == 'hls':
-            if supplier == 'akamai_hls_open':
-                tmp_sup = 1
-            elif supplier == 'limelight_hls_open': #NOTE: just guessing?
-                tmp_sup = 2
-
-            m3u8_html = OpenURL(m3u8_url)
-            m3u8_match = re.compile('BANDWIDTH=(.+?),.*?CODECS="(.+?)"\n(.+?)\n').findall(m3u8_html)
-            for bandwidth, codecs, stream in m3u8_match:
-                url = stream
-                retlist.append((tmp_sup, bitrate, url, encoding))
+    for bitrate, encoding, url, supplier, transfer_format in match:
+        retlist.append((supplier, bitrate, url, encoding))
 
     return retlist, match
 
