@@ -1,3 +1,7 @@
+v2.0.1
+Added support for international radio.
+Set default Live TV to 1.7Mbps.
+
 v2.0.0
 Added support for radio.
 Broke up code into different files.
