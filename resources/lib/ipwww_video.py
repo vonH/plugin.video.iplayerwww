@@ -18,6 +18,8 @@ import xbmcgui
 import xbmcplugin
 import xbmcaddon
 
+import random
+
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 
@@ -767,27 +769,22 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         iconimage: only used for displaying the channel.
         channelname: determines which channel is queried.
     """
-    providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-    streams = []
-    for provider_url, provider_name in providers:
-        # First we query the available streams from this website
-        if channelname == 's4cpbs':
-            url = 'http://a.files.bbci.co.uk/media/live/manifests/hds/pc/%s/%s.f4m' % (
-                provider_url, channelname)
-        else:
-            url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
-                provider_url, channelname)
-        html = OpenURL(url)
-        # Use regexp to get the different versions using various bitrates
-        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
-        # Add provider name to the stream list.
-        streams.extend([list(stream) + [provider_name] for stream in match])
+    retlist = []
+    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s/transferformat/hls?cb=%d" % (channelname, random.randrange(10000,99999)) 
 
-    # Add each stream to the Kodi selection menu.
-    for address, bitrate, provider_name in sorted(streams, key=lambda x: int(x[1]), reverse=True):
-        url = address.replace('f4m', 'm3u8')
-        # For easier selection use colors to indicate high and low bitrate streams
-        bitrate = int(bitrate)
+    html = OpenURL(NEW_URL)
+
+    # Parse the different streams and add them as new directory entries.
+    match = re.compile(
+        'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
+        ).findall(html)
+    for bitrate, encoding, url, supplier, transfer_format in match:
+        retlist.append((supplier, int(bitrate), url, encoding))
+
+    retlist = sorted(retlist, key=lambda x: x[1], reverse=True)
+
+    for (supplier, bitrate, url, encoding) in retlist:
+
         if bitrate > 2100:
             color = 'green'
         elif bitrate > 1000:
@@ -796,10 +793,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             color = 'orange'
         else:
             color = 'red'
-
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (
-            color, bitrate / 1000, provider_name)
-        # Finally add them to the selection menu.
+        title = name + ' - [I][COLOR %s]%s Kbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate, encoding, supplier)
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
