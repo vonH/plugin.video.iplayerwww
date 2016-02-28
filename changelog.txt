@@ -2,6 +2,11 @@ v2.0.2
 Added support for international radio.
 Set default Live TV to 1.7Mbps.
 
+v2.0.1
+Reverted sorting of programmes back to previous default.
+Fixed various warnings in the logfile.
+Added support for Channel A-Z.
+
 v2.0.0
 Added support for radio.
 Broke up code into different files.
