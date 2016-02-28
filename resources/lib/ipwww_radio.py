@@ -168,8 +168,11 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
 
     for provider_url, provider_name in providers:
         qualities = location_qualities[location]
+        max_quality = int(ADDON.getSetting('radio_live_bitrate')) + 1
+        max_quality = min(len(qualities),max_quality)
+        qualities = qualities[0:max_quality]
         qualities.reverse()
-        for quality in qualities: #TODO add Setting
+        for quality in qualities: 
             url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/%s/%s/%s/%s.m3u8' % (location, quality, provider_url, channelname)
 
             title = name + ' - [I][COLOR %s]%s Kbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (

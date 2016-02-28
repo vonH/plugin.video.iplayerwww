@@ -150,6 +150,9 @@ elif mode == 117:
 elif mode == 119:
     Common.SignOutBBCiD()
 
+elif mode == 120:
+    Video.ListChannelAtoZ()
+
     # Modes 121-199 will create a sub directory menu entry
 elif mode == 121:
     Video.GetEpisodes(url)
