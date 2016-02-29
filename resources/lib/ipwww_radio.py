@@ -159,10 +159,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
     providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
     location_qualities = {'uk' : ['sbr_vlow', 'sbr_low', 'sbr_med', 'sbr_high'], 'nonuk': ['sbr_vlow', 'sbr_low'] }
-    location_names = {'uk': 'UK', 'nonuk': 'International'}
     location_settings = ['uk', 'nonuk']
-    quality_colours = {'sbr_vlow': 'red', 'sbr_low': 'orange', 'sbr_med': 'yellow', 'sbr_high': 'green'}
-    quality_bitrates = {'sbr_vlow': '48', 'sbr_low': '96', 'sbr_med': '128', 'sbr_high': '320'}
 
     location = location_settings[int(ADDON.getSetting('radio_location'))]
 
@@ -174,9 +171,6 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
         qualities.reverse()
         for quality in qualities: 
             url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/%s/%s/%s/%s.m3u8' % (location, quality, provider_url, channelname)
-
-            title = name + ' - [I][COLOR %s]%s Kbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (
-                quality_colours[quality], quality_bitrates[quality] , location_names[location], provider_name)
 
             PlayStream(name, url, iconimage, '', '')
 
