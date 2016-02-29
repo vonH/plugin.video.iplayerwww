@@ -745,7 +745,9 @@ def Search(search_entered):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    stream_bitrates = [9999, 576, 974, 1732, 3000, 5308] 
+    #live_bitrate "Fastest|0.3 Mbps|0.6 Mbps|1.0 Mbps|1.5 Mbps|1.7 Mbps|2.1 Mbps|3.0 Mbs|3.6 Mbps|5.3 Mbps"
+    stream_bitrates = [9999, 300, 576, 974, 1500, 1732, 2100, 3000, 3600, 5308] 
+
     bitrate_selected = int(ADDON.getSetting('live_bitrate'))
 
     retlist = []
