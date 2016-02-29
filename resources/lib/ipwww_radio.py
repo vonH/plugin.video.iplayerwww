@@ -178,7 +178,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
             title = name + ' - [I][COLOR %s]%s Kbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (
                 quality_colours[quality], quality_bitrates[quality] , location_names[location], provider_name)
 
-            PlayStream(title, url, iconimage, '', '')
+            PlayStream(name, url, iconimage, '', '')
 
 
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):

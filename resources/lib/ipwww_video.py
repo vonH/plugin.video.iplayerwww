@@ -766,18 +766,8 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
 
     for (supplier, bitrate, url, encoding) in retlist:
 
-        if bitrate > 2100:
-            color = 'green'
-        elif bitrate > 1000:
-            color = 'yellow'
-        elif bitrate > 600:
-            color = 'orange'
-        else:
-            color = 'red'
-        title = name + ' - [I][COLOR %s]%s Kbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate, encoding, supplier)
-        print (bitrate, stream_bitrates[bitrate_selected])
         if bitrate <= stream_bitrates[bitrate_selected]: 
-            PlayStream(title, url, iconimage, '', '')
+            PlayStream(name, url, iconimage, '', '')
 
 
 
@@ -813,7 +803,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             color = 'orange'
         else:
             color = 'red'
-        title = name + ' - [I][COLOR %s]%s Kbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate, encoding, supplier)
+        title = name + ' - [I][COLOR %s]%s Kbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate, supplier)
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
@@ -1047,7 +1037,6 @@ def ScrapeAvailableStreams(url):
         url_tmp = "http://www.bbc.co.uk%s" % url_ad[0]
         html = OpenURL(url_tmp)
         stream_id_ad = re.compile('"vpid":"(.+?)"').findall(html)
-        # print stream_id_ad
     else:
         stream_id_ad = []
     return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad}
