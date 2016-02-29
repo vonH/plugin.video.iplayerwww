@@ -762,7 +762,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
     for bitrate, encoding, url, supplier, transfer_format in match:
         retlist.append((supplier, int(bitrate), url, encoding))
 
-    retlist = sorted(retlist, key=lambda x: x[1], reverse=True)
+    retlist = sorted(retlist, key=itemgetter(1,0), reverse=True)
 
     for (supplier, bitrate, url, encoding) in retlist:
 
@@ -791,7 +791,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     for bitrate, encoding, url, supplier, transfer_format in match:
         retlist.append((supplier, int(bitrate), url, encoding))
 
-    retlist = sorted(retlist, key=lambda x: x[1], reverse=True)
+    retlist = sorted(retlist, key=itemgetter(1,0), reverse=True)
 
     for (supplier, bitrate, url, encoding) in retlist:
 
