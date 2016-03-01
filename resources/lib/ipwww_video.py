@@ -748,24 +748,59 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
     stream_bitrates = [9999, 300, 576, 974, 1500, 1732, 2100, 3000, 3600, 5308] 
 
     bitrate_selected = int(ADDON.getSetting('live_bitrate'))
+    supplier_selected = int(ADDON.getSetting('live_source'))
+    if  supplier_selected == 1:
+        suppliers = ['ak']
+    elif supplier_selected == 2:
+        suppliers = ['llnw']
+    else:
+        suppliers = ['ak', 'llnw']
 
     retlist = []
-    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s/transferformat/hls?cb=%d" % (channelname, random.randrange(10000,99999)) 
 
-    html = OpenURL(NEW_URL)
+    #for device in ['iptv-all', 'apple-ipad-hls']:
+    for device in ['iptv-all']:
+        NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/%s/vpid/%s/transferformat/hls?cb=%d" % (device, channelname, random.randrange(10000,99999)) 
+        html = OpenURL(NEW_URL)
+        match = re.compile(
+            'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
+            ).findall(html)
+        urls = []
+        for bitrate, encoding, url, supplier, transfer_format in match:
+            urls.append(url)
+        urls = list(set(urls)) #unique
+        for NEW_URL in urls:
+            html = OpenURL(NEW_URL)
+            match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
+            for id, bandwidth, codecs, resolution, url in match:
+                bitrate = int(int(bandwidth)/1000.0)
+                retlist.append((supplier, bitrate, url, device))
 
-    # Parse the different streams and add them as new directory entries.
-    match = re.compile(
-        'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
-        ).findall(html)
-    for bitrate, encoding, url, supplier, transfer_format in match:
-        retlist.append((supplier, int(bitrate), url, encoding))
+    #for device in ['abr_hdtv', 'hls_tablet']:
+    for device in ['abr_hdtv']:
+        for supplier in suppliers:
+            NEW_URL = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8" % (device, supplier, channelname)
+            html = OpenURL(NEW_URL)
+            match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
+            for id, bandwidth, codecs, resolution, url in match:
+                bitrate = int(int(bandwidth)/1000.0)
+                retlist.append((supplier, bitrate, url, device))
 
     retlist = sorted(retlist, key=itemgetter(1,0), reverse=True)
 
-    for (supplier, bitrate, url, encoding) in retlist:
+    for (supplier, bitrate, url, device) in retlist:
 
         if bitrate <= stream_bitrates[bitrate_selected]: 
+            if bitrate > 2100:
+                color = 'green'
+            elif bitrate > 1000:
+                color = 'yellow'
+            elif bitrate > 600:
+                color = 'orange'
+            else:
+                color = 'red'
+            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
+            #PlayStream(title, url, iconimage, '', '')
             PlayStream(name, url, iconimage, '', '')
 
 
@@ -779,20 +814,38 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         channelname: determines which channel is queried.
     """
     retlist = []
-    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s/transferformat/hls?cb=%d" % (channelname, random.randrange(10000,99999)) 
 
-    html = OpenURL(NEW_URL)
+    #for device in ['iptv-all', 'apple-ipad-hls']:
+    for device in ['iptv-all']:
+        NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/%s/vpid/%s/transferformat/hls?cb=%d" % (device, channelname, random.randrange(10000,99999)) 
+        html = OpenURL(NEW_URL)
+        match = re.compile(
+            'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
+            ).findall(html)
+        urls = []
+        for bitrate, encoding, url, supplier, transfer_format in match:
+            urls.append(url)
+        urls = list(set(urls)) #unique
+        for NEW_URL in urls:
+            html = OpenURL(NEW_URL)
+            match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
+            for id, bandwidth, codecs, resolution, url in match:
+                bitrate = int(int(bandwidth)/1000.0)
+                retlist.append((supplier, bitrate, url, device))
 
-    # Parse the different streams and add them as new directory entries.
-    match = re.compile(
-        'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
-        ).findall(html)
-    for bitrate, encoding, url, supplier, transfer_format in match:
-        retlist.append((supplier, int(bitrate), url, encoding))
+    #for device in ['abr_hdtv', 'hls_tablet']:
+    for device in ['abr_hdtv']:
+        for supplier in ['ak', 'llnw']:
+            NEW_URL = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8" % (device, supplier, channelname)
+            html = OpenURL(NEW_URL)
+            match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
+            for id, bandwidth, codecs, resolution, url in match:
+                bitrate = int(int(bandwidth)/1000.0)
+                retlist.append((supplier, bitrate, url, device))
 
     retlist = sorted(retlist, key=itemgetter(1,0), reverse=True)
 
-    for (supplier, bitrate, url, encoding) in retlist:
+    for (supplier, bitrate, url, device) in retlist:
 
         if bitrate > 2100:
             color = 'green'
@@ -802,7 +855,8 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             color = 'orange'
         else:
             color = 'red'
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier)
+        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
+        #title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier)
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
