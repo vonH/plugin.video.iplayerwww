@@ -765,12 +765,16 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
         match = re.compile(
             'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
             ).findall(html)
-        templist = []
+        urls = []
         for bitrate, encoding, url, supplier, transfer_format in match:
-            templist.append((supplier, int(bitrate), url, device))
-
-        templist = sorted(templist, key=itemgetter(1), reverse=True)
-        retlist.append(templist[0]) #TODO only the last bitrate is valid!!!
+            urls.append(url)
+        urls = list(set(urls)) #unique
+        for NEW_URL in urls:
+            html = OpenURL(NEW_URL)
+            match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
+            for id, bandwidth, codecs, resolution, url in match:
+                bitrate = int(int(bandwidth)/1000.0)
+                retlist.append((supplier, bitrate, url, device))
 
     #for device in ['abr_hdtv', 'hls_tablet']:
     for device in ['abr_hdtv']:
@@ -784,7 +788,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
 
     retlist = sorted(retlist, key=itemgetter(1,0), reverse=True)
 
-    for (supplier, bitrate, url, extra_info) in retlist:
+    for (supplier, bitrate, url, device) in retlist:
 
         if bitrate <= stream_bitrates[bitrate_selected]: 
             if bitrate > 2100:
@@ -795,7 +799,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
                 color = 'orange'
             else:
                 color = 'red'
-            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, extra_info)
+            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
             #PlayStream(title, url, iconimage, '', '')
             PlayStream(name, url, iconimage, '', '')
 
@@ -818,12 +822,16 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         match = re.compile(
             'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
             ).findall(html)
-        templist = []
+        urls = []
         for bitrate, encoding, url, supplier, transfer_format in match:
-            templist.append((supplier, int(bitrate), url, device))
-
-        templist = sorted(templist, key=itemgetter(1), reverse=True)
-        retlist.append(templist[0]) #TODO only the last bitrate is valid!!!
+            urls.append(url)
+        urls = list(set(urls)) #unique
+        for NEW_URL in urls:
+            html = OpenURL(NEW_URL)
+            match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
+            for id, bandwidth, codecs, resolution, url in match:
+                bitrate = int(int(bandwidth)/1000.0)
+                retlist.append((supplier, bitrate, url, device))
 
     #for device in ['abr_hdtv', 'hls_tablet']:
     for device in ['abr_hdtv']:
@@ -847,8 +855,8 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             color = 'orange'
         else:
             color = 'red'
-        #title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier)
+        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
+        #title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier)
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
