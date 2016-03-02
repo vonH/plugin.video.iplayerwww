@@ -855,8 +855,8 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             color = 'orange'
         else:
             color = 'red'
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
-        #title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier)
+        # title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
+        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier)
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
