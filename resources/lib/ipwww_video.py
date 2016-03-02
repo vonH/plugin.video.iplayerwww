@@ -760,38 +760,39 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
     else:
         suppliers = ['ak', 'llnw']
 
-    stream_list = []
+    stream_set = set()
 
     for device in ['abr_hdtv', 'hls_tablet']:
         for supplier in ['ak', 'llnw']:
-            NEW_URL = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8" % (device, supplier, channelname)
-            html = OpenURL(NEW_URL)
+            playlist_url = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8" % (device, supplier, channelname)
+            html = OpenURL(playlist_url)
             match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
             for id, bandwidth, codecs, resolution, url in match:
                 bitrate = int(int(bandwidth)/1000.0)
-                stream_list.append((supplier, bitrate, url, device))
+                stream_set.add((supplier, bitrate, url))
 
-    if not stream_list:
+    if not stream_set:
         for device in ['iptv-all', 'apple-ipad-hls']:
-            NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/%s/vpid/%s/transferformat/hls?cb=%d" % (device, channelname, random.randrange(10000,99999)) 
-            html = OpenURL(NEW_URL)
+            manifest_url = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/%s/vpid/%s/transferformat/hls?cb=%d" % (device, channelname, random.randrange(10000,99999)) 
+            html = OpenURL(manifest_url)
             match = re.compile(
                 'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
                 ).findall(html)
-            urls = []
+            playlist_urls = set()
             for bitrate, encoding, url, supplier, transfer_format in match:
-                urls.append(url)
-            urls = list(set(urls)) #unique
-            for NEW_URL in urls:
-                html = OpenURL(NEW_URL)
+                playlist_urls.add(url)
+            for playlist_url in playlist_urls:
+                html = OpenURL(playlist_url)
                 match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
                 for id, bandwidth, codecs, resolution, url in match:
                     bitrate = int(int(bandwidth)/1000.0)
-                    stream_list.append((supplier, bitrate, url, device))
+                    if supplier == 'akamai_hls_live':
+                        supplier = 'ak'
+                    stream_set.add((supplier, bitrate, url))
 
-    stream_list = sorted(stream_list, key=itemgetter(1,0,3), reverse=True)
+    stream_list = sorted(stream_set, key=itemgetter(1,0), reverse=True)
 
-    for (supplier, bitrate, url, device) in stream_list:
+    for (supplier, bitrate, url) in stream_list:
         if autoplay == 'true':
             if bitrate <= stream_bitrates[bitrate_selected]: 
                 PlayStream(name, url, iconimage, '', '')
@@ -808,7 +809,8 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
                 supplier = 'Akamai'
             elif supplier == 'llnw':
                 supplier = 'Limelight'
-            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
+            #NOTE 3 digits are needed to differentiate stream bitrates
+            title = name + ' - [I][COLOR %s]%0.3f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier)
             AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
