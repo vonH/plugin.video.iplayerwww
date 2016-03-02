@@ -161,7 +161,7 @@ elif mode == 122:
     Video.GetAvailableStreams(name, url, iconimage, description)
 
 elif mode == 123:
-    Video.AddAvailableLiveStreamsDirectory(name, url, iconimage)
+    Video.AddAvailableLiveStreams(name, url, iconimage)
 
 elif mode == 124:
     Video.GetAtoZPage(url)
@@ -195,10 +195,10 @@ elif mode == 201:
     Video.PlayStream(name, url, iconimage, description, subtitles_url)
 
 elif mode == 202:
-    Video.AddAvailableStreamItem(name, url, iconimage, description)
+    Video.AddAvailableStreams(name, url, iconimage, description)
 
 elif mode == 203:
-    Video.AddAvailableLiveStreamItem(name, url, iconimage)
+    Video.AddAvailableLiveStreams(name, url, iconimage)
 
 elif mode == 211:
     Radio.PlayStream(name, url, iconimage, description, subtitles_url)
