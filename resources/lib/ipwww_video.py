@@ -763,7 +763,7 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
     stream_set = set()
 
     for device in ['abr_hdtv', 'hls_tablet']:
-        for supplier in ['ak', 'llnw']:
+        for supplier in suppliers:
             playlist_url = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8" % (device, supplier, channelname)
             html = OpenURL(playlist_url)
             match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
@@ -786,6 +786,7 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
                 match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
                 for id, bandwidth, codecs, resolution, url in match:
                     bitrate = int(int(bandwidth)/1000.0)
+                    #NOTE: Don't filter out these suppliers. This is a fallback option if no streams are found above.
                     if supplier == 'akamai_hls_live':
                         supplier = 'ak'
                     stream_set.add((supplier, bitrate, url))
