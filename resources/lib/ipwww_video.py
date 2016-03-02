@@ -780,8 +780,8 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
                 ).findall(html)
             playlist_urls = set()
             for bitrate, encoding, url, supplier, transfer_format in match:
-                playlist_urls.add(url)
-            for playlist_url in playlist_urls:
+                playlist_urls.add((supplier, url))
+            for (supplier, playlist_url) in playlist_urls:
                 html = OpenURL(playlist_url)
                 match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
                 for id, bandwidth, codecs, resolution, url in match:
