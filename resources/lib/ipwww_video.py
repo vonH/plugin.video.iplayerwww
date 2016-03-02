@@ -762,8 +762,7 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
 
     stream_list = []
 
-    #for device in ['abr_hdtv', 'hls_tablet']:
-    for device in ['abr_hdtv']:
+    for device in ['abr_hdtv', 'hls_tablet']:
         for supplier in ['ak', 'llnw']:
             NEW_URL = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8" % (device, supplier, channelname)
             html = OpenURL(NEW_URL)
@@ -773,8 +772,7 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
                 stream_list.append((supplier, bitrate, url, device))
 
     if not stream_list:
-        #for device in ['iptv-all', 'apple-ipad-hls']:
-        for device in ['iptv-all']:
+        for device in ['iptv-all', 'apple-ipad-hls']:
             NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/%s/vpid/%s/transferformat/hls?cb=%d" % (device, channelname, random.randrange(10000,99999)) 
             html = OpenURL(NEW_URL)
             match = re.compile(
@@ -791,7 +789,7 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
                     bitrate = int(int(bandwidth)/1000.0)
                     stream_list.append((supplier, bitrate, url, device))
 
-    stream_list = sorted(stream_list, key=itemgetter(1,0), reverse=True)
+    stream_list = sorted(stream_list, key=itemgetter(1,0,3), reverse=True)
 
     for (supplier, bitrate, url, device) in stream_list:
         if autoplay == 'true':
@@ -810,8 +808,7 @@ def AddAvailableLiveStreams(name, channelname, iconimage):
                 supplier = 'Akamai'
             elif supplier == 'llnw':
                 supplier = 'Limelight'
-            #title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
-            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier)
+            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR] [COLOR grey]%s[/COLOR][/I]' % (color, bitrate/1000.0, supplier, device)
             AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
