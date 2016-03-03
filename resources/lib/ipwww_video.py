@@ -742,7 +742,8 @@ def Search(search_entered):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    stream_bitrates = [9999, 345, 501, 923, 1470, 1700, 2128, 2908, 3628, 5166]
+    stream_bitrates = [9999, 216, 348, 564, 978, 1012, 1802, 1835, 3116, 5509]
+
     if int(ADDON.getSetting('live_source')) == 1:
         providers = [('ak', 'Akamai')]
     elif int(ADDON.getSetting('live_source')) == 2:
@@ -752,18 +753,17 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
     bitrate_selected = int(ADDON.getSetting('live_bitrate'))
     for provider_url, provider_name in providers:
         # First we query the available streams from this website
-        if channelname == 's4cpbs':
-            url = 'http://a.files.bbci.co.uk/media/live/manifests/hds/pc/%s/%s.f4m' % (
-                provider_url, channelname)
+        if channelname in ['bbc_parliament', 'bbc_alba', 's4cpbs', 'bbc_one_london', 'bbc_two_wales_digital', 'bbc_two_northern_ireland_digital']:
+            device = 'hls_tablet'
         else:
-            url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
-                provider_url, channelname)
+            device = 'abr_hdtv'
+        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8' % (device, provider_url, channelname)
         html = OpenURL(url)
         # Use regexp to get the different versions using various bitrates
-        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
+        match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
         streams_available = []
-        for address, bitrate in match:
-            url = address.replace('f4m', 'm3u8')
+        for id, bandwidth, codecs, resolution, url in match:
+            bitrate = int(int(bandwidth)/1000.0)
             streams_available.append((int(bitrate), url))
         streams_available.sort(key=lambda x: x[0], reverse=True)
         # print streams_available
@@ -795,23 +795,20 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     streams = []
     for provider_url, provider_name in providers:
         # First we query the available streams from this website
-        if channelname == 's4cpbs':
-            url = 'http://a.files.bbci.co.uk/media/live/manifests/hds/pc/%s/%s.f4m' % (
-                provider_url, channelname)
+        if channelname in ['bbc_parliament', 'bbc_alba', 's4cpbs', 'bbc_one_london', 'bbc_two_wales_digital', 'bbc_two_northern_ireland_digital']:
+            device = 'hls_tablet'
         else:
-            url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hds/uk/pc/%s/%s.f4m' % (
-                provider_url, channelname)
+            device = 'abr_hdtv'
+        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8' % (device, provider_url, channelname)
         html = OpenURL(url)
-        # Use regexp to get the different versions using various bitrates
-        match = re.compile('href="(.+?)".+?bitrate="(.+?)"').findall(html)
+        match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
         # Add provider name to the stream list.
         streams.extend([list(stream) + [provider_name] for stream in match])
 
     # Add each stream to the Kodi selection menu.
-    for address, bitrate, provider_name in sorted(streams, key=lambda x: int(x[1]), reverse=True):
-        url = address.replace('f4m', 'm3u8')
+    for id, bandwidth, codecs, resolution, url, provider_name in sorted(streams, key=lambda x: int(x[1]), reverse=True):
         # For easier selection use colors to indicate high and low bitrate streams
-        bitrate = int(bitrate)
+        bitrate = int(int(bandwidth)/1000.0)
         if bitrate > 2100:
             color = 'green'
         elif bitrate > 1000:
