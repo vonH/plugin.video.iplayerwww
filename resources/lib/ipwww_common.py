@@ -339,11 +339,10 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
 
 def CreateBaseDirectory(content_type):
     if ADDON.getSetting('kids_mode') == 'true':
-        if content_type == "video":
-            AddMenuEntry('CBeebies Live', 'cbeebies_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
-            AddMenuEntry('CBBC Live', 'cbbc_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
-            AddMenuEntry('CBeebies', 'cbeebies', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
-            AddMenuEntry('CBBC', 'cbbc', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
+        AddMenuEntry('CBeebies Live', 'cbeebies_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
+        AddMenuEntry('CBBC Live', 'cbbc_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
+        AddMenuEntry('CBeebies', 'cbeebies', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
+        AddMenuEntry('CBBC', 'cbbc', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
     else:
         if content_type == "video":
             AddMenuEntry(translation(30300), 'iplayer', 106, '', '', '')
