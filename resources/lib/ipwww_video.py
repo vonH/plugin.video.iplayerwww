@@ -741,7 +741,7 @@ def Search(search_entered):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    stream_bitrates = [9999, 216, 348, 564, 978, 1012, 1802, 1835, 3116, 5509]
+    stream_bitrates = [9999, 216, 348, 564, 978, 1012, 1802, 1835, 3116, 5509] #TODO differentiate close bitrates: 1.8 and 1.0
 
     if int(ADDON.getSetting('live_source')) == 1:
         providers = [('ak', 'Akamai')]
@@ -776,7 +776,8 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
             # print "Selected bitrate is %s"%stream_bitrates[bitrate_selected]
             # print match
             # print "Playing %s from %s with bitrate %s"%(name, match[0][1], match [0][0])
-            PlayStream(name, match[0][1], iconimage, '', '')
+            if len(match) > 0: #TODO error message
+                PlayStream(name, match[0][1], iconimage, '', '')
         # Play the fastest available stream of the preferred provider
         else:
             PlayStream(name, streams_available[0][1], iconimage, '', '')
