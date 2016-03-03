@@ -24,5 +24,7 @@
     <setting id="live_bitrate" label="30230" type="enum" values="Fastest|0.2 Mbps|0.3 Mbps|0.5 Mbps|1.0 Mbps|1.0 Mbps|1.8 Mbps|1.8 Mbs|3.1 Mbps|5.5 Mbps" default="0" enable="eq(-5,true)" />
     <setting label="30102" type="lsep"  />
     <setting id="radio_source" label="30231" type="enum" values="Any|Akamai|Limelight" default="0" enable="eq(-7,true)" />
+    <setting id="radio_location" label="30232" type="enum" values="UK|International" default="0" enable="eq(-8,true)" />
+    <setting id="radio_live_bitrate" label="30233" type="enum" values="48 Kbps|96 Kbps|128 Kbps|320 Kbps" default="3" enable="eq(-9,true)" />
 </category>
 </settings>

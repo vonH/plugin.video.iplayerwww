@@ -146,9 +146,6 @@ elif mode == 116:
 elif mode == 117:
     Radio.ListFavourites(logged_in)
 
-elif mode == 118:
-    Radio.ListLiveHQ()
-
 elif mode == 119:
     Common.SignOutBBCiD()
 
@@ -211,8 +208,6 @@ elif mode == 212:
 elif mode == 213:
     Radio.AddAvailableLiveStreamItem(name, url, iconimage)
 
-elif mode == 214:
-    Radio.AddAvailableLiveStreamItemHQ(name, url, iconimage)
 
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
