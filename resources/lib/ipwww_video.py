@@ -741,7 +741,7 @@ def Search(search_entered):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    stream_bitrates = [9999, 216, 348, 564, 978, 1012, 1802, 1835, 3116, 5509] #TODO differentiate close bitrates: 1.8 and 1.0
+    stream_bitrates = [9999, 0.1, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5] 
 
     if int(ADDON.getSetting('live_source')) == 1:
         providers = [('ak', 'Akamai')]
@@ -750,37 +750,28 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
     else:
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
     bitrate_selected = int(ADDON.getSetting('live_bitrate'))
-    for provider_url, provider_name in providers:
-        # First we query the available streams from this website
-        if channelname in ['bbc_parliament', 'bbc_alba', 's4cpbs', 'bbc_one_london', 'bbc_two_wales_digital', 'bbc_two_northern_ireland_digital']:
-            device = 'hls_tablet'
-        else:
-            device = 'abr_hdtv'
-        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8' % (device, provider_url, channelname)
-        html = OpenURL(url)
-        # Use regexp to get the different versions using various bitrates
-        match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
-        streams_available = []
-        for id, bandwidth, codecs, resolution, url in match:
-            bitrate = int(int(bandwidth)/1000.0)
-            streams_available.append((int(bitrate), url))
-        streams_available.sort(key=lambda x: x[0], reverse=True)
-        # print streams_available
-        # Play the prefered option
-        if bitrate_selected > 0:
-            match = [x for x in streams_available if (x[0] == stream_bitrates[bitrate_selected])]
+
+    streams_available = ParseLiveStreams(channelname, providers)
+
+    # print streams_available
+    # Play the prefered option
+    if bitrate_selected > 0:
+        match = [x for x in streams_available if (x[1] == stream_bitrates[bitrate_selected])]
+        if len(match) == 0:
+            # Fallback: Use any bitrate lower than the selected from any source.
+            match = [x for x in streams_available if (x[1] <= stream_bitrates[bitrate_selected] )]
+            match.sort(key=lambda x: x[1], reverse=True)
             if len(match) == 0:
-                # Fallback: Use any lower bitrate from any source.
-                match = [x for x in streams_available if (x[0] in range(1, stream_bitrates[bitrate_selected - 1] + 1))]
-                match.sort(key=lambda x: x[0], reverse=True)
-            # print "Selected bitrate is %s"%stream_bitrates[bitrate_selected]
-            # print match
-            # print "Playing %s from %s with bitrate %s"%(name, match[0][1], match [0][0])
-            if len(match) > 0: #TODO error message
-                PlayStream(name, match[0][1], iconimage, '', '')
-        # Play the fastest available stream of the preferred provider
-        else:
-            PlayStream(name, streams_available[0][1], iconimage, '', '')
+                # Fallback: Selected bitrate is too low. Use lowest available bitrate.
+                match = sorted(streams_available, key=lambda x: x[1], reverse=False)
+        # print "Selected bitrate is %s"%stream_bitrates[bitrate_selected]
+        # print match
+        # print "Playing %s from %s with bitrate %s"%(name, match[0][4], match [0][1])
+        if len(match) > 0: #TODO error message
+            PlayStream(name, match[0][4], iconimage, '', '')
+    # Play the fastest available stream of the preferred provider
+    else:
+        PlayStream(name, streams_available[0][4], iconimage, '', '')
 
 
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
@@ -791,35 +782,22 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         iconimage: only used for displaying the channel.
         channelname: determines which channel is queried.
     """
-    providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-    streams = []
-    for provider_url, provider_name in providers:
-        # First we query the available streams from this website
-        if channelname in ['bbc_parliament', 'bbc_alba', 's4cpbs', 'bbc_one_london', 'bbc_two_wales_digital', 'bbc_two_northern_ireland_digital']:
-            device = 'hls_tablet'
-        else:
-            device = 'abr_hdtv'
-        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8' % (device, provider_url, channelname)
-        html = OpenURL(url)
-        match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
-        # Add provider name to the stream list.
-        streams.extend([list(stream) + [provider_name] for stream in match])
+    streams = ParseLiveStreams(channelname, '')
 
     # Add each stream to the Kodi selection menu.
-    for id, bandwidth, codecs, resolution, url, provider_name in sorted(streams, key=lambda x: int(x[1]), reverse=True):
+    for id, bitrate, codecs, resolution, url, provider_name in streams:
         # For easier selection use colors to indicate high and low bitrate streams
-        bitrate = int(int(bandwidth)/1000.0)
-        if bitrate > 2100:
+        if bitrate > 2.1:
             color = 'green'
-        elif bitrate > 1000:
+        elif bitrate > 1.0:
             color = 'yellow'
-        elif bitrate > 600:
+        elif bitrate > 0.6:
             color = 'orange'
         else:
             color = 'red'
 
         title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (
-            color, bitrate / 1000, provider_name)
+            color, bitrate, provider_name)
         # Finally add them to the selection menu.
         AddMenuEntry(title, url, 201, iconimage, '', '')
 
@@ -1036,6 +1014,37 @@ def ParseStreams(stream_id):
             dialog.ok(translation(30400), translation(30401))
             raise
     return retlist, match
+
+
+def ParseLiveStreams(channelname, providers):
+    # print "Parsing streams for PID: %s"%stream_id[0]
+    # Open the page with the actual strem information and display the various available streams.
+    if providers == '':    
+        providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
+    streams = []
+
+    for provider_url, provider_name in providers:
+        # First we query the available streams from this website
+        if channelname in ['bbc_parliament', 'bbc_alba', 's4cpbs', 'bbc_one_london',
+                           'bbc_two_wales_digital', 'bbc_two_northern_ireland_digital']:
+            device = 'hls_tablet'
+        else:
+            device = 'abr_hdtv'
+        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8' \
+              % (device, provider_url, channelname)
+        html = OpenURL(url)
+        match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
+
+        # Add provider name to the stream list.
+        streams.extend([list(stream) + [provider_name] for stream in match])
+
+    # Convert bitrate to Mbps for further processing
+    for i in range(len(streams)):
+        streams[i][1] = round(int(streams[i][1])/1000000.0, 1)
+
+    # Return list sorted by bitrate
+    return sorted(streams, key=lambda x: (x[1]), reverse=True)
+
 
 
 def ScrapeAvailableStreams(url):
