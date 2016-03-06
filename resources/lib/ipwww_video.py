@@ -750,7 +750,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
     else:
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
     bitrate_selected = int(ADDON.getSetting('live_bitrate'))
-    if bitrate_selected > len(stream_bitrates):
+    if bitrate_selected > len(stream_bitrates) - 1:
         bitrate_selected = 0
         ADDON.setSetting('live_bitrate', str(bitrate_selected))
 
