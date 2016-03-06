@@ -741,7 +741,7 @@ def Search(search_entered):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    stream_bitrates = [9999, 0.1, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5] 
+    stream_bitrates = [9999, 0.0, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5] 
 
     if int(ADDON.getSetting('live_source')) == 1:
         providers = [('ak', 'Akamai')]
