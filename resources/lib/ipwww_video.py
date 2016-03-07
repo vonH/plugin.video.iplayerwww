@@ -1020,8 +1020,6 @@ def ParseStreams(stream_id):
 
 
 def ParseLiveStreams(channelname, providers):
-    # print "Parsing streams for PID: %s"%stream_id[0]
-    # Open the page with the actual strem information and display the various available streams.
     if providers == '':    
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
     streams = []
