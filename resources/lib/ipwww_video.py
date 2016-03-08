@@ -343,7 +343,7 @@ def ScrapeEpisodes(page_url):
     if int(ADDON.getSetting('paginate_episodes')) == 0:
         if current_page < next_page:
             page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
-            AddMenuEntry(" [COLOR orange]%s >>[/COLOR]" % translation(30320), page_url, 128, '', '', '')
+            AddMenuEntry(" [COLOR ffffa500]%s >>[/COLOR]" % translation(30320), page_url, 128, '', '', '')
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
@@ -791,15 +791,15 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     for id, bitrate, codecs, resolution, url, provider_name in streams:
         # For easier selection use colors to indicate high and low bitrate streams
         if bitrate > 2.1:
-            color = 'green'
+            color = 'ff008000'
         elif bitrate > 1.0:
-            color = 'yellow'
+            color = 'ffffff00'
         elif bitrate > 0.6:
-            color = 'orange'
+            color = 'ffffa500'
         else:
-            color = 'red'
+            color = 'ffff0000'
 
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR white]%s[/COLOR][/I]' % (
+        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR fff1f1f1]%s[/COLOR][/I]' % (
             color, bitrate, provider_name)
         # Finally add them to the selection menu.
         AddMenuEntry(title, url, 201, iconimage, '', '')
@@ -918,14 +918,14 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     bitrates = [0, 800, 1012, 1500, 1800, 2400, 3116, 5510]
     for supplier, bitrate, url, resolution in sorted(streams[0], key=itemgetter(1), reverse=True):
         if bitrate in (5, 7):
-            color = 'green'
+            color = 'ff008000'
         elif bitrate == 6:
-            color = 'blue'
+            color = 'ff0084ff'
         elif bitrate in (3, 4):
-            color = 'yellow'
+            color = 'ffffff00'
         else:
-            color = 'orange'
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR lightgray]%s[/COLOR][/I]' % (
+            color = 'ffffa500'
+        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
             color, bitrates[bitrate] / 1000, suppliers[supplier])
         AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
 
