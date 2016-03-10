@@ -21,6 +21,40 @@ import xbmcaddon
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 
+def RedButton():
+    channel_list = [
+        ('bbc_red_button_1', 'BBC Red Button 1'),
+        ('bbc_red_button_2', 'BBC Red Button 2'),
+        ('bbc_red_button_3', 'BBC Red Button 3'),
+        ('bbc_red_button_4', 'BBC Red Button 4'),
+        ('bbc_red_button_5', 'BBC Red Button 5'),
+        ('bbc_red_button_6', 'BBC Red Button 6'),
+        ('bbc_red_button_7', 'BBC Red Button 7'),
+        ('bbc_red_button_8', 'BBC Red Button 8'),
+        ('bbc_red_button_9', 'BBC Red Button 9'),
+        ('bbc_red_button_10', 'BBC Red Button 10'),
+        ('bbc_red_button_11', 'BBC Red Button 11'),
+        ('bbc_red_button_12', 'BBC Red Button 12'),
+        ('bbc_red_button_13', 'BBC Red Button 13'),
+        ('bbc_red_button_14', 'BBC Red Button 14'),
+        ('bbc_red_button_15', 'BBC Red Button 15'),
+        ('bbc_red_button_16', 'BBC Red Button 16'),
+        ('bbc_red_button_17', 'BBC Red Button 17'),
+        ('bbc_red_button_18', 'BBC Red Button 18'),
+        ('bbc_red_button_19', 'BBC Red Button 19'),
+        ('bbc_red_button_20', 'BBC Red Button 20'),
+        ('bbc_red_button_21', 'BBC Red Button 21'),
+        ('bbc_red_button_22', 'BBC Red Button 22'),
+        ('bbc_red_button_23', 'BBC Red Button 23'),
+        ('bbc_red_button_24', 'BBC Red Button 24'),
+    ]
+    for id, name in channel_list:
+        if ADDON.getSetting('streams_autoplay') == 'true':
+            AddMenuEntry(name, id, 204, '', '', '')
+        else:
+            AddMenuEntry(name, id, 129, '', '', '')
+
+
 # ListLive creates menu entries for all live channels.
 def ListLive():
     channel_list = [
@@ -741,7 +775,7 @@ def Search(search_entered):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    stream_bitrates = [9999, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5] 
+    stream_bitrates = [9999, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5]
 
     if int(ADDON.getSetting('live_source')) == 1:
         providers = [('ak', 'Akamai')]
@@ -777,6 +811,38 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
         PlayStream(name, streams_available[0][4], iconimage, '', '')
 
 
+def AddAvailableRedButtonItem(name, channelname):
+    """Play a live stream based on settings for preferred live source and bitrate."""
+    stream_bitrates = [9999, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5]
+
+    bitrate_selected = int(ADDON.getSetting('live_bitrate'))
+    if bitrate_selected > len(stream_bitrates) - 1:
+        bitrate_selected = 0
+        ADDON.setSetting('live_bitrate', str(bitrate_selected))
+
+    streams_available = ParseRedButtonStreams(channelname)
+
+    # Play the prefered option
+    if bitrate_selected > 0:
+        match = [x for x in streams_available if (x[1] == stream_bitrates[bitrate_selected])]
+        if len(match) == 0:
+            # Fallback: Use any bitrate lower than the selected from any source.
+            match = [x for x in streams_available if (x[1] <= stream_bitrates[bitrate_selected] )]
+            match.sort(key=lambda x: x[1], reverse=True)
+            if len(match) == 0:
+                # Fallback: Selected bitrate is too low. Use lowest available bitrate.
+                match = sorted(streams_available, key=lambda x: x[1], reverse=False)
+        # print "Selected bitrate is %s"%stream_bitrates[bitrate_selected]
+        # print match
+        # print "Playing %s from %s with bitrate %s"%(name, match[0][4], match [0][1])
+        if len(match) > 0: #TODO error message
+            PlayStream(name, match[0][2], '', '', '')
+    # Play the fastest available stream of the preferred provider
+    else:
+        PlayStream(name, streams_available[0][2], '', '', '')
+
+
+
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     """Retrieves the available live streams for a channel
 
@@ -803,6 +869,34 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             color, bitrate, provider_name)
         # Finally add them to the selection menu.
         AddMenuEntry(title, url, 201, iconimage, '', '')
+
+
+def AddAvailableRedButtonDirectory(name, channelname):
+    """Retrieves the available live streams for a channel
+
+    Args:
+        name: only used for displaying the channel.
+        iconimage: only used for displaying the channel.
+        channelname: determines which channel is queried.
+    """
+    streams = ParseRedButtonStreams(channelname)
+
+    # Add each stream to the Kodi selection menu.
+    for id, bitrate, url in streams:
+        # For easier selection use colors to indicate high and low bitrate streams
+        if bitrate > 2.1:
+            color = 'ff008000'
+        elif bitrate > 1.0:
+            color = 'ffffff00'
+        elif bitrate > 0.6:
+            color = 'ffffa500'
+        else:
+            color = 'ffff0000'
+
+        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR][/I]' % (
+            color, bitrate)
+        # Finally add them to the selection menu.
+        AddMenuEntry(title, url, 201, '', '', '')
 
 
 def ListWatching(logged_in):
@@ -878,6 +972,8 @@ def ListFavourites(logged_in):
 
 
 def PlayStream(name, url, iconimage, description, subtitles_url):
+    if iconimage == '':
+        iconimage = 'DefaultVideo.png'
     html = OpenURL(url)
     check_geo = re.search(
         '<H1>Access Denied</H1>', html)
@@ -1020,7 +1116,7 @@ def ParseStreams(stream_id):
 
 
 def ParseLiveStreams(channelname, providers):
-    if providers == '':    
+    if providers == '':
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
     streams = []
 
@@ -1046,6 +1142,26 @@ def ParseLiveStreams(channelname, providers):
     # Return list sorted by bitrate
     return sorted(streams, key=lambda x: (x[1]), reverse=True)
 
+
+def ParseRedButtonStreams(channelname):
+
+    streams = []
+
+    url = xbmc.translatePath(
+        os.path.join('special://home/addons/plugin.video.iplayerwww/redbutton', channelname + '.m3u8'))
+
+    html = open(url).read()
+
+    match = re.compile('EXTINF:0,BBC Red Button #(.+?) \((.+?)kbs\)\s*(.+?.m3u8)').findall(html)
+
+    streams.extend([list(stream) for stream in match])
+
+    # Convert bitrate to Mbps for further processing
+    for i in range(len(streams)):
+        streams[i][1] = round(int(streams[i][1])/1000.0, 1)
+
+    # Return list sorted by bitrate
+    return sorted(streams, key=lambda x: (x[1]), reverse=True)
 
 
 def ScrapeAvailableStreams(url):

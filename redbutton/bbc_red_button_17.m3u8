@@ -1,0 +1,10 @@
+#EXTINF:0,BBC Red Button #17 (512kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_11/live/uk/sport_stream_17_5/sport_stream_17_5.isml/sport_stream_17_5-track1%3d48000-video%3d448000.m3u8
+#EXTINF:0,BBC Red Button #17 (796kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_11/live/uk/sport_stream_17_4/sport_stream_17_4.isml/sport_stream_17_4-track1%3d96000-video%3d700000.m3u8
+#EXTINF:0,BBC Red Button #17 (1296kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_11/live/uk/sport_stream_17_3/sport_stream_17_3.isml/sport_stream_17_3-track1%3d96000-video%3d1200000.m3u8
+#EXTINF:0,BBC Red Button #17 (2096kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_11/live/uk/sport_stream_17_2/sport_stream_17_2.isml/sport_stream_17_2-track1%3d96000-video%3d2000000.m3u8
+#EXTINF:0,BBC Red Button #17 (3500kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_11/live/uk/sport_stream_17_1/sport_stream_17_1.isml/sport_stream_17_1-track1%3d96000-video%3d3404000.m3u8

@@ -1,0 +1,10 @@
+#EXTINF:0,BBC Red Button #24 (512kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_14/live/uk/sport_stream_24_5/sport_stream_24_5.isml/sport_stream_24_5-track1%3d48000-video%3d448000.m3u8
+#EXTINF:0,BBC Red Button #24 (796kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_14/live/uk/sport_stream_24_4/sport_stream_24_4.isml/sport_stream_24_4-track1%3d96000-video%3d700000.m3u8
+#EXTINF:0,BBC Red Button #24 (1296kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_14/live/uk/sport_stream_24_3/sport_stream_24_3.isml/sport_stream_24_3-track1%3d96000-video%3d1200000.m3u8
+#EXTINF:0,BBC Red Button #24 (2096kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_14/live/uk/sport_stream_24_2/sport_stream_24_2.isml/sport_stream_24_2-track1%3d96000-video%3d2000000.m3u8
+#EXTINF:0,BBC Red Button #24 (3500kbs)
+http://ve-hds-uk-live.edgesuite.net/pool_14/live/uk/sport_stream_24_1/sport_stream_24_1.isml/sport_stream_24_1-track1%3d96000-video%3d3404000.m3u8
