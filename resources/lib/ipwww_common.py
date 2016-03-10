@@ -343,6 +343,7 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry('CBBC Live', 'cbbc_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
         AddMenuEntry('CBeebies', 'cbeebies', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
         AddMenuEntry('CBBC', 'cbbc', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
+        AddMenuEntry('CBeebies Radio', 'p02pnn9d', 131, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
     else:
         if content_type == "video":
             AddMenuEntry(translation(30300), 'iplayer', 106, '', '', '')
