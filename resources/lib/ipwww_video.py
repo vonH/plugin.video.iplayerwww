@@ -23,30 +23,30 @@ ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 def RedButton():
     channel_list = [
-        ('bbc_red_button_1', 'BBC Red Button 1'),
-        ('bbc_red_button_2', 'BBC Red Button 2'),
-        ('bbc_red_button_3', 'BBC Red Button 3'),
-        ('bbc_red_button_4', 'BBC Red Button 4'),
-        ('bbc_red_button_5', 'BBC Red Button 5'),
-        ('bbc_red_button_6', 'BBC Red Button 6'),
-        ('bbc_red_button_7', 'BBC Red Button 7'),
-        ('bbc_red_button_8', 'BBC Red Button 8'),
-        ('bbc_red_button_9', 'BBC Red Button 9'),
-        ('bbc_red_button_10', 'BBC Red Button 10'),
-        ('bbc_red_button_11', 'BBC Red Button 11'),
-        ('bbc_red_button_12', 'BBC Red Button 12'),
-        ('bbc_red_button_13', 'BBC Red Button 13'),
-        ('bbc_red_button_14', 'BBC Red Button 14'),
-        ('bbc_red_button_15', 'BBC Red Button 15'),
-        ('bbc_red_button_16', 'BBC Red Button 16'),
-        ('bbc_red_button_17', 'BBC Red Button 17'),
-        ('bbc_red_button_18', 'BBC Red Button 18'),
-        ('bbc_red_button_19', 'BBC Red Button 19'),
-        ('bbc_red_button_20', 'BBC Red Button 20'),
-        ('bbc_red_button_21', 'BBC Red Button 21'),
-        ('bbc_red_button_22', 'BBC Red Button 22'),
-        ('bbc_red_button_23', 'BBC Red Button 23'),
-        ('bbc_red_button_24', 'BBC Red Button 24'),
+        ('sport_stream_01', 'BBC Red Button 1'),
+        ('sport_stream_02', 'BBC Red Button 2'),
+        ('sport_stream_03', 'BBC Red Button 3'),
+        ('sport_stream_04', 'BBC Red Button 4'),
+        ('sport_stream_05', 'BBC Red Button 5'),
+        ('sport_stream_06', 'BBC Red Button 6'),
+        ('sport_stream_07', 'BBC Red Button 7'),
+        ('sport_stream_08', 'BBC Red Button 8'),
+        ('sport_stream_09', 'BBC Red Button 9'),
+        ('sport_stream_10', 'BBC Red Button 10'),
+        ('sport_stream_11', 'BBC Red Button 11'),
+        ('sport_stream_12', 'BBC Red Button 12'),
+        ('sport_stream_13', 'BBC Red Button 13'),
+        ('sport_stream_14', 'BBC Red Button 14'),
+        ('sport_stream_15', 'BBC Red Button 15'),
+        ('sport_stream_16', 'BBC Red Button 16'),
+        ('sport_stream_17', 'BBC Red Button 17'),
+        ('sport_stream_18', 'BBC Red Button 18'),
+        ('sport_stream_19', 'BBC Red Button 19'),
+        ('sport_stream_20', 'BBC Red Button 20'),
+        ('sport_stream_21', 'BBC Red Button 21'),
+        ('sport_stream_22', 'BBC Red Button 22'),
+        ('sport_stream_23', 'BBC Red Button 23'),
+        ('sport_stream_24', 'BBC Red Button 24'),
     ]
     for id, name in channel_list:
         if ADDON.getSetting('streams_autoplay') == 'true':
@@ -836,10 +836,10 @@ def AddAvailableRedButtonItem(name, channelname):
         # print match
         # print "Playing %s from %s with bitrate %s"%(name, match[0][4], match [0][1])
         if len(match) > 0: #TODO error message
-            PlayStream(name, match[0][2], '', '', '')
+            PlayStream(name, match[0][0], '', '', '')
     # Play the fastest available stream of the preferred provider
     else:
-        PlayStream(name, streams_available[0][2], '', '', '')
+        PlayStream(name, streams_available[0][0], '', '', '')
 
 
 
@@ -882,7 +882,7 @@ def AddAvailableRedButtonDirectory(name, channelname):
     streams = ParseRedButtonStreams(channelname)
 
     # Add each stream to the Kodi selection menu.
-    for id, bitrate, url in streams:
+    for url, bitrate  in streams:
         # For easier selection use colors to indicate high and low bitrate streams
         if bitrate > 2.1:
             color = 'ff008000'
@@ -1147,18 +1147,17 @@ def ParseRedButtonStreams(channelname):
 
     streams = []
 
-    url = xbmc.translatePath(
-        os.path.join('special://home/addons/plugin.video.iplayerwww/redbutton', channelname + '.m3u8'))
+    url = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hds/uk/pc/ak/%s.f4m" % channelname
+    html = OpenURL(url)
 
-    html = open(url).read()
-
-    match = re.compile('EXTINF:0,BBC Red Button #(.+?) \((.+?)kbs\)\s*(.+?.m3u8)').findall(html)
+    match = re.compile('<media href="(.+?)" bitrate="(.+?)"/>').findall(html)
 
     streams.extend([list(stream) for stream in match])
 
     # Convert bitrate to Mbps for further processing
     for i in range(len(streams)):
         streams[i][1] = round(int(streams[i][1])/1000.0, 1)
+        streams[i][0] = re.sub('.f4m$', '.m3u8', streams[i][0])
 
     # Return list sorted by bitrate
     return sorted(streams, key=lambda x: (x[1]), reverse=True)
