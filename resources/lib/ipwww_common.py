@@ -384,8 +384,6 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry((translation(30323)+translation(30307)),
                             'url', 108, '', '', '')
 
-        AddMenuEntry((translation(30323)+translation(30307)),
-                            'url', 108, '', '', '')
         AddMenuEntry((translation(30324)+translation(30321)),
                             'url', 113, '', '', '')
         AddMenuEntry((translation(30324)+translation(30302)),
