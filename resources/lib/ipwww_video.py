@@ -815,12 +815,18 @@ def AddAvailableRedButtonItem(name, channelname):
     """Play a live stream based on settings for preferred live source and bitrate."""
     stream_bitrates = [9999, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5]
 
+    if int(ADDON.getSetting('live_source')) == 1:
+        providers = [('ak', 'Akamai')]
+    elif int(ADDON.getSetting('live_source')) == 2:
+        providers = [('llnw', 'Limelight')]
+    else:
+        providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
     bitrate_selected = int(ADDON.getSetting('live_bitrate'))
     if bitrate_selected > len(stream_bitrates) - 1:
         bitrate_selected = 0
         ADDON.setSetting('live_bitrate', str(bitrate_selected))
 
-    streams_available = ParseRedButtonStreams(channelname)
+    streams_available = ParseRedButtonStreams(channelname, providers)
 
     # Play the prefered option
     if bitrate_selected > 0:
@@ -879,10 +885,10 @@ def AddAvailableRedButtonDirectory(name, channelname):
         iconimage: only used for displaying the channel.
         channelname: determines which channel is queried.
     """
-    streams = ParseRedButtonStreams(channelname)
+    streams = ParseRedButtonStreams(channelname, '')
 
     # Add each stream to the Kodi selection menu.
-    for url, bitrate  in streams:
+    for url, bitrate, provider_name  in streams:
         # For easier selection use colors to indicate high and low bitrate streams
         if bitrate > 2.1:
             color = 'ff008000'
@@ -893,8 +899,8 @@ def AddAvailableRedButtonDirectory(name, channelname):
         else:
             color = 'ffff0000'
 
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR][/I]' % (
-            color, bitrate)
+        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR fff1f1f1]%s[/COLOR][/I]' % (
+            color, bitrate, provider_name)
         # Finally add them to the selection menu.
         AddMenuEntry(title, url, 201, '', '', '')
 
@@ -1143,16 +1149,18 @@ def ParseLiveStreams(channelname, providers):
     return sorted(streams, key=lambda x: (x[1]), reverse=True)
 
 
-def ParseRedButtonStreams(channelname):
-
+def ParseRedButtonStreams(channelname, providers):
+    if providers == '':
+        providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
     streams = []
 
-    url = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hds/uk/pc/ak/%s.f4m" % channelname
-    html = OpenURL(url)
+    for provider_url, provider_name in providers:
+        url = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hds/uk/pc/%s/%s.f4m" % (provider_url, channelname)
+        html = OpenURL(url)
 
-    match = re.compile('<media href="(.+?)" bitrate="(.+?)"/>').findall(html)
+        match = re.compile('<media href="(.+?)" bitrate="(.+?)"/>').findall(html)
 
-    streams.extend([list(stream) for stream in match])
+        streams.extend([list(stream) + [provider_name] for stream in match])
 
     # Convert bitrate to Mbps for further processing
     for i in range(len(streams)):
