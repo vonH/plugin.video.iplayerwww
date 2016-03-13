@@ -1123,7 +1123,7 @@ def ParseLiveStreams(channelname, providers):
     for provider_url, provider_name in providers:
         # First we query the available streams from this website
         if channelname in ['bbc_parliament', 'bbc_alba', 's4cpbs', 'bbc_one_london',
-                           'bbc_two_wales_digital', 'bbc_two_northern_ireland_digital']:
+                           'bbc_two_wales_digital', 'bbc_two_northern_ireland_digital', 'bbc_two_scotland']:
             device = 'hls_tablet'
         else:
             device = 'abr_hdtv'
