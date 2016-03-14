@@ -347,7 +347,7 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry(translation(30303), 'url', 103, '', '', '')
         AddMenuEntry(translation(30304), 'url', 104, '', '', '')
         AddMenuEntry(translation(30305), 'url', 101, '', '', '')
-        AddMenuEntry("Red Button", 'url', 118, '', '', '')
+        AddMenuEntry(translation(30328), 'url', 118, '', '', '')
         AddMenuEntry(translation(30306), 'url', 107, '', '', '')
         AddMenuEntry(translation(30307), 'url', 108, '', '', '')
 
@@ -377,7 +377,7 @@ def CreateBaseDirectory(content_type):
                             'url', 104, '', '', '')
         AddMenuEntry((translation(30323)+translation(30305)),
                             'url', 101, '', '', '')
-        AddMenuEntry((translation(30323)+"Red Button"),
+        AddMenuEntry((translation(30323)+translation(30328)),
                             'url', 118, '', '', '')
         AddMenuEntry((translation(30323)+translation(30306)),
                             'url', 107, '', '', '')
