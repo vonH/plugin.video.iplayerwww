@@ -632,7 +632,8 @@ def ListHighlights(highlights_url):
                 add_entry = False
         if add_entry:
             if object_type == "editorial-promo":
-                AddMenuEntry('[B]%s[/B]' % (name), episode_id, 128, icon, '', '')
+                if episode_id:
+                    AddMenuEntry('[B]%s[/B]' % (name), episode_id, 128, icon, '', '')
             else:
                 if url:
                     CheckAutoplay(name, url, icon, desc, aired)
@@ -641,7 +642,8 @@ def ListHighlights(highlights_url):
     for episode in episodelist:
         episode_url = "http://www.bbc.co.uk/iplayer/episode/%s" % episode[0]
         if ((ADDON.getSetting('suppress_incomplete') == 'false') or (not episode[4] == '')):
-            CheckAutoplay(episode[1], episode_url, episode[3], episode[2], episode[4])
+            if episode[0]:
+                CheckAutoplay(episode[1], episode_url, episode[3], episode[2], episode[4])
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
