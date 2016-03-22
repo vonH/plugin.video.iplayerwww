@@ -27,4 +27,11 @@
     <setting id="radio_location" label="30232" type="enum" values="UK|International" default="0" enable="eq(-8,true)" />
     <setting id="radio_live_bitrate" label="30233" type="enum" values="48 Kbps|96 Kbps|128 Kbps|320 Kbps" default="3" enable="eq(-9,true)" />
 </category>
+<category label="30500">
+    <setting id="proxy_use" label="30510" type="bool" default="false" />
+    <setting id="proxy_host" label="30520" type="text" default="" enable="eq(-1,true)" />
+    <setting id="proxy_port" label="30530" type="number" default="" enable="eq(-2,true)" />
+    <setting id="proxy_user" label="30540" type="text" enable="eq(-3,true)"  />
+    <setting id="proxy_pass" label="30550" type="text" option="hidden" enable="!eq(-3,2) + eq(-4,true)" />
+</category>
 </settings>
