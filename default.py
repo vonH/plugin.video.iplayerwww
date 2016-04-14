@@ -148,7 +148,7 @@ elif mode == 117:
     Radio.ListFavourites(logged_in)
 
 elif mode == 118:
-    Video.RedButton()
+    Video.RedButtonDialog()
 
 elif mode == 119:
     Common.SignOutBBCiD()
