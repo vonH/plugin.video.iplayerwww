@@ -21,7 +21,15 @@ import xbmcaddon
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 
-def RedButton():
+def RedButtonDialog():
+    dialog = xbmcgui.Dialog()
+    ret = dialog.yesno(translation(30405), translation(30406), '',
+                       translation(30407), translation(30409), translation(30408))
+    if ret:
+        ListRedButton()
+
+
+def ListRedButton():
     channel_list = [
         ('sport_stream_01', 'BBC Red Button 1'),
         ('sport_stream_02', 'BBC Red Button 2'),

@@ -12,7 +12,7 @@ import xbmcgui
 import xbmcplugin
 
 
-__plugin_handle__ = int(sys.argv[1])
+plugin_handle = int(sys.argv[1])
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 sys.path.insert(0, os.path.join(ADDON.getAddonInfo("path"), 'resources', 'lib'))
 
@@ -148,7 +148,7 @@ elif mode == 117:
     Radio.ListFavourites(logged_in)
 
 elif mode == 118:
-    Video.RedButton()
+    Video.RedButtonDialog()
 
 elif mode == 119:
     Common.SignOutBBCiD()
