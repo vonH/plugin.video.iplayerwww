@@ -289,7 +289,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         date_string = ""
 
     # Modes 201-299 will create a new playable line, otherwise create a new directory line.
-    if mode in (201, 202, 203, 211, 212, 213, 214):
+    if mode in (201, 202, 203, 204, 211, 212, 213, 214):
         isFolder = False
     # Mode 119 is not a folder, but it is also not a playable.
     elif mode == 119:
@@ -344,59 +344,65 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry('CBeebies', 'cbeebies', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
         AddMenuEntry('CBBC', 'cbbc', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
         AddMenuEntry('CBeebies Radio', 'p02pnn9d', 131, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
+        return
+    if content_type == "video":
+        AddMenuEntry(translation(30300), 'iplayer', 106, '', '', '')
+        AddMenuEntry(translation(30317), 'url', 109, '', '', '')
+        AddMenuEntry(translation(30301), 'url', 105, '', '', '')
+        AddMenuEntry(translation(30302), 'url', 102, '', '', '')
+        AddMenuEntry(translation(30327), 'url', 120, '', '', '')
+        AddMenuEntry(translation(30303), 'url', 103, '', '', '')
+        AddMenuEntry(translation(30304), 'url', 104, '', '', '')
+        AddMenuEntry(translation(30305), 'url', 101, '', '', '')
+        AddMenuEntry(translation(30328), 'url', 118, '', '', '')
+        AddMenuEntry(translation(30306), 'url', 107, '', '', '')
+        AddMenuEntry(translation(30307), 'url', 108, '', '', '')
+
+        AddMenuEntry(translation(30325), 'url', 119, '', '', '')
+    elif content_type == "audio":
+        AddMenuEntry(translation(30321), 'url', 113, '', '', '')
+        AddMenuEntry(translation(30302), 'url', 112, '', '', '')
+        AddMenuEntry(translation(30303), 'url', 114, '', '', '')
+        AddMenuEntry(translation(30304), 'url', 115, '', '', '')
+        AddMenuEntry(translation(30301), 'url', 116, '', '', '')
+        AddMenuEntry(translation(30307), 'url', 117, '', '', '')
+        AddMenuEntry(translation(30325), 'url', 119, '', '', '')
     else:
-        if content_type == "video":
-            AddMenuEntry(translation(30300), 'iplayer', 106, '', '', '')
-            AddMenuEntry(translation(30317), 'url', 109, '', '', '')
-            AddMenuEntry(translation(30301), 'url', 105, '', '', '')
-            AddMenuEntry(translation(30302), 'url', 102, '', '', '')
-            AddMenuEntry(translation(30327), 'url', 120, '', '', '')
-            AddMenuEntry(translation(30303), 'url', 103, '', '', '')
-            AddMenuEntry(translation(30304), 'url', 104, '', '', '')
-            AddMenuEntry(translation(30305), 'url', 101, '', '', '')
-            AddMenuEntry(translation(30306), 'url', 107, '', '', '')
-            AddMenuEntry(translation(30307), 'url', 108, '', '', '')
-            AddMenuEntry(translation(30325), 'url', 119, '', '', '')
-        elif content_type == "audio":
-            AddMenuEntry(translation(30321), 'url', 113, '', '', '')
-            AddMenuEntry(translation(30302), 'url', 112, '', '', '')
-            AddMenuEntry(translation(30303), 'url', 114, '', '', '')
-            AddMenuEntry(translation(30304), 'url', 115, '', '', '')
-            AddMenuEntry(translation(30301), 'url', 116, '', '', '')
-            AddMenuEntry(translation(30307), 'url', 117, '', '', '')
-            AddMenuEntry(translation(30325), 'url', 119, '', '', '')
-        else:
-            AddMenuEntry((translation(30323)+translation(30300)),
-                                'iplayer', 106, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30317)),
-                                'url', 109, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30301)),
-                                'url', 105, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30302)),
-                                'url', 102, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30327)),
-                                'url', 120, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30303)),
-                                'url', 103, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30304)),
-                                'url', 104, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30305)),
-                                'url', 101, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30306)),
-                                'url', 107, '', '', '')
-            AddMenuEntry((translation(30323)+translation(30307)),
-                                'url', 108, '', '', '')
-            AddMenuEntry((translation(30324)+translation(30321)),
-                                'url', 113, '', '', '')
-            AddMenuEntry((translation(30324)+translation(30302)),
-                                'url', 112, '', '', '')
-            AddMenuEntry((translation(30324)+translation(30303)),
-                                'url', 114, '', '', '')
-            AddMenuEntry((translation(30324)+translation(30304)),
-                                'url', 115, '', '', '')
-            AddMenuEntry((translation(30324)+translation(30301)),
-                                'url', 116, '', '', '')
-            AddMenuEntry((translation(30324)+translation(30307)),
-                                'url', 117, '', '', '')
-            AddMenuEntry(translation(30325), 'url', 119, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30300)),
+                            'iplayer', 106, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30317)),
+                            'url', 109, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30301)),
+                            'url', 105, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30302)),
+                            'url', 102, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30327)),
+                            'url', 120, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30303)),
+                            'url', 103, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30304)),
+                            'url', 104, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30305)),
+                            'url', 101, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30328)),
+                            'url', 118, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30306)),
+                            'url', 107, '', '', '')
+        AddMenuEntry((translation(30323)+translation(30307)),
+                            'url', 108, '', '', '')
+
+        AddMenuEntry((translation(30324)+translation(30321)),
+                            'url', 113, '', '', '')
+        AddMenuEntry((translation(30324)+translation(30302)),
+                            'url', 112, '', '', '')
+        AddMenuEntry((translation(30324)+translation(30303)),
+                            'url', 114, '', '', '')
+        AddMenuEntry((translation(30324)+translation(30304)),
+                            'url', 115, '', '', '')
+        AddMenuEntry((translation(30324)+translation(30301)),
+                            'url', 116, '', '', '')
+        AddMenuEntry((translation(30324)+translation(30307)),
+                            'url', 117, '', '', '')
+        AddMenuEntry(translation(30325), 'url', 119, '', '', '')
+
 

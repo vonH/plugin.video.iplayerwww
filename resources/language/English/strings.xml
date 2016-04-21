@@ -25,8 +25,8 @@
   <string id="30220">Live CDN source</string>
   <string id="30230">Live bitrate</string>
   <string id="30231">Radio CDN source</string>
-  <string id="30232">Radio Location</string>
-  <string id="30233">Max Live Radio Bitrate</string>
+  <string id="30232">Radio location</string>
+  <string id="30233">Max Live Radio bitrate</string>
 
   <string id="30300">Highlights</string>
   <string id="30301">Most Popular</string>
@@ -56,6 +56,7 @@
   <string id="30325">Sign out BBCiD</string>
   <string id="30326">BBCiD Sign Out</string>
   <string id="30327">Channel A-Z</string>
+  <string id="30328">Red Button</string>
 
   <string id="30400">Error</string>
   <string id="30401">BBC iPlayer TV programmes are available to play in the UK only.</string>
