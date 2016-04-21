@@ -336,6 +336,20 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     return True
 
+def KidsMode():
+    dialog = xbmcgui.Dialog()
+    old_password = ''
+    try:
+        old_password = ADDON.getSetting('kids_password')
+    except:
+        pass
+    password = ''
+    if old_password:
+        password = dialog.input(translation(30181), type=xbmcgui.INPUT_ALPHANUM)
+    if old_password == password:
+        new_password = dialog.input(translation(30182), type=xbmcgui.INPUT_ALPHANUM)
+        ADDON.setSetting('kids_password',new_password)
+    quit()
 
 def CreateBaseDirectory(content_type):
     if ADDON.getSetting('kids_password'):

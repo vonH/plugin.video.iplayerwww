@@ -88,6 +88,14 @@ msgctxt "#30180"
 msgid "CBeebies/CBBC Only"
 msgstr ""
 
+msgctxt "#30181"
+msgid "Enter old password:"
+msgstr ""
+
+msgctxt "#30182"
+msgid "Enter new password (empty to unlock):"
+msgstr ""
+
 msgstr ""
 msgctxt "#30200"
 msgid "Streams"
