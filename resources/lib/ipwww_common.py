@@ -338,7 +338,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
 
 
 def CreateBaseDirectory(content_type):
-    if ADDON.getSetting('kids_mode') == 'true':
+    if ADDON.getSetting('kids_password'):
         AddMenuEntry('CBeebies Live', 'cbeebies_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
         AddMenuEntry('CBBC Live', 'cbbc_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
         AddMenuEntry('CBeebies', 'cbeebies', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')

@@ -85,7 +85,7 @@ msgid "All at once"
 msgstr ""
 
 msgctxt "#30180"
-msgid "Children's mode"
+msgid "CBeebies/CBBC Only"
 msgstr ""
 
 msgstr ""

@@ -16,7 +16,6 @@ plugin_handle = int(sys.argv[1])
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 sys.path.insert(0, os.path.join(ADDON.getAddonInfo("path"), 'resources', 'lib'))
 
-
 try:
     import ipwww_common as Common
     from ipwww_common import utf8_unquote_plus, CreateBaseDirectory
@@ -95,7 +94,20 @@ try:
 except:
     pass
 
-
+if mode == 1:
+    dialog = xbmcgui.Dialog()
+    old_password = ''
+    try:
+        old_password = ADDON.getSetting('kids_password')
+    except:
+        pass
+    password = ''
+    if old_password:
+        password = dialog.input('Enter old password', type=xbmcgui.INPUT_ALPHANUM)
+    if old_password == password:
+        new_password = dialog.input('Enter new password (empty to unlock)', type=xbmcgui.INPUT_ALPHANUM)
+        ADDON.setSetting('kids_password',new_password)
+    quit()
 
 # These are the modes which tell the plugin where to go.
 if mode is None or url is None or len(url) < 1:
@@ -195,6 +207,7 @@ elif mode == 133:
 
 elif mode == 136:
     Radio.GetPage(url)
+
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:

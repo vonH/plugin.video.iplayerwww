@@ -7,7 +7,7 @@
     <setting id="suppress_incomplete" label="30150" type="bool" default="false" />
     <setting id="scrape_atoz" label="30160" type="enum" lvalues="30161|30162" default="0" />
     <setting id="paginate_episodes" label="30170" type="enum" lvalues="30171|30172" default="1" />
-    <setting id="kids_mode" label="30180" type="bool" default="false" />
+    <setting id="kids_mode" label="30180" type="action" action="XBMC.RunPlugin(plugin://plugin.video.iplayerwww?mode=1)"/>
     <setting label="30102" type="lsep"  />
     <setting id="radio_paginate_episodes" label="30170" type="enum" lvalues="30171|30172" default="2" />
     <setting label="30103" type="lsep"  />
