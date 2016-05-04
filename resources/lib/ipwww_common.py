@@ -336,8 +336,29 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     return True
 
+def KidsMode():
+    dialog = xbmcgui.Dialog()
+    old_password = ''
+    try:
+        old_password = ADDON.getSetting('kids_password')
+    except:
+        pass
+    password = ''
+    if old_password:
+        password = dialog.input(translation(30181), type=xbmcgui.INPUT_ALPHANUM)
+    if old_password == password:
+        new_password = dialog.input(translation(30182), type=xbmcgui.INPUT_ALPHANUM)
+        ADDON.setSetting('kids_password',new_password)
+    quit()
 
 def CreateBaseDirectory(content_type):
+    if ADDON.getSetting('kids_password'):
+        AddMenuEntry('CBeebies Live', 'cbeebies_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
+        AddMenuEntry('CBBC Live', 'cbbc_hd', 203, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
+        AddMenuEntry('CBeebies', 'cbeebies', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
+        AddMenuEntry('CBBC', 'cbbc', 125, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbbc.png'), '', '')
+        AddMenuEntry('CBeebies Radio', 'p02pnn9d', 131, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'), '', '')
+        return
     if content_type == "video":
         AddMenuEntry(translation(30300), 'iplayer', 106, '', '', '')
         AddMenuEntry(translation(30317), 'url', 109, '', '', '')
@@ -397,4 +418,5 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry((translation(30324)+translation(30307)),
                             'url', 117, '', '', '')
         AddMenuEntry(translation(30325), 'url', 119, '', '', '')
+
 
