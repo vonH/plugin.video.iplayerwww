@@ -250,6 +250,26 @@ msgctxt "#30328"
 msgid "Red Button"
 msgstr ""
 
+msgctxt "#30329"
+msgid "CBeebies Live"
+msgstr ""
+
+msgctxt "#30330"
+msgid "CBBC Live"
+msgstr ""
+
+msgctxt "#30331"
+msgid "CBeebies"
+msgstr ""
+
+msgctxt "#30332"
+msgid "CBBC"
+msgstr ""
+
+msgctxt "#30333"
+msgid "CBeebies Radio"
+msgstr ""
+
 
 msgctxt "#30400"
 msgid "Error"
