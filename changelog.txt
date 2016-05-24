@@ -2,6 +2,10 @@ v2.x.y
 Added mode which shows CBeebies/CBBC only.
 Moved translation to .po format.
 
+v2.2.1
+Fixed problem with new Highlights layout.
+Fixed problem with new XML format.
+
 v2.2.0
 Added support for Red Button.
 Fixed empty directory in Channel Highlights.
