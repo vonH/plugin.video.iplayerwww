@@ -354,12 +354,16 @@ def KidsMode():
 
 def CreateBaseDirectory(content_type):
     if ADDON.getSetting('kids_password'):
-        AddMenuEntry(translation(30329), 'cbeebies_hd', 203,
+        if ADDON.getSetting('streams_autoplay') == 'true':
+            live_mode = 203
+        else:
+            live_mode = 123
+        AddMenuEntry(translation(30329), 'cbeebies_hd', live_mode,
                      xbmc.translatePath(
                          'special://home/addons/plugin.video.iplayerwww/media/cbeebies.png'
                      ),
                      '', '')
-        AddMenuEntry(translation(30330), 'cbbc_hd', 203,
+        AddMenuEntry(translation(30330), 'cbbc_hd', live_mode,
                      xbmc.translatePath(
                          'special://home/addons/plugin.video.iplayerwww/media/cbbc.png'
                      ),

@@ -85,7 +85,7 @@ msgid "All at once"
 msgstr ""
 
 msgctxt "#30180"
-msgid "CBeebies/CBBC Only"
+msgid "Switch CBeebies/CBBC only mode on/off"
 msgstr ""
 
 msgctxt "#30181"
@@ -259,11 +259,11 @@ msgid "CBBC Live"
 msgstr ""
 
 msgctxt "#30331"
-msgid "CBeebies"
+msgid "CBeebies A-Z"
 msgstr ""
 
 msgctxt "#30332"
-msgid "CBBC"
+msgid "CBBC A-Z"
 msgstr ""
 
 msgctxt "#30333"

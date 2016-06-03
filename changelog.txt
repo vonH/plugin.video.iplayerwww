@@ -1,6 +1,7 @@
-v2.x.y
+v2.3.0
 Added mode which shows CBeebies/CBBC only.
-Moved translation to .po format.
+Rearranged settings.
+Moved translation to .po format. (already in 2.2.1)
 
 v2.2.1
 Fixed problem with new Highlights layout.
