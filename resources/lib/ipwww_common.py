@@ -297,8 +297,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     else:
         isFolder = True
 
-    listitem = xbmcgui.ListItem(label=name, label2=description,
-                                iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+    listitem = xbmcgui.ListItem(label=name, label2=description, thumbnailImage=iconimage)
     if aired:
         listitem.setInfo("video", {
             "title": name,
