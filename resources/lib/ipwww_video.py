@@ -827,7 +827,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
         PlayStream(name, streams_available[0][4], iconimage, '', '')
 
 
-def AddAvailableRedButtonItem(name, channelname):
+def AddAvailableRedButtonItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
     stream_bitrates = [9999, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5]
 
@@ -858,10 +858,10 @@ def AddAvailableRedButtonItem(name, channelname):
         # print match
         # print "Playing %s from %s with bitrate %s"%(name, match[0][4], match [0][1])
         if len(match) > 0: #TODO error message
-            PlayStream(name, match[0][0], '', '', '')
+            PlayStream(name, match[0][0], iconimage, '', '')
     # Play the fastest available stream of the preferred provider
     else:
-        PlayStream(name, streams_available[0][0], '', '', '')
+        PlayStream(name, streams_available[0][0], iconimage, '', '')
 
 
 

@@ -207,7 +207,7 @@ elif mode == 203:
     Video.AddAvailableLiveStreamItem(name, url, iconimage)
 
 elif mode == 204:
-    Video.AddAvailableRedButtonItem(name, url)
+    Video.AddAvailableRedButtonItem(name, url, iconimage)
 
 elif mode == 211:
     Radio.PlayStream(name, url, iconimage, description, subtitles_url)
