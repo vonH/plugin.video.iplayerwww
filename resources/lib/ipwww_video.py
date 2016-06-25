@@ -1181,7 +1181,6 @@ def ParseRedButtonStreams(channelname, providers):
     for provider_url, provider_name in providers:
         url = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hds/uk/pc/%s/%s.f4m" % (provider_url, channelname)
         html = OpenURL(url)
-        xbmc.log(html)
         match = re.compile('<media href="(.+?)" bitrate="(.+?)"/>').findall(html)
 
         streams.extend([list(stream) + [provider_name] for stream in match])
