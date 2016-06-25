@@ -837,10 +837,10 @@ def AddAvailableRedButtonItem(name, channelname, iconimage):
         providers = [('llnw', 'Limelight')]
     else:
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-    bitrate_selected = int(ADDON.getSetting('live_bitrate'))
+    bitrate_selected = int(ADDON.getSetting('redbutton_bitrate'))
     if bitrate_selected > len(stream_bitrates) - 1:
         bitrate_selected = 0
-        ADDON.setSetting('live_bitrate', str(bitrate_selected))
+        ADDON.setSetting('redbutton_bitrate', str(bitrate_selected))
 
     streams_available = ParseRedButtonStreams(channelname, providers)
 
