@@ -62,9 +62,9 @@ def ListRedButton():
     iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
     for id, name in channel_list:
         if ADDON.getSetting('streams_autoplay') == 'true':
-            AddMenuEntry(name, id, 204, iconimage, '', '')
+            AddMenuEntry(name, id, 203, iconimage, '', '')
         else:
-            AddMenuEntry(name, id, 129, iconimage, '', '')
+            AddMenuEntry(name, id, 123, iconimage, '', '')
 
 
 # ListLive creates menu entries for all live channels.
@@ -1157,8 +1157,13 @@ def ParseLiveStreams(channelname, providers):
             device = 'hls_tablet'
         else:
             device = 'abr_hdtv'
-        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/hls/uk/%s/%s/%s.m3u8' \
-              % (device, provider_url, channelname)
+        if channelname.startswith('sport_stream_'):
+            cast = "webcast"
+        else:
+            cast = "simulcast"
+
+        url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/%s/hls/uk/%s/%s/%s.m3u8' \
+              % (cast, device, provider_url, channelname)
         html = OpenURL(url)
         match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
 
