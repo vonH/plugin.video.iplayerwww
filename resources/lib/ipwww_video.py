@@ -22,10 +22,13 @@ ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 
 def RedButtonDialog():
-    dialog = xbmcgui.Dialog()
-    ret = dialog.yesno(translation(30405), translation(30406), '',
-                       translation(30407), translation(30409), translation(30408))
-    if ret:
+    if ADDON.getSetting('redbutton_warning') == 'true':
+        dialog = xbmcgui.Dialog()
+        ret = dialog.yesno(translation(30405), translation(30406), '',
+                           translation(30407), translation(30409), translation(30408))
+        if ret:
+            ListRedButton()
+    else:
         ListRedButton()
 
 
@@ -56,11 +59,12 @@ def ListRedButton():
         ('sport_stream_23', 'BBC Red Button 23'),
         ('sport_stream_24', 'BBC Red Button 24'),
     ]
+    iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
     for id, name in channel_list:
         if ADDON.getSetting('streams_autoplay') == 'true':
-            AddMenuEntry(name, id, 203, '', '', '')
+            AddMenuEntry(name, id, 203, iconimage, '', '')
         else:
-            AddMenuEntry(name, id, 123, '', '', '')
+            AddMenuEntry(name, id, 123, iconimage, '', '')
 
 
 # ListLive creates menu entries for all live channels.
