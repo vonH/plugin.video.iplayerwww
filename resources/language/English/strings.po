@@ -97,7 +97,7 @@ msgid "Enter new password (empty to unlock):"
 msgstr ""
 
 msgctxt "#30190"
-msgid "Red Button warning"
+msgid "Show Red Button warning"
 msgstr ""
 
 msgstr ""
