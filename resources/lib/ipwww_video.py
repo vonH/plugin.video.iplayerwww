@@ -1064,6 +1064,42 @@ def ParseStreams(stream_id):
             elif int(bandwidth) <= 2410000:
                 tmp_br = 5
             retlist.append((tmp_sup, tmp_br, url, resolution))
+    # Some events have special live streams which show up as normal programmes.
+    # They need to be parsed separately.
+    match = re.compile(
+        'connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
+        ).findall(html)
+    # print match
+    unique = []
+    [unique.append(item) for item in match if item not in unique]
+    # print unique
+    for m3u8_url, supplier, transfer_format in unique:
+        tmp_sup = 0
+        tmp_br = 0
+        if transfer_format == 'hls':
+            if supplier == 'akamai_hls_live':
+                tmp_sup = 1
+            elif supplier == 'll_hls_live':
+                tmp_sup = 2
+            html = OpenURL(m3u8_url)
+            match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
+            for stream_id, bandwidth, codecs, resolution, url in match:
+                # Note: This is not entirely correct as these bandwidths relate to live programmes, not catchup.
+                if int(bandwidth) <= 801000:
+                    tmp_br = 1
+                elif int(bandwidth) <= 1100000:
+                    tmp_br = 2
+                elif int(bandwidth) <= 1510000:
+                    tmp_br = 3
+                elif int(bandwidth) <= 1800000:
+                    tmp_br = 4
+                elif int(bandwidth) <= 2410000:
+                    tmp_br = 5
+                elif int(bandwidth) <= 3120000:
+                    tmp_br = 6
+                elif int(bandwidth) >= 5500000:
+                    tmp_br = 7
+                retlist.append((tmp_sup, tmp_br, url, resolution))
     match = re.compile('service="captions".+?connection href="(.+?)"').findall(html)
     # print "Subtitle URL: %s"%match
     # print retlist
