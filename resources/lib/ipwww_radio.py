@@ -386,7 +386,7 @@ def ListLive():
     ]
     for id, name in channel_list:
         iconimage = xbmc.translatePath(
-            os.path.join('special://home/addons/plugin.video.iplayerwww/media', id + '.jpg'))
+            os.path.join('special://home/addons/plugin.video.iplayerwww/media', id + '.png'))
         if ADDON.getSetting('streams_autoplay') == 'true':
             AddMenuEntry(name, id, 213, iconimage, '', '')
         else:
