@@ -169,7 +169,7 @@ def ListChannelAtoZ():
     channel_list = [
         ('bbcone',           'bbc_one_hd',              'BBC One'),
         ('bbctwo',           'bbc_two_hd',              'BBC Two'),
-        ('tv/bbcthree',      'bbc_three',             'BBC Three'),
+        ('tv/bbcthree',      'bbc_three_hd',          'BBC Three'),
         ('bbcfour',          'bbc_four_hd',            'BBC Four'),
         ('tv/cbbc',          'cbbc_hd',                    'CBBC'),
         ('tv/cbeebies',      'cbeebies_hd',            'CBeebies'),
@@ -480,7 +480,7 @@ def ListChannelHighlights():
     channel_list = [
         ('bbcone',           'bbc_one_hd',              'BBC One'),
         ('bbctwo',           'bbc_two_hd',              'BBC Two'),
-        ('tv/bbcthree',      'bbc_three',             'BBC Three'),
+        ('tv/bbcthree',      'bbc_three_hd',          'BBC Three'),
         ('bbcfour',          'bbc_four_hd',            'BBC Four'),
         ('tv/cbbc',          'cbbc_hd',                    'CBBC'),
         ('tv/cbeebies',      'cbeebies_hd',            'CBeebies'),
