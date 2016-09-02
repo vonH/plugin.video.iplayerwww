@@ -386,6 +386,12 @@ def CreateBaseDirectory(content_type):
                      '', '')
         return
 
+    if not (ADDON.getSetting("license_warning_shown") == 'true'):
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok('iPlayer WWW', 'To Watch iPlayer Content Legally You Need a UK TV License.')
+        if ok:
+            ADDON.setSetting("license_warning_shown", 'true')
+
     if content_type == "video":
         AddMenuEntry(translation(30300), 'iplayer', 106, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/top_rated.png'), '', '')
         AddMenuEntry(translation(30317), 'url', 109, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/top_rated.png'), '', '')
