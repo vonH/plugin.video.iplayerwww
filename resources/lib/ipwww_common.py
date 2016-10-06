@@ -164,14 +164,33 @@ def SignInBBCiD():
     password=ADDON.getSetting('bbc_id_password')
 
     post_data={
-               'unique': username,
+               'username': username,
                'password': password,
-               'rememberme':'0'}
-    r = OpenURLPost(sign_in_url, post_data)
-    if (r.status_code == 302):
-        xbmcgui.Dialog().notification(translation(30308), translation(30309))
-    else:
-        xbmcgui.Dialog().notification(translation(30308), translation(30310))
+               'attempts':'0'}
+    
+    #Regular expression to get 'nonce' from login page
+    p = re.compile('form method="post" action="([^""]*)"')
+    
+    with requests.Session() as s:
+        resp = s.get('https://www.bbc.com/')
+
+        # Call the login page to get a 'nonce' for actual login
+        signInUrl = 'https://www.bbc.com/session'
+        resp = s.get(signInUrl)
+        m = p.search(resp.text)
+        url = m.group(1)
+
+        url = "https://www.bbc.com%s" % url
+        resp = s.post(url, data=post_data)
+    
+        for cookie in s.cookies:
+            cookie_jar.set_cookie(cookie)
+        cookie_jar.save(ignore_discard=True)
+    
+    #if (r.status_code == 302):
+    #    xbmcgui.Dialog().notification(translation(30308), translation(30309))
+    #else:
+    #    xbmcgui.Dialog().notification(translation(30308), translation(30310))
 
 
 def SignOutBBCiD():
@@ -185,11 +204,11 @@ def SignOutBBCiD():
 
 
 def StatusBBCiD():
-    status_url="https://ssl.bbc.co.uk/id/status"
-    html=OpenURL(status_url)
-    if("You are signed in" in html):
+    r = requests.head("https://www.bbc.com/account", cookies=cookie_jar, allow_redirects=False)
+    if r.status_code == 200:
         return True
-    return False
+    else: 
+        return False
 
 
 def CheckLogin(logged_in):
