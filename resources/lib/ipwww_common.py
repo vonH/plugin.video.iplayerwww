@@ -36,6 +36,7 @@ addoninfo = GetAddonInfo()
 DIR_USERDATA = xbmc.translatePath(addoninfo["profile"])
 cookie_jar = None
 user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:48.0) Gecko/20100101 Firefox/48.0'
+headers = {'User-Agent': user_agent}
 
 
 if(not os.path.exists(DIR_USERDATA)):
@@ -172,21 +173,37 @@ def SignInBBCiD():
     p = re.compile('form method="post" action="([^""]*)"')
     
     with requests.Session() as s:
-        resp = s.get('https://www.bbc.com/')
+        resp = s.get('https://www.bbc.com/', headers=headers)
 
         # Call the login page to get a 'nonce' for actual login
         signInUrl = 'https://www.bbc.com/session'
-        resp = s.get(signInUrl)
+        resp = s.get(signInUrl, headers=headers)
         m = p.search(resp.text)
         url = m.group(1)
 
         url = "https://www.bbc.com%s" % url
-        resp = s.post(url, data=post_data)
+        resp = s.post(url, data=post_data, headers=headers)
     
         for cookie in s.cookies:
             cookie_jar.set_cookie(cookie)
         cookie_jar.save(ignore_discard=True)
     
+    with requests.Session() as s:
+        resp = s.get('https://www.bbc.co.uk/iplayer', headers=headers)
+
+        # Call the login page to get a 'nonce' for actual login
+        signInUrl = 'https://www.bbc.co.uk/session'
+        resp = s.get(signInUrl, headers=headers)
+        m = p.search(resp.text)
+        url = m.group(1)
+
+        url = "https://www.bbc.com%s" % url
+        resp = s.post(url, data=post_data, headers=headers)
+    
+        for cookie in s.cookies:
+            cookie_jar.set_cookie(cookie)
+        cookie_jar.save(ignore_discard=True)
+
     #if (r.status_code == 302):
     #    xbmcgui.Dialog().notification(translation(30308), translation(30309))
     #else:
@@ -232,7 +249,6 @@ def CheckLogin(logged_in):
 
 
 def OpenURL(url):
-    headers = {'User-Agent': user_agent}
     try:
         r = requests.get(url, headers=headers, cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
@@ -252,14 +268,15 @@ def OpenURL(url):
 
 def OpenURLPost(url, post_data):
 
-    headers = {
-               'User-Agent': user_agent,
-               'Host':'ssl.bbc.co.uk',
-               'Accept':'*/*',
-               'Referer':'https://ssl.bbc.co.uk/id/signin',
-               'Content-Type':'application/x-www-form-urlencoded'}
+    headers_ssl = {
+                   'User-Agent': user_agent,
+                   'Host':'ssl.bbc.co.uk',
+                   'Accept':'*/*',
+                   'Referer':'https://ssl.bbc.co.uk/id/signin',
+                   'Content-Type':'application/x-www-form-urlencoded'}
     try:
-        r = requests.post(url, headers=headers, data=post_data, allow_redirects=False, cookies=cookie_jar)
+        r = requests.post(url, headers=headers_ssl, data=post_data, allow_redirects=False,
+                          cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), "%s" % e)
