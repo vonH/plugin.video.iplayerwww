@@ -443,7 +443,6 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry(translation(30328), 'url', 118, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/tv.png'), '', '')
         AddMenuEntry(translation(30306), 'url', 107, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/favourites.png'), '', '')
         AddMenuEntry(translation(30307), 'url', 108, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/favourites.png'), '', '')
-
         AddMenuEntry(translation(30325), 'url', 119, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/settings.png'),  '', '')
     elif content_type == "audio":
         AddMenuEntry(translation(30321), 'url', 113, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/live.png'), '', '')
@@ -452,6 +451,7 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry(translation(30304), 'url', 115, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/search.png'), '', '')
         AddMenuEntry(translation(30301), 'url', 116, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/popular.png'), '', '')
         AddMenuEntry(translation(30307), 'url', 117, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/favourites.png'), '', '')
+        AddMenuEntry(translation(30334), 'url', 199, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/favourites.png'), '', '')
         AddMenuEntry(translation(30325), 'url', 119, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/settings.png'), '', '')
     else:
         ShowLicenceWarning()
@@ -490,6 +490,8 @@ def CreateBaseDirectory(content_type):
                             'url', 116, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/popular.png'), '', '')
         AddMenuEntry((translation(30324)+translation(30307)),
                             'url', 117, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/favourites.png'), '', '')
+        AddMenuEntry((translation(30324)+translation(30334)),
+                            'url', 199, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/favourites.png'), '', '')
         AddMenuEntry(translation(30325), 'url', 119, xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/settings.png'), '', '')
 
 

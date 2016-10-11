@@ -463,6 +463,65 @@ def ListListenList(logged_in):
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
 
+def ListFollwing(logged_in):
+    if(CheckLogin(logged_in) == False):
+        CreateBaseDirectory('audio')
+        return
+
+    """Scrapes all episodes of the favourites page."""
+    html = OpenURL('https://www.bbc.co.uk/radio/favourites/programmes')
+
+    programmes = html.split('<div class="favourites follow ')
+    for programme in programmes:
+
+        if not programme.startswith('media'):
+            continue
+
+        series_id = ''
+        series_name = ''
+        series_id_match = re.search(r'<a aria-label="(.*?)" class="follows__image-link" href="http://www.bbc.co.uk/programmes/(.*?)">',programme)
+        if series_id_match:
+            series_name = series_id_match.group(1)
+            series_id = series_id_match.group(2)
+
+        episode_name = ''
+        episode_id = ''
+        episode_id_match = re.search(r'<a aria-label="(.*?)" class="size-e clr-white" href="http://www.bbc.co.uk/programmes/(.*?)#play"',programme)
+        if episode_id_match:
+            episode_name = episode_id_match.group(1)
+            episode_id = episode_id_match.group(2)
+
+        episode_image = ''
+        series_image = ''
+        series_image_match = re.search(r'<img class="media__image" src="(.*?)"',programme)
+        if series_image_match:
+            series_image = "https:%s" % series_image_match.group(1)
+            episode_image = series_image
+
+        station = ''
+        station_match = re.search(r'<a href="(.*?)" class="clr-light-grey">\s*(.*?)\s*</a>',programme, flags=(re.DOTALL | re.MULTILINE))
+        if station_match:
+            station = station_match.group(2).strip()
+
+        description = ''
+
+        if series_id:
+            series_title = "[B]%s - %s[/B]" % (station, series_name)
+            AddMenuEntry(series_title, series_id, 131, series_image, description, '')
+
+        if episode_id:
+            if series_name:
+                episode_title = "[B]%s[/B] - %s - %s" % (station, series_name, episode_name)
+            else:
+                episode_title = "[B]%s[/B] - %s" % (station, episode_name)
+            episode_url = "http://www.bbc.co.uk/programmes/%s" % episode_id
+            # xbmc.log(episode_url)
+            CheckAutoplay(episode_title, episode_url, episode_image, ' ', '')
+
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+
+
 def ListMostPopular():
     html = OpenURL('http://www.bbc.co.uk/radio/popular')
 
