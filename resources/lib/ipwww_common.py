@@ -213,7 +213,8 @@ def SignInBBCiD():
 def SignOutBBCiD():
     sign_out_url="https://ssl.bbc.co.uk/id/signout"
     OpenURL(sign_out_url)
-    cookie_jar.clear_session_cookies()
+    cookie_jar.clear()
+    cookie_jar.save()
     if (StatusBBCiD()):
         xbmcgui.Dialog().notification(translation(30326), translation(30310))
     else:
