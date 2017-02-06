@@ -236,11 +236,15 @@ def CheckLogin(logged_in):
     elif ADDON.getSetting('bbc_id_enabled') != 'true':
         xbmcgui.Dialog().ok(translation(30308), translation(30311))
     else:
-        attemptLogin = xbmcgui.Dialog().yesno(translation(30308), translation(30312))
+        if ADDON.getSetting('bbc_id_autologin') == 'true':
+            attemptLogin = True
+        else:
+            attemptLogin = xbmcgui.Dialog().yesno(translation(30308), translation(30312))
         if attemptLogin:
             SignInBBCiD()
             if(StatusBBCiD()):
-                xbmcgui.Dialog().notification(translation(30308), translation(30309))
+                if ADDON.getSetting('bbc_id_autologin') == 'false':
+                    xbmcgui.Dialog().notification(translation(30308), translation(30309))
                 logged_in = True;
                 return True;
             else:
