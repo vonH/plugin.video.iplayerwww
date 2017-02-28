@@ -130,18 +130,7 @@ def ListLive():
         iconimage = xbmc.translatePath(
             os.path.join('special://home/addons/plugin.video.iplayerwww/media', id + '.png'))
         if ADDON.getSetting('streams_autoplay') == 'true':
-            if int(ADDON.getSetting('stream_protocol')) == 1:
-                AddMenuEntry(name, id, 203, iconimage, '', '')
-            elif int(ADDON.getSetting('stream_protocol')) == 0:
-                if int(ADDON.getSetting('live_source')) == 1:
-                    provider = 'ak'
-                elif int(ADDON.getSetting('live_source')) == 2:
-                    provider = 'llnw'
-                else:
-                    providers = ['ak', 'llnw']
-                    provider = providers[randint(0,1)]
-                url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/dash/uk/dash_pc/%s/%s.mpd' % (provider,id)
-                AddMenuEntry(name, url, 201, iconimage, '', '')
+            AddMenuEntry(name, id, 203, iconimage, '', '')
         else:
             AddMenuEntry(name, id, 123, iconimage, '', '')
 
@@ -961,6 +950,29 @@ def Search(search_entered):
     ScrapeEpisodes(NEW_URL)
 
 
+def AddAvailableLiveStreamItemSelector(name, channelname, iconimage):
+    if int(ADDON.getSetting('stream_protocol')) == 1:
+        return AddAvailableLiveStreamItem(name, channelname, iconimage)
+    elif int(ADDON.getSetting('stream_protocol')) == 0:
+        return AddAvailableLiveDASHStreamItem(name, channelname, iconimage)
+
+
+def AddAvailableLiveDASHStreamItem(name, channelname, iconimage):
+
+    streams = ParseLiveDASHStreams(channelname)
+
+    source = int(ADDON.getSetting('live_source'))
+    if source > 0:
+        match = [x for x in streams if (x[0] == source)]
+        if len(match) == 0:
+            match = [x for x in streams if (x[1] in range(1, bitrate))]
+            match.sort(key=lambda x: x[1], reverse=True)
+    else:
+        match = streams
+        match.sort(key=lambda x: x[1], reverse=True)
+    PlayStream(name, match[0][2], iconimage, '', '')
+
+
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
     stream_bitrates = [9999, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5]
@@ -1028,10 +1040,10 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             AddMenuEntry(title, url, 201, iconimage, '', '')
 
     elif int(ADDON.getSetting('stream_protocol')) == 0:
-        providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-        for provider, provider_name in providers:
-            title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (provider_name)
-            url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/simulcast/dash/uk/dash_pc/%s/%s.mpd' % (provider, channelname)
+        streams = ParseLiveDASHStreams(channelname)
+        suppliers = ['', 'Akamai', 'Limelight', 'Bidi']
+        for supplier, bitrate, url, resolution in streams:
+            title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (suppliers[supplier])
             AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
@@ -1271,11 +1283,11 @@ def ParseDASHStreams(stream_id):
         tmp_sup = 0
         tmp_br = 0
         if transfer_format == 'dash':
-            if supplier == 'akamai_uk_dash':
+            if supplier in ['akamai_uk_dash', 'akamai_uk_dash_https']:
                 tmp_sup = 1
-            elif supplier == 'limelight_uk_dash':
+            elif supplier in ['limelight_uk_dash', 'limelight_uk_dash_https']:
                 tmp_sup = 2
-            elif supplier == 'bidi_uk_dash':
+            elif supplier in ['bidi_uk_dash', 'bidi_uk_dash_https']:
                 tmp_sup = 3
             retlist.append((tmp_sup, 1, mpd_url, '1280x720'))
 
@@ -1332,6 +1344,30 @@ def ParseLiveStreams(channelname, providers):
 
     # Return list sorted by bitrate
     return sorted(streams, key=lambda x: (x[1]), reverse=True)
+
+
+def ParseLiveDASHStreams(channelname):
+    streams = []
+
+    url = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s" % channelname
+    html = OpenURL(url)
+    # Parse the different streams and add them as new directory entries.
+    match = re.compile(
+          'connection.+?href="(.+?)".+?supplier="(.+?)_live".+?transferFormat="(.+?)"'
+        ).findall(html)
+    unique = []
+    [unique.append(item) for item in match if item not in unique]
+    for mpd_url, supplier, transfer_format in unique:
+        tmp_sup = 0
+        tmp_br = 0
+        if transfer_format == 'dash':
+            if supplier in ['akamai_dash']:
+                tmp_sup = 1
+            elif supplier in ['ll_dash']:
+                tmp_sup = 2
+            streams.append((tmp_sup, 1, mpd_url, '1280x720'))
+
+    return streams
 
 
 def ScrapeAvailableStreams(url):
