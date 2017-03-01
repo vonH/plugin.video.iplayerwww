@@ -952,7 +952,8 @@ def Search(search_entered):
 
 
 def AddAvailableLiveStreamItemSelector(name, channelname, iconimage):
-    if int(ADDON.getSetting('stream_protocol')) == 1:
+    if ((int(ADDON.getSetting('stream_protocol')) == 1) or
+        (channelname.startswith('sport_stream_'))):
         return AddAvailableLiveStreamItem(name, channelname, iconimage)
     elif int(ADDON.getSetting('stream_protocol')) == 0:
         return AddAvailableLiveDASHStreamItem(name, channelname, iconimage)
@@ -1020,7 +1021,8 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         iconimage: only used for displaying the channel.
         channelname: determines which channel is queried.
     """
-    if int(ADDON.getSetting('stream_protocol')) == 1:
+    if ((int(ADDON.getSetting('stream_protocol')) == 1) or
+        (channelname.startswith('sport_stream_'))):
         streams = ParseLiveStreams(channelname, '')
 
         # Add each stream to the Kodi selection menu.
