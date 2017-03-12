@@ -17,6 +17,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
+from random import randint
 
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
@@ -866,11 +867,11 @@ def AddAvailableStreamItem(name, url, iconimage, description):
     """Play a streamm based on settings for preferred catchup source and bitrate."""
     stream_ids = ScrapeAvailableStreams(url)
     if stream_ids['stream_id_ad']:
-        streams_all = ParseStreams(stream_ids['stream_id_ad'])
+        streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_ad'])
     elif stream_ids['stream_id_sl']:
-        streams_all = ParseStreams(stream_ids['stream_id_sl'])
+        streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_sl'])
     else:
-        streams_all = ParseStreams(stream_ids['stream_id_st'])
+        streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_st'])
     if streams_all[1]:
         # print "Setting subtitles URL"
         subtitles_url = streams_all[1][0]
@@ -950,6 +951,30 @@ def Search(search_entered):
     ScrapeEpisodes(NEW_URL)
 
 
+def AddAvailableLiveStreamItemSelector(name, channelname, iconimage):
+    if ((int(ADDON.getSetting('stream_protocol')) == 1) or
+        (channelname.startswith('sport_stream_'))):
+        return AddAvailableLiveStreamItem(name, channelname, iconimage)
+    elif int(ADDON.getSetting('stream_protocol')) == 0:
+        return AddAvailableLiveDASHStreamItem(name, channelname, iconimage)
+
+
+def AddAvailableLiveDASHStreamItem(name, channelname, iconimage):
+
+    streams = ParseLiveDASHStreams(channelname)
+
+    source = int(ADDON.getSetting('live_source'))
+    if source > 0:
+        match = [x for x in streams if (x[0] == source)]
+        if len(match) == 0:
+            match = [x for x in streams if (x[1] in range(1, bitrate))]
+            match.sort(key=lambda x: x[1], reverse=True)
+    else:
+        match = streams
+        match.sort(key=lambda x: x[1], reverse=True)
+    PlayStream(name, match[0][2], iconimage, '', '')
+
+
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
     stream_bitrates = [9999, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5]
@@ -996,24 +1021,33 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         iconimage: only used for displaying the channel.
         channelname: determines which channel is queried.
     """
-    streams = ParseLiveStreams(channelname, '')
+    if ((int(ADDON.getSetting('stream_protocol')) == 1) or
+        (channelname.startswith('sport_stream_'))):
+        streams = ParseLiveStreams(channelname, '')
 
-    # Add each stream to the Kodi selection menu.
-    for id, bitrate, codecs, resolution, url, provider_name in streams:
-        # For easier selection use colors to indicate high and low bitrate streams
-        if bitrate > 2.1:
-            color = 'ff008000'
-        elif bitrate > 1.0:
-            color = 'ffffff00'
-        elif bitrate > 0.6:
-            color = 'ffffa500'
-        else:
-            color = 'ffff0000'
+        # Add each stream to the Kodi selection menu.
+        for id, bitrate, codecs, resolution, url, provider_name in streams:
+            # For easier selection use colors to indicate high and low bitrate streams
+            if bitrate > 2.1:
+                color = 'ff008000'
+            elif bitrate > 1.0:
+                color = 'ffffff00'
+            elif bitrate > 0.6:
+                color = 'ffffa500'
+            else:
+                color = 'ffff0000'
 
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR fff1f1f1]%s[/COLOR][/I]' % (
-            color, bitrate, provider_name)
-        # Finally add them to the selection menu.
-        AddMenuEntry(title, url, 201, iconimage, '', '')
+            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR fff1f1f1]%s[/COLOR][/I]' % (
+                color, bitrate, provider_name)
+            # Finally add them to the selection menu.
+            AddMenuEntry(title, url, 201, iconimage, '', '')
+
+    elif int(ADDON.getSetting('stream_protocol')) == 0:
+        streams = ParseLiveDASHStreams(channelname)
+        suppliers = ['', 'Akamai', 'Limelight', 'Bidi']
+        for supplier, bitrate, url, resolution in streams:
+            title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (suppliers[supplier])
+            AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
 def ListWatching(logged_in):
@@ -1077,7 +1111,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
 def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     """Will create one menu entry for each available stream of a particular stream_id"""
     # print "Stream ID: %s"%stream_id
-    streams = ParseStreams(stream_id)
+    streams = ParseStreamsHLSDASH(stream_id)
     # print streams
     if streams[1]:
         # print "Setting subtitles URL"
@@ -1096,9 +1130,19 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
             color = 'ffffff00'
         else:
             color = 'ffffa500'
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
-            color, bitrates[bitrate] / 1000, suppliers[supplier])
+        if int(ADDON.getSetting('stream_protocol')) == 1:
+            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
+                color, bitrates[bitrate] / 1000, suppliers[supplier])
+        else:
+            title = name + ' - [I][COLOR ffd3d3d3]%s[/COLOR][/I]' % (suppliers[supplier])
         AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
+
+
+def ParseStreamsHLSDASH(stream_id):
+    if int(ADDON.getSetting('stream_protocol')) == 1:
+        return ParseStreams(stream_id)
+    elif int(ADDON.getSetting('stream_protocol')) == 0:
+        return ParseDASHStreams(stream_id)
 
 
 def ParseStreams(stream_id):
@@ -1233,6 +1277,44 @@ def ParseStreams(stream_id):
     return retlist, match
 
 
+def ParseDASHStreams(stream_id):
+    retlist = []
+    # print "Parsing streams for PID: %s"%stream_id[0]
+    # Open the page with the actual strem information and display the various available streams.
+    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s" % stream_id[0]
+    html = OpenURL(NEW_URL)
+    # Parse the different streams and add them as new directory entries.
+    match = re.compile(
+          'connection authExpires=".+?href="(.+?)".+?supplier="mf_(.+?)".+?transferFormat="(.+?)"'
+        ).findall(html)
+    for mpd_url, supplier, transfer_format in match:
+        tmp_sup = 0
+        tmp_br = 0
+        if transfer_format == 'dash':
+            if supplier in ['akamai_uk_dash', 'akamai_uk_dash_https']:
+                tmp_sup = 1
+            elif supplier in ['limelight_uk_dash', 'limelight_uk_dash_https']:
+                tmp_sup = 2
+            elif supplier in ['bidi_uk_dash', 'bidi_uk_dash_https']:
+                tmp_sup = 3
+            retlist.append((tmp_sup, 1, mpd_url, '1280x720'))
+
+    match = re.compile('service="captions".+?connection href="(.+?)"').findall(html)
+    # print "Subtitle URL: %s"%match
+    # print retlist
+    if not match:
+        # print "No streams found"
+        check_geo = re.search(
+            '<error id="geolocation"/>', html)
+        if check_geo:
+            # print "Geoblock detected, raising error message"
+            dialog = xbmcgui.Dialog()
+            dialog.ok(translation(30400), translation(30401))
+            raise
+    return retlist, match
+
+
+
 def ParseLiveStreams(channelname, providers):
     if providers == '':
         providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
@@ -1270,6 +1352,30 @@ def ParseLiveStreams(channelname, providers):
 
     # Return list sorted by bitrate
     return sorted(streams, key=lambda x: (x[1]), reverse=True)
+
+
+def ParseLiveDASHStreams(channelname):
+    streams = []
+
+    url = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s" % channelname
+    html = OpenURL(url)
+    # Parse the different streams and add them as new directory entries.
+    match = re.compile(
+          'connection.+?href="(.+?)".+?supplier="(.+?)_live".+?transferFormat="(.+?)"'
+        ).findall(html)
+    unique = []
+    [unique.append(item) for item in match if item not in unique]
+    for mpd_url, supplier, transfer_format in unique:
+        tmp_sup = 0
+        tmp_br = 0
+        if transfer_format == 'dash':
+            if supplier in ['akamai_dash']:
+                tmp_sup = 1
+            elif supplier in ['ll_dash']:
+                tmp_sup = 2
+            streams.append((tmp_sup, 1, mpd_url, '1280x720'))
+
+    return streams
 
 
 def ScrapeAvailableStreams(url):
