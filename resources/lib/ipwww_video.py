@@ -81,7 +81,7 @@ def ListRedButton():
         ('sport_stream_21b', 'BBC Red Button 21b'),
         ('sport_stream_22b', 'BBC Red Button 22b'),
         ('sport_stream_23b', 'BBC Red Button 23b'),
-        ('sport_stream_24b', 'BBC Red Button 24b'),        
+        ('sport_stream_24b', 'BBC Red Button 24b'),
     ]
     iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
     for id, name in channel_list:
@@ -865,6 +865,12 @@ def ListMostPopular():
 def AddAvailableStreamItem(name, url, iconimage, description):
     """Play a streamm based on settings for preferred catchup source and bitrate."""
     stream_ids = ScrapeAvailableStreams(url)
+    if stream_ids['name']:
+        name = stream_ids['name']
+    if stream_ids['image']:
+        iconimage = stream_ids['image']
+    if stream_ids['description']:
+        description = stream_ids['description']
     if stream_ids['stream_id_ad']:
         streams_all = ParseStreams(stream_ids['stream_id_ad'])
     elif stream_ids['stream_id_sl']:
@@ -926,6 +932,12 @@ def GetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
     #print url
     stream_ids = ScrapeAvailableStreams(url)
+    if stream_ids['name']:
+        name = stream_ids['name']
+    if stream_ids['image']:
+        iconimage = stream_ids['image']
+    if stream_ids['description']:
+        description = stream_ids['description']
     AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description)
     # If we searched for Audio Described programmes and they have been found, append them to the list.
     if stream_ids['stream_id_ad']:
@@ -1275,6 +1287,18 @@ def ParseLiveStreams(channelname, providers):
 def ScrapeAvailableStreams(url):
     # Open page and retrieve the stream ID
     html = OpenURL(url)
+    name = None
+    match = re.search(r'<meta property="og:title" content="(.*?)"/>', html, re.DOTALL)
+    if match:
+        name = match.group(1)
+    image = None
+    match = re.search(r'<meta property="og:image" content="(.*?)"/>', html, re.DOTALL)
+    if match:
+        image = match.group(1)
+    description = None
+    match = re.search(r'<meta property="og:description" content="(.*?)"/>', html, re.DOTALL)
+    if match:
+        description = match.group(1)
     # Search for standard programmes.
     stream_id_st = re.compile('"vpid":"(.+?)"').findall(html)
     # Optionally, Signed programmes can be searched for. These have a different ID.
@@ -1291,7 +1315,7 @@ def ScrapeAvailableStreams(url):
         # print stream_id_ad
     else:
         stream_id_ad = []
-    return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad}
+    return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad, 'name': name, 'image':image, 'description': description}
 
 
 def CheckAutoplay(name, url, iconimage, plot, aired=None):
