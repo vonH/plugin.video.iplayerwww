@@ -867,7 +867,7 @@ def AddAvailableStreamItem(name, url, iconimage, description):
     stream_ids = ScrapeAvailableStreams(url)
     if stream_ids['name']:
         name = stream_ids['name']
-    if not iconimage and stream_ids['image']:
+    if not iconimage or iconimage == u"DefaultVideo.png" and stream_ids['image']:
         iconimage = stream_ids['image']
     if stream_ids['description']:
         description = stream_ids['description']
