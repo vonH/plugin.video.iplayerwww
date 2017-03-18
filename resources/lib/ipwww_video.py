@@ -82,7 +82,7 @@ def ListRedButton():
         ('sport_stream_21b', 'BBC Red Button 21b'),
         ('sport_stream_22b', 'BBC Red Button 22b'),
         ('sport_stream_23b', 'BBC Red Button 23b'),
-        ('sport_stream_24b', 'BBC Red Button 24b'),        
+        ('sport_stream_24b', 'BBC Red Button 24b'),
     ]
     iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
     for id, name in channel_list:
@@ -1095,6 +1095,9 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     liz.setInfo(type='Video', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
+    if ADDON.getSetting('stream_protocol') == '0':
+        liz.setProperty('inputstreamaddon', 'inputstream.adaptive')
+        liz.setProperty('inputstream.adaptive.manifest_type', 'mpd')
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
         subtitles_file = download_subtitles(subtitles_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
