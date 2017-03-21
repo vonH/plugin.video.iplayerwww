@@ -1397,15 +1397,15 @@ def ScrapeAvailableStreams(url):
     # Open page and retrieve the stream ID
     html = OpenURL(url)
     name = None
-    match = re.search(r'<meta property="og:title" content="(.*?)"/>', html, re.DOTALL)
+    match = re.search(r'<meta property="og:title" content="(.*?)"', html, re.DOTALL)
     if match:
         name = match.group(1)
     image = None
-    match = re.search(r'<meta property="og:image" content="(.*?)"/>', html, re.DOTALL)
+    match = re.search(r'<meta property="og:image" content="(.*?)"', html, re.DOTALL)
     if match:
         image = match.group(1)
     description = None
-    match = re.search(r'<meta property="og:description" content="(.*?)"/>', html, re.DOTALL)
+    match = re.search(r'<meta property="og:description" content="(.*?)"', html, re.DOTALL)
     if match:
         description = match.group(1)
     # Search for standard programmes.
