@@ -1153,7 +1153,8 @@ def Search(search_entered):
 
 
 def AddAvailableLiveStreamItemSelector(name, channelname, iconimage):
-    if ((int(ADDON.getSetting('stream_protocol')) == 1) or
+    if (not xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)") or
+        (int(ADDON.getSetting('stream_protocol')) == 1) or
         (channelname.startswith('sport_stream_'))):
         return AddAvailableLiveStreamItem(name, channelname, iconimage)
     elif int(ADDON.getSetting('stream_protocol')) == 0:
@@ -1222,7 +1223,8 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         iconimage: only used for displaying the channel.
         channelname: determines which channel is queried.
     """
-    if ((int(ADDON.getSetting('stream_protocol')) == 1) or
+    if (not xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)") or
+        (int(ADDON.getSetting('stream_protocol')) == 1) or
         (channelname.startswith('sport_stream_'))):
         streams = ParseLiveStreams(channelname, '')
 
@@ -1296,7 +1298,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     liz.setInfo(type='Video', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
-    if ADDON.getSetting('stream_protocol') == '0':
+    if xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)") and (ADDON.getSetting('stream_protocol') == '0'):
         liz.setProperty('inputstreamaddon', 'inputstream.adaptive')
         liz.setProperty('inputstream.adaptive.manifest_type', 'mpd')
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
@@ -1334,7 +1336,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
             color = 'ffffff00'
         else:
             color = 'ffffa500'
-        if int(ADDON.getSetting('stream_protocol')) == 1:
+        if not xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)")  or (ADDON.getSetting('stream_protocol') == '1'):
             title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
                 color, bitrates[bitrate] / 1000, suppliers[supplier])
         else:
@@ -1343,7 +1345,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
 
 
 def ParseStreamsHLSDASH(stream_id):
-    if int(ADDON.getSetting('stream_protocol')) == 1:
+    if not xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)") or ADDON.getSetting('stream_protocol') == '1':
         return ParseStreams(stream_id)
     elif int(ADDON.getSetting('stream_protocol')) == 0:
         return ParseDASHStreams(stream_id)
