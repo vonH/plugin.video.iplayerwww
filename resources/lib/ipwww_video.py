@@ -1329,6 +1329,8 @@ def ParseStreams(stream_id):
             #print m3u8_breakdown
             # print m3u8_url
             m3u8_html = OpenURL(m3u8_url)
+            if not m3u8_html:
+                continue
             m3u8_match = re.compile('BANDWIDTH=(.+?),.+?RESOLUTION=(.+?)(?:,.+?\n|\n)(.+?)\n').findall(m3u8_html)
             for bandwidth, resolution, stream in m3u8_match:
                 # print bandwidth
@@ -1367,6 +1369,8 @@ def ParseStreams(stream_id):
         # print m3u8_url
         # print m3u8_breakdown
         m3u8_html = OpenURL(m3u8_url)
+        if not m3u8_html:
+            continue
         # print m3u8_html
         m3u8_match = re.compile('BANDWIDTH=(.+?),RESOLUTION=(.+?),.+?\n(.+?)\n').findall(m3u8_html)
         # print m3u8_match
@@ -1404,6 +1408,8 @@ def ParseStreams(stream_id):
                 # This is not a live stream, skip code to avoid unnecessary loading of playlists.
                 continue
             html = OpenURL(m3u8_url)
+            if not html:
+                continue
             match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
             for stream_id, bandwidth, codecs, resolution, url in match:
                 # Note: This is not entirely correct as these bandwidths relate to live programmes,
@@ -1460,6 +1466,8 @@ def ParseLiveStreams(channelname, providers):
         url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio_video/%s/hls/uk/%s/%s/%s.m3u8' \
               % (cast, device, provider_url, channelname)
         html = OpenURL(url)
+        if not html:
+            continue
         match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
 
         # Add provider name to the stream list.

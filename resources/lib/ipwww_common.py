@@ -259,8 +259,8 @@ def OpenURL(url):
         r = requests.get(url, headers=headers, cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
-        dialog.ok(translation(30400), "%s" % e)
-        sys.exit(1)
+        dialog.notification(translation(30405), "%s" % e, xbmcgui.NOTIFICATION_WARNING, sound=False)
+        return
     try:
         for cookie in r.cookies:
             cookie_jar.set_cookie(cookie)
@@ -285,8 +285,8 @@ def OpenURLPost(url, post_data):
                           cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
-        dialog.ok(translation(30400), "%s" % e)
-        sys.exit(1)
+        dialog.notification(translation(30405), "%s" % e, xbmcgui.NOTIFICATION_WARNING, sound=False)
+        return
     try:
         for cookie in r.cookies:
             cookie_jar.set_cookie(cookie)
