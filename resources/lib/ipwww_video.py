@@ -1466,9 +1466,9 @@ def ParseStreams(stream_id):
 
 def ParseDASHStreams(stream_id):
     retlist = []
-    # print "Parsing streams for PID: %s"%stream_id[0]
+    # print "Parsing streams for PID: %s"%stream_id
     # Open the page with the actual strem information and display the various available streams.
-    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s" % stream_id[0]
+    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s" % stream_id
     html = OpenURL(NEW_URL)
     # Parse the different streams and add them as new directory entries.
     match = re.compile(
