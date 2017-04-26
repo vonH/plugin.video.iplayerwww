@@ -745,7 +745,7 @@ def ListCategories():
     """
     html = OpenURL('http://www.bbc.co.uk/iplayer')
     match = re.compile(
-        '<a href="http://www.bbc.co.uk/iplayer/categories/(.+?)".*?>(.+?)</a>'
+        '<a href=".*?/iplayer/categories/([^{}]*?)".*?>(.+?)</a>'
         ).findall(html)
     for url, name in match:
         AddMenuEntry(name, url, 125, '', '', '')
@@ -1580,12 +1580,24 @@ def ScrapeAvailableStreams(url):
         data = match.group(1)
         json_data = json.loads(data)
         # print json.dumps(json_data, indent=2, sort_keys=True)
-        name = json_data['episode']['title']
-        description = json_data['episode']['synopses']['large']
-        image = json_data['episode']['images']['standard'].replace('{recipe}','832x468')
+        if 'title' in json_data['episode']:
+            name = json_data['episode']['title']
+        if 'synopses' in json_data['episode']:
+            synopses = json_data['episode']['synopses']
+            if 'large' in synopses:
+                description = synopses['large']
+            elif 'medium' in synopses:
+                description = synopses['medium']
+            elif 'small' in synopses:
+                description = synopses['small']
+            elif 'editorial' in synopses:
+                description = synopses['editorial']
+        if 'standard' in json_data['episode']['images']:
+            image = json_data['episode']['images']['standard'].replace('{recipe}','832x468')
         for stream in json_data['episode']['versions']:
             if ((stream['kind'] == 'original') or
-               (stream['kind'] == 'iplayer-version')):
+               (stream['kind'] == 'iplayer-version') or
+               (stream['kind'] == 'editorial')):
                 stream_id_st = stream['id']
             elif ((stream['kind'] == 'signed') and
                  (ADDON.getSetting('search_signed') == 'true')):
