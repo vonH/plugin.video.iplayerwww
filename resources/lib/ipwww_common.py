@@ -19,6 +19,9 @@ import xbmcplugin
 
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 
 def GetAddonInfo():
     addon_info = {}
@@ -256,7 +259,7 @@ def CheckLogin(logged_in):
 
 def OpenURL(url):
     try:
-        r = requests.get(url, headers=headers, cookies=cookie_jar)
+        r = requests.get(url, headers=headers, cookies=cookie_jar, verify=False)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), "%s" % e)
@@ -282,7 +285,7 @@ def OpenURLPost(url, post_data):
                    'Content-Type':'application/x-www-form-urlencoded'}
     try:
         r = requests.post(url, headers=headers_ssl, data=post_data, allow_redirects=False,
-                          cookies=cookie_jar)
+                          cookies=cookie_jar, verify=False)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), "%s" % e)
