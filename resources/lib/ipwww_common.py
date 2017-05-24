@@ -316,16 +316,6 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
-    # If DASH is selected as stream_protocol, we need to check if inputstream.adaptive
-    # is available and the version is correct.
-    if int(ADDON.getSetting('stream_protocol')) == 0:
-        if xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)"):
-            if (xbmcaddon.Addon(id='inputstream.adaptive').getAddonInfo('version') < "1.0.6"):
-                # Version is smaller than 1.0.6, fall back to HLS
-                ADDON.setSetting('stream_protocol','1')
-        else:
-            # inputstream.adaptive is not available, fall back to HLS
-            ADDON.setSetting('stream_protocol','1')
 
     if not iconimage:
         iconimage="DefaultFolder.png"

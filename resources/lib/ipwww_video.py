@@ -22,6 +22,22 @@ from random import randint
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 
+def CheckInputStreamAdaptiveAvailability():
+    # If DASH is selected as stream_protocol, we need to check if inputstream.adaptive
+    # is available and the version is correct.
+    if xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)"):
+        if (xbmcaddon.Addon(id='inputstream.adaptive').getAddonInfo('version') < "1.0.6"):
+            # Version is smaller than 1.0.6, fall back to HLS
+            ADDON.setSetting('stream_protocol','1')
+            return False
+        else:
+            return True
+    else:
+        # inputstream.adaptive is not available, fall back to HLS
+        ADDON.setSetting('stream_protocol','1')
+        return False
+
+
 def RedButtonDialog():
     if ADDON.getSetting('redbutton_warning') == 'true':
         dialog = xbmcgui.Dialog()
@@ -1158,7 +1174,11 @@ def AddAvailableLiveStreamItemSelector(name, channelname, iconimage):
         (channelname.startswith('sport_stream_'))):
         return AddAvailableLiveStreamItem(name, channelname, iconimage)
     elif int(ADDON.getSetting('stream_protocol')) == 0:
-        return AddAvailableLiveDASHStreamItem(name, channelname, iconimage)
+        ia_available = CheckInputStreamAdaptiveAvailability()
+        if ia_available:
+            return AddAvailableLiveDASHStreamItem(name, channelname, iconimage)
+        else:
+            return AddAvailableLiveStreamItem(name, channelname, iconimage)
 
 
 def AddAvailableLiveDASHStreamItem(name, channelname, iconimage):
@@ -1245,11 +1265,17 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
             AddMenuEntry(title, url, 201, iconimage, '', '')
 
     elif int(ADDON.getSetting('stream_protocol')) == 0:
-        streams = ParseLiveDASHStreams(channelname)
-        suppliers = ['', 'Akamai', 'Limelight', 'Bidi']
-        for supplier, bitrate, url, resolution in streams:
-            title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (suppliers[supplier])
-            AddMenuEntry(title, url, 201, iconimage, '', '')
+        ia_available = CheckInputStreamAdaptiveAvailability()
+        if ia_available:
+            streams = ParseLiveDASHStreams(channelname)
+            suppliers = ['', 'Akamai', 'Limelight', 'Bidi']
+            for supplier, bitrate, url, resolution in streams:
+                title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (suppliers[supplier])
+                AddMenuEntry(title, url, 201, iconimage, '', '')
+        else:
+            # In this case, we reset the stream_protocol setting and the easiest way is
+            # to call this function recursively to avoid doubling a lot of code.
+            AddAvailableLiveStreamsDirectory(name, channelname, iconimage)
 
 
 def ListWatching(logged_in):
@@ -1347,7 +1373,11 @@ def ParseStreamsHLSDASH(stream_id):
     if int(ADDON.getSetting('stream_protocol')) == 1:
         return ParseStreams(stream_id)
     elif int(ADDON.getSetting('stream_protocol')) == 0:
-        return ParseDASHStreams(stream_id)
+        ia_available = CheckInputStreamAdaptiveAvailability()
+        if ia_available:
+            return ParseDASHStreams(stream_id)
+        else:
+            return ParseStreams(stream_id)
 
 
 def ParseStreams(stream_id):
