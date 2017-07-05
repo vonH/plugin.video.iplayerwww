@@ -1556,6 +1556,7 @@ def ScrapeAvailableStreams(url):
                (stream['kind'] == 'iplayer-version') or
                (stream['kind'] == 'technical-replacement') or
                (stream['kind'] == 'editorial') or
+               (stream['kind'] == 'shortened') or
                (stream['kind'] == 'webcast')):
                 stream_id_st = stream['id']
             elif ((stream['kind'] == 'signed') and
@@ -1564,6 +1565,8 @@ def ScrapeAvailableStreams(url):
             elif ((stream['kind'] == 'audio-described') and
                  (ADDON.getSetting('search_ad') == 'true')):
                 stream_id_ad = stream['id']
+            else:
+                stream_id_st = stream['id']
 
     return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad, 'name': name, 'image':image, 'description': description}
 
