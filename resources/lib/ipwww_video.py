@@ -1566,6 +1566,7 @@ def ScrapeAvailableStreams(url):
                  (ADDON.getSetting('search_ad') == 'true')):
                 stream_id_ad = stream['id']
             else:
+                print "iPlayer WWW warning: New stream kind: %s" % stream['kind']
                 stream_id_st = stream['id']
 
     return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad, 'name': name, 'image':image, 'description': description}
