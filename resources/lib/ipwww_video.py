@@ -1393,6 +1393,9 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     if ADDON.getSetting('stream_protocol') == '0':
         liz.setProperty('inputstreamaddon', 'inputstream.adaptive')
         liz.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+    else:
+        liz.setProperty('inputstreamaddon', 'inputstream.adaptive')
+        liz.setProperty('inputstream.adaptive.manifest_type', 'hls')
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
         subtitles_file = download_subtitles(subtitles_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
@@ -1470,6 +1473,10 @@ def ParseStreams(stream_id):
                 tmp_sup = 3
             else:
                 continue
+            tmp_br = 7
+            resolution = "1280x720"
+            retlist.append((tmp_sup, tmp_br, m3u8_url, resolution))
+            '''
             m3u8_breakdown = re.compile('(.+?)iptv.+?m3u8(.+?)$').findall(m3u8_url)
             m3u8_html = OpenURL(m3u8_url)
             m3u8_match = re.compile('BANDWIDTH=(.+?),.+?RESOLUTION=(.+?)(?:,.+?\n|\n)(.+?)\n').findall(m3u8_html)
@@ -1484,6 +1491,8 @@ def ParseStreams(stream_id):
                 elif int(bandwidth) >= 5500000:
                     tmp_br = 7
                 retlist.append((tmp_sup, tmp_br, url, resolution))
+            '''
+    '''
     # It may be useful to parse these additional streams as a default as they offer additional bandwidths.
     match = re.compile(
         'kind="video".+?connection href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
@@ -1547,6 +1556,7 @@ def ParseStreams(stream_id):
                 elif int(bandwidth) >= 5500000:
                     tmp_br = 7
                 retlist.append((tmp_sup, tmp_br, url, resolution))
+    '''
     match = re.compile('service="captions".+?connection href="(.+?)"').findall(html)
     # print "Subtitle URL: %s"%match
     # print retlist
