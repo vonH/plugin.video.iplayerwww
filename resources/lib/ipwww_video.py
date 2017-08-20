@@ -1102,9 +1102,11 @@ def ListHighlights(highlights_url):
             if object_type == "editorial-promo":
                 if episode_id:
                     AddMenuEntry('[B]%s[/B]' % (name), episode_id, 128, icon, '', '')
+                    found = True
             else:
                 if url:
                     CheckAutoplay(name, url, icon, desc, aired)
+                    found = True
 
     # Finally add all programmes which have been identified as part of a group before.
     for episode in episodelist:
