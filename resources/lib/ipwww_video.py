@@ -803,7 +803,9 @@ def ListHighlights(highlights_url):
     """Creates a list of the programmes in the highlights section.
     """
 
-    html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url)
+    found = False
+    #html = OpenURL('https://www.bbc.co.uk/%s' % highlights_url) # Krypton
+    html = OpenURL('http://www.bbc.co.uk/%s' % highlights_url) # Jarvis
 
     inner_anchors = re.findall(r'<a.*?(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
 
@@ -875,6 +877,7 @@ def ListHighlights(highlights_url):
 
         AddMenuEntry('[B]%s: %s[/B] - %s %s' % (translation(30314), name, count, translation(30315)),
                      url, 128, '', '', '')
+        found = True
 
     # New group types for Channel Highlights.
     groups = [a for a in inner_anchors if re.match(
@@ -928,6 +931,7 @@ def ListHighlights(highlights_url):
 
             AddMenuEntry('[B]%s: %s[/B] - %s %s' % (translation(30314), name, count, translation(30315)),
                          url, 128, '', '', '')
+            found = True
 
     # Some programmes show up twice in HTML, once inside the groups, once outside.
     # We need to parse both to avoid duplicates and to make sure we get all of them.
@@ -1108,6 +1112,14 @@ def ListHighlights(highlights_url):
         if ((ADDON.getSetting('suppress_incomplete') == 'false') or (not episode[4] == '')):
             if episode[0]:
                 CheckAutoplay(episode[1], episode_url, episode[3], episode[2], episode[4])
+                found = True
+
+    if not found:
+        hrefs = re.findall(r'href="([^"]*?/episode/[^"]*?)"',html)
+        for href in hrefs:
+            title = href.split('/')[-1]
+            title = title.replace('-',' ').title()
+            CheckAutoplay(title, href, "", "", "")
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
