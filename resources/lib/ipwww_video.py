@@ -1208,7 +1208,6 @@ def ListMainHighlights(highlights_url):
                     category = ''
                     category_match = re.search(r'categories/(.*?)/', href, flags=re.DOTALL)
                     if category_match:
-                        print "Match catgeory: %s"%category_match.group(1)
                         AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), name),
                             category_match.group(1), 125, '', '', '')
                 else:
