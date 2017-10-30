@@ -1,0 +1,405 @@
+# Kodi Media Center language file
+# Addon Name: iPlayer WWW
+# Addon id: plugin.video.iplayerwww
+# Addon Provider: CaptainT|primaeval|ihurst|Cas
+msgid ""
+msgstr ""
+"Project-Id-Version: Kodi Addons\n"
+"Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2017-10-30 09:45+0200\n"
+"Last-Translator: A. Dambledore\n"
+"Language-Team: Eng2Heb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: he_IL\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30100"
+msgid "General"
+msgstr "כללי"
+
+msgctxt "#30101"
+msgid "Video settings"
+msgstr "הגדרות וידאו"
+
+msgctxt "#30102"
+msgid "Radio settings"
+msgstr "הגדרות רדיו"
+
+msgctxt "#30103"
+msgid "Common settings"
+msgstr "הגדרות משותפות"
+
+msgctxt "#30110"
+msgid "Play Signed programmes when available"
+msgstr "הפעל תוכניות חתומות כאשר הן זמינות"
+
+msgctxt "#30120"
+msgid "Play Audio Described programmes when available"
+msgstr "הפעלת תוכניות אודיו מתוארות כאשר הן זמינות"
+
+msgctxt "#30130"
+msgid "Use subtitles when available"
+msgstr "שימוש בכתוביות כשהן זמינות"
+
+msgctxt "#30140"
+msgid "Enable BBC iD"
+msgstr "אפשר מזהה ל-BBC"
+
+msgctxt "#30141"
+msgid "BBC Username"
+msgstr "שם המשתמש ל-BBC"
+
+msgctxt "#30142"
+msgid "BBC Password"
+msgstr "סיסמה ל-BBC"
+
+msgctxt "#30143"
+msgid "Sign in automatically"
+msgstr "התחברות אוטומטית"
+
+msgctxt "#30150"
+msgid "Suppress programmes with incomplete information in Highlights"
+msgstr "דכא תוכניות עם מידע חלקי בהדגשה"
+
+msgctxt "#30160"
+msgid "Behaviour for getting A-Z"
+msgstr "מהלכים כדי לקבל רשימת A-Z"
+
+msgctxt "#30161"
+msgid "By character"
+msgstr "לפי תו"
+
+msgctxt "#30162"
+msgid "All at once"
+msgstr "הכל בבת אחת"
+
+msgctxt "#30170"
+msgid "Behaviour for getting programmes"
+msgstr "מהלכים כדי לקבל תוכניות"
+
+msgctxt "#30171"
+msgid "By page"
+msgstr "לפי עמוד"
+
+msgctxt "#30172"
+msgid "All at once"
+msgstr "הכל בבת אחת"
+
+msgctxt "#30180"
+msgid "Switch CBeebies/CBBC only mode on/off"
+msgstr "החלף מצב CBeebies/CBBC בלבד פועל/כבוי"
+
+msgctxt "#30181"
+msgid "Enter old password:"
+msgstr "הזן את הסיסמה הישנה שלך"
+
+msgctxt "#30182"
+msgid "Enter new password (empty to unlock):"
+msgstr "הזן סיסמה חדשה (ריק כדי לבטל נעילה):"
+
+msgctxt "#30190"
+msgid "Show Red Button warning"
+msgstr "הצג אזהרת הכפתור האדום"
+
+msgctxt "#30200"
+msgid "Streams"
+msgstr "הזרמות"
+
+msgctxt "#30205"
+msgid "Play stream automatically using these settings"
+msgstr "נגן הזרמה באופן אוטומטי באמצעות הגדרות אלו"
+
+msgctxt "#30210"
+msgid "Catchup CDN source"
+msgstr "מקור Catchup CDN"
+
+msgctxt "#30211"
+msgid "Catchup bitrate"
+msgstr "קצב סיביות Catchup"
+
+msgctxt "#30220"
+msgid "Live CDN source"
+msgstr "מקור שידור חי CDN"
+
+msgctxt "#30230"
+msgid "Live bitrate"
+msgstr "קצב סיביות"
+
+msgctxt "#30231"
+msgid "Radio CDN source"
+msgstr "מקור רדיו CDN"
+
+msgctxt "#30232"
+msgid "Radio location"
+msgstr "מיקום רדיו"
+
+msgctxt "#30233"
+msgid "Max Live Radio bitrate"
+msgstr "קצב סיביות מקסימלי לרדיו חי"
+
+msgctxt "#30300"
+msgid "Highlights"
+msgstr "מודגשים"
+
+msgctxt "#30301"
+msgid "Most Popular"
+msgstr "הכי פופולרי"
+
+msgctxt "#30302"
+msgid "Programme List A-Z"
+msgstr "רשימת תכניות A-Z"
+
+msgctxt "#30303"
+msgid "Categories"
+msgstr "‎קטגוריות"
+
+msgctxt "#30304"
+msgid "Search"
+msgstr "חיפוש"
+
+msgctxt "#30305"
+msgid "Watch Live"
+msgstr "צפה בשידור חי"
+
+msgctxt "#30306"
+msgid "Watching"
+msgstr "צופה"
+
+msgctxt "#30307"
+msgid "Added"
+msgstr "נוסף"
+
+msgctxt "#30308"
+msgid "BBCiD Sign In"
+msgstr "כניסה ל-BBCiD"
+
+msgctxt "#30309"
+msgid "Successful"
+msgstr "התחברת בהצלחה"
+
+msgctxt "#30310"
+msgid "Failed - check settings"
+msgstr "ההתחברות נכשלה - בדוק הגדרות"
+
+msgctxt "#30311"
+msgid "BBCiD set-up required, please check settings."
+msgstr "נדרשת הגדרת BBCiD, בדוק את ההגדרות."
+
+msgctxt "#30312"
+msgid "Do you wish to sign in?"
+msgstr "האם ברצונך להיתחבר?"
+
+msgctxt "#30313"
+msgid "available episodes"
+msgstr "‎פרקים זמינים"
+
+msgctxt "#30314"
+msgid "Collection"
+msgstr "אוסף"
+
+msgctxt "#30315"
+msgid "available programmes"
+msgstr "תכניות זמינות"
+
+msgctxt "#30316"
+msgid "This programme is part of the collection"
+msgstr "התוכנית הזו היא חלק מאוסף"
+
+msgctxt "#30317"
+msgid "Channel Highlights"
+msgstr "ערוצים מודגשים"
+
+msgctxt "#30318"
+msgid "View all matching episodes"
+msgstr "הצג את כל הפרקים המתאימים"
+
+msgctxt "#30319"
+msgid "Finding episodes..."
+msgstr "מוצא פרקים"
+
+msgctxt "#30320"
+msgid "Next page"
+msgstr "לעמוד הבא"
+
+msgctxt "#30321"
+msgid "Listen Live"
+msgstr "האזנה לשידור חי"
+
+msgctxt "#30322"
+msgid "Listen Live High Quality"
+msgstr "האזנה לשידור חי באיכות גבוהה"
+
+msgctxt "#30323"
+msgid "iPlayer: "
+msgstr "iPlayer:"
+
+msgctxt "#30324"
+msgid "Radio: "
+msgstr "רדיו:"
+
+msgctxt "#30325"
+msgid "Sign out BBCiD"
+msgstr "תתנתק מ-BBCiD"
+
+msgctxt "#30326"
+msgid "BBCiD Sign Out"
+msgstr "BBCiD מנותק"
+
+msgctxt "#30327"
+msgid "Channel A-Z"
+msgstr "ערוץ A-Z"
+
+msgctxt "#30328"
+msgid "Red Button"
+msgstr "הכפתור האדום"
+
+msgctxt "#30329"
+msgid "CBeebies Live"
+msgstr "CBeebies בשידור חי"
+
+msgctxt "#30330"
+msgid "CBBC Live"
+msgstr "CBBC בשידור חי"
+
+msgctxt "#30331"
+msgid "CBeebies A-Z"
+msgstr "CBeebies A-Z"
+
+msgctxt "#30332"
+msgid "CBBC A-Z"
+msgstr "CBBC A-Z"
+
+msgctxt "#30333"
+msgid "CBeebies Radio"
+msgstr "רדיו CBeebies"
+
+msgctxt "#30334"
+msgid "Following"
+msgstr "עוקב"
+
+msgctxt "#30400"
+msgid "Error"
+msgstr "שגיאה"
+
+msgctxt "#30401"
+msgid "BBC iPlayer TV programmes are available to play in the UK only."
+msgstr "תכניות הטלוויזיה של ה-BBC iPlayer זמינים לניגון בבריטניה בלבד."
+
+msgctxt "#30402"
+msgid "Cookie Load Failed"
+msgstr "טעינת קובץ cookie נכשלה"
+
+msgctxt "#30403"
+msgid "Playback failed"
+msgstr "הניגון נכשל"
+
+msgctxt "#30404"
+msgid "Can't find stream."
+msgstr "אין אפשרות למצוא זרם."
+
+msgctxt "#30405"
+msgid "Warning"
+msgstr "אזהרה"
+
+msgctxt "#30406"
+msgid "Red Button channels may be unavailable depending on their schedule."
+msgstr "ערוצי הכפתור האדום עשויים להיות לא זמינים בהתאם ללוח הזמנים שלהם."
+
+msgctxt "#30407"
+msgid "Usage of Red Button is at your own risk."
+msgstr "השימוש של הכפתור האדום הוא על אחריותך בלבד."
+
+msgctxt "#30408"
+msgid "Agree"
+msgstr "מסכים"
+
+msgctxt "#30409"
+msgid "Disagree"
+msgstr "לא מסכים"
+
+msgctxt "#30410"
+msgid "To watch iPlayer TV content legally, you need a UK TV Licence."
+msgstr "כדי לצפות בטלוויזיה iPlayer תוכן באופן חוקי, אתה זקוק לרשיון UK TV."
+
+msgctxt "#30500"
+msgid "Display"
+msgstr "תצוגה"
+
+msgctxt "#30510"
+msgid "Select main menu entries"
+msgstr "בחר כניסות לתפריט הראשי"
+
+msgctxt "#30511"
+msgid "iPlayer: Highlights"
+msgstr "iPlayer: מודגש"
+
+msgctxt "#30512"
+msgid "iPlayer: Channel Highlights"
+msgstr "iPlayer: ערוצים מודגשים"
+
+msgctxt "#30513"
+msgid "iPlayer: Most Popular"
+msgstr "iPlayer: הכי פופולרי"
+
+msgctxt "#30514"
+msgid "iPlayer: Programme List A-Z"
+msgstr "iPlayer: תכניות רשימת A-Z..."
+
+msgctxt "#30515"
+msgid "iPlayer: Channel A-Z"
+msgstr "iPlayer: ערוצים A-Z"
+
+msgctxt "#30516"
+msgid "iPlayer: Categories"
+msgstr "iPlayer: קטגוריות"
+
+msgctxt "#30517"
+msgid "iPlayer: Search"
+msgstr "iPlayer: חיפוש"
+
+msgctxt "#30518"
+msgid "iPlayer: Watch Live"
+msgstr "iPlayer: צפה בשידור חי"
+
+msgctxt "#30519"
+msgid "iPlayer: Red Button"
+msgstr "iPlayer: הכפתור האדום"
+
+msgctxt "#30520"
+msgid "iPlayer: Watching"
+msgstr "iPlayer: צופה"
+
+msgctxt "#30521"
+msgid "iPlayer: Added"
+msgstr "iPlayer: נוסף"
+
+msgctxt "#30522"
+msgid "Radio: Listen Live"
+msgstr "רדיו: שמע בשידור חי"
+
+msgctxt "#30523"
+msgid "Radio: Programme List A-Z"
+msgstr "רדיו: תכניות רשימת A-Z"
+
+msgctxt "#30524"
+msgid "Radio: Categories"
+msgstr "רדיו: קטגוריות"
+
+msgctxt "#30525"
+msgid "Radio: Search"
+msgstr "רדיו: חיפוש"
+
+msgctxt "#30526"
+msgid "Radio: Most Popular"
+msgstr "רדיו: הפופולרי ביותר"
+
+msgctxt "#30527"
+msgid "Radio: Added"
+msgstr "רדיו: נוסף"
+
+msgctxt "#30528"
+msgid "Radio: Following"
+msgstr "רדיו: במעקב"
