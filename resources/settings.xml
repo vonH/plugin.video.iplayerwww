@@ -52,5 +52,11 @@
     <setting id="radio_source" label="30231" type="enum" values="Any|Akamai|Limelight" default="0" enable="eq(-8,true)" />
     <setting id="radio_location" label="30232" type="enum" values="UK|International" default="0" enable="eq(-9,true)" />
     <setting id="radio_live_bitrate" label="30233" type="enum" values="48 Kbps|96 Kbps|128 Kbps|320 Kbps" default="3" enable="eq(-10,true)" />
+    <setting label="30600" type="lsep"  />
+    <setting id="proxy_type" label="30601" type="enum" values="none|http|https|socks5" default="0" enable="true" />
+    <setting id="proxy_host" label="30602" type="text" default="localhost" enable="gt(-1, 0)" />
+    <setting id="proxy_port" label="30603" type="number" default="8081" enable="gt(-2, 0)" />
+    <setting id="proxy_user" label="30604" type="text" enable="gt(-3, 0)" />
+    <setting id="proxy_pass" label="30605" type="text" enable="gt(-4, 0)" />
 </category>
 </settings>

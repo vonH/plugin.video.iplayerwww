@@ -1632,6 +1632,16 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
     liz.setInfo(type='Video', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
+    if int(ADDON.getSetting('proxy_type')) > 0:
+        proxy_types = ["none", "http", "https", "socks5"]
+        liz.setProperty("proxy.type", proxy_types[int(ADDON.getSetting('proxy_type'))])
+        liz.setProperty("proxy.host", ADDON.getSetting('proxy_host'))
+        liz.setProperty("proxy.port", str(ADDON.getSetting('proxy_port')))
+        if ADDON.getSetting('proxy_user'):
+            liz.setProperty("proxy.user", ADDON.getSetting('proxy_user'))
+        if ADDON.getSetting('proxy_pass'):
+            liz.setProperty("proxy.password", ADDON.getSetting('proxy_pass'))
+ 
     liz.setPath(url)
     if ADDON.getSetting('stream_protocol') == '0':
         liz.setProperty('inputstreamaddon', 'inputstream.adaptive')
