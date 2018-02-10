@@ -20,6 +20,22 @@ import xbmcplugin
 
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
+def GetProxySettings():
+    proxy_types = ["none", "http", "https", "socks5"]
+    if int(ADDON.getSetting('proxy_type')) == 0:
+        return {}
+    auth = ""
+    if (ADDON.getSetting('proxy_user')
+            and ADDON.getSetting('proxy_pass')):
+        auth = "%s:%s@" % (ADDON.getSetting('proxy_user'),
+                           ADDON.getSetting('proxy_pass'))
+    print(ADDON.getSetting('proxy_type'))
+    proxy_str = "%s://%s%s:%d" % (
+        proxy_types[int(ADDON.getSetting('proxy_type'))],
+        auth,
+        ADDON.getSetting('proxy_host'),
+        int(ADDON.getSetting('proxy_port')))
+    return {'http': proxy_str, 'https': proxy_str}
 
 def GetAddonInfo():
     addon_info = {}
@@ -174,32 +190,37 @@ def SignInBBCiD():
     p = re.compile('action="([^""]*)"')
     
     with requests.Session() as s:
-        resp = s.get('https://www.bbc.com/', headers=headers)
+        resp = s.get('https://www.bbc.com/', headers=headers,
+                     proxies=GetProxySettings())
 
         # Call the login page to get a 'nonce' for actual login
         signInUrl = 'https://session.bbc.com/session'
-        resp = s.get(signInUrl, headers=headers)
+        resp = s.get(signInUrl, headers=headers, proxies=GetProxySettings())
         m = p.search(resp.text)
         url = m.group(1)
 
         url = "https://account.bbc.com%s" % url
-        resp = s.post(url, data=post_data, headers=headers)
+        resp = s.post(url, data=post_data, headers=headers,
+                      proxies=GetProxySettings())
     
         for cookie in s.cookies:
             cookie_jar.set_cookie(cookie)
         cookie_jar.save(ignore_discard=True)
     
     with requests.Session() as s:
-        resp = s.get('https://www.bbc.co.uk/iplayer', headers=headers)
+        resp = s.get('https://www.bbc.co.uk/iplayer', headers=headers,
+                     proxies=GetProxySettings())
 
         # Call the login page to get a 'nonce' for actual login
         signInUrl = 'https://www.bbc.co.uk/session'
-        resp = s.get(signInUrl, headers=headers)
+        resp = s.get(signInUrl, headers=headers,
+                     proxies=GetProxySettings())
         m = p.search(resp.text)
         url = m.group(1)
 
         url = "https://account.bbc.com%s" % url
-        resp = s.post(url, data=post_data, headers=headers)
+        resp = s.post(url, data=post_data, headers=headers,
+                      proxies=GetProxySettings())
     
         for cookie in s.cookies:
             cookie_jar.set_cookie(cookie)
@@ -224,7 +245,8 @@ def SignOutBBCiD():
 
 def StatusBBCiD():
     r = requests.head("https://account.bbc.com/account", cookies=cookie_jar,
-                      headers=headers, allow_redirects=False)
+                      headers=headers, allow_redirects=False,
+                      proxies=GetProxySettings())
     if r.status_code == 200:
         return True
     else: 
@@ -257,7 +279,8 @@ def CheckLogin(logged_in):
 
 def OpenURL(url):
     try:
-        r = requests.get(url, headers=headers, cookies=cookie_jar)
+        r = requests.get(url, headers=headers, cookies=cookie_jar,
+                         proxies=GetProxySettings())
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), "%s" % e)
@@ -283,7 +306,7 @@ def OpenURLPost(url, post_data):
                    'Content-Type':'application/x-www-form-urlencoded'}
     try:
         r = requests.post(url, headers=headers_ssl, data=post_data, allow_redirects=False,
-                          cookies=cookie_jar)
+                          cookies=cookie_jar, proxies=GetProxySettings())
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), "%s" % e)
