@@ -213,7 +213,7 @@ elif mode == 202:
     Video.AddAvailableStreamItem(name, url, iconimage, description)
 
 elif mode == 203:
-    Video.AddAvailableLiveStreamItem(name, url, iconimage)
+    Video.AddAvailableLiveStreamItemSelector(name, url, iconimage)
 
 elif mode == 204:
     Video.AddAvailableRedButtonItem(name, url)

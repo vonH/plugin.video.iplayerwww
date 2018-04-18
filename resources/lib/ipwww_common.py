@@ -317,6 +317,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
+
     if not iconimage:
         iconimage="DefaultFolder.png"
     listitem_url = (sys.argv[0] + "?url=" + utf8_quote_plus(url) + "&mode=" + str(mode) +
@@ -359,15 +360,20 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
 
     video_streaminfo = {'codec': 'h264'}
     if not isFolder:
-        if resolution:
-            resolution = resolution.split('x')
-            video_streaminfo['aspect'] = round(int(resolution[0]) / int(resolution[1]), 2)
-            video_streaminfo['width'] = resolution[0]
-            video_streaminfo['height'] = resolution[1]
-        listitem.addStreamInfo('video', video_streaminfo)
-        listitem.addStreamInfo('audio', {'codec': 'aac', 'language': 'en', 'channels': 2})
-        if subtitles_url:
-            listitem.addStreamInfo('subtitle', {'language': 'en'})
+        if int(ADDON.getSetting('stream_protocol')) == 0:
+            listitem.setPath(url)
+            listitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+            listitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+        else:
+            if resolution:
+                resolution = resolution.split('x')
+                video_streaminfo['aspect'] = round(int(resolution[0]) / int(resolution[1]), 2)
+                video_streaminfo['width'] = resolution[0]
+                video_streaminfo['height'] = resolution[1]
+            listitem.addStreamInfo('video', video_streaminfo)
+            listitem.addStreamInfo('audio', {'codec': 'aac', 'language': 'en', 'channels': 2})
+            if subtitles_url:
+                listitem.addStreamInfo('subtitle', {'language': 'en'})
 
     # Mode 119 is not a folder, but it is also not a playable.
     if mode == 119:
