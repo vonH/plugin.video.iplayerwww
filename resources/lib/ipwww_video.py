@@ -852,12 +852,14 @@ def ListCategoryFilters(url):
     """Parses the available category filters (if available) and creates directories for selcting them.
     If there are no filters available, all programmes will be listed using GetFilteredCategory.
     """
+    url = url.split('/')[0]
     NEW_URL = 'https://www.bbc.co.uk/iplayer/categories/%s/all?sort=atoz' % url
+
     # Read selected category's page.
     html = OpenURL(NEW_URL)
     # Some categories offer filters, we want to provide these filters as options.
     match1 = re.findall(
-        '<li class="filter"> <a class="name" href="/iplayer/categories/(.+?)"> (.+?)</a>',
+        '<li class="filter"> <a class="name" href="/iplayer/categories/(.+?)/.*?"> (.+?)</a>',
         html,
         re.DOTALL)
     if match1:
