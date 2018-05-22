@@ -480,6 +480,9 @@ def ScrapeEpisodes(page_url):
                 name = json_data['initialState']['header']['title']
 
             for item in json_data['initialState']['entities']:
+                item = item.get("props")
+                if not item:
+                    continue
 
                 main_url = None
                 if 'href' in item:
