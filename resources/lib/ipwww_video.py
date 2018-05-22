@@ -842,7 +842,7 @@ def ListCategoryFilters(url):
     html = OpenURL(NEW_URL)
     # Some categories offer filters, we want to provide these filters as options.
     match1 = re.findall(
-        '<li class="filter"> <a class="name" href="/iplayer/categories/(.+?)/?.*?"> (.+?)</a>',
+        '<li class="filter"> <a class="name" href="/iplayer/categories/(.+?)"> (.+?)</a>',
         html,
         re.DOTALL)
     if match1:
