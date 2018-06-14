@@ -852,7 +852,6 @@ def ListCategoryFilters(url):
 
     # Read selected category's page.
     html = OpenURL(NEW_URL)
-    print html.encode('utf-8')
     # Some categories offer filters, we want to provide these filters as options.
     match1 = re.findall(
         '<a href="/iplayer/categories/(.+?)/a-z".*?>(.+?)</a>',
