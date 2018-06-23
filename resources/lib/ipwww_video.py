@@ -840,7 +840,7 @@ def ListCategories():
     for url, name in match:
         if name == "View all":
             continue
-        AddMenuEntry(name, url, 125, '', '', '')
+        AddMenuEntry(name, url, 126, '', '', '')
 
 
 def ListCategoryFilters(url):
