@@ -892,14 +892,77 @@ def ListChannelHighlights():
         AddMenuEntry(name, id, 106, iconimage, '', '')
 
 
+def ParseHighlightsJSON(item):
+    item = item.get("props")
+    if not item:
+        return
+
+    main_url = None
+    if 'href' in item:
+        # Some strings already contain the full URL, need to work around this.
+        url = item['href'].replace('http://www.bbc.co.uk','')
+        url = item['href'].replace('https://www.bbc.co.uk','')
+        if url:
+            main_url = 'https://www.bbc.co.uk' + url
+
+    episodes_url = ""
+    episodes_title = ""
+    if 'secondaryHref' in item:
+        # Some strings already contain the full URL, need to work around this.
+        url = item['secondaryHref'].replace('http://www.bbc.co.uk','')
+        url = item['secondaryHref'].replace('https://www.bbc.co.uk','')
+        if url:
+            episodes_url = 'https://www.bbc.co.uk' + url
+            episodes_title = item["title"]
+
+    if 'subtitle' in item:
+        title = "%s - %s" % (item['title'], item['subtitle'])
+    else:
+        title = item['title']
+
+    synopsis = ''
+    if 'synopsis' in item:
+        synopsis = item['synopsis']
+
+    icon = ''
+    if 'imageTemplate' in item:
+        icon = item['imageTemplate'].replace("{recipe}","832x468")
+
+    aired = ''
+
+    CheckAutoplay(title , main_url, icon, synopsis, aired)
+
+    if episodes_url:
+        AddMenuEntry('[B]%s[/B]' % (episodes_title),
+                     episodes_url, 128, icon, '', '')
+
+
 def ListHighlights(highlights_url):
     """Creates a list of the programmes in the highlights section.
     """
 
     html = OpenURL('https://www.bbc.co.uk/%s' % highlights_url)
 
-    inner_anchors = re.findall(r'href="(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
+    # There is a new layout for episodes, scrape it from the JSON received as part of the page
+    match = re.search(
+              r'window\.mediatorDefer\=page\(document\.getElementById\(\"tviplayer\"\),(.*?)\);',
+              html, re.DOTALL)
+    if match:
+        data = match.group(1)
+        json_data = json.loads(data)
 
+        list_item_num = 1
+
+        for entity in json_data['initialState']['groups']:
+            for item in entity['entities']:
+                ParseHighlightsJSON(item)
+
+        entity = json_data['initialState']['highlights'].get("items")
+        if entity:
+            for item in entity:
+                ParseHighlightsJSON(item)
+
+    inner_anchors = re.findall(r'href="(?!<a).*?</a>',html,flags=(re.DOTALL | re.MULTILINE))
     # First find all groups as we need to store some properties of groups for later reuse.
     group_properties = []
 
@@ -911,7 +974,6 @@ def ListHighlights(highlights_url):
         r'[^<]*?class="group__title stat.*?data-object-type="group-list-link".*?',
         a, flags=(re.DOTALL | re.MULTILINE))]
     for group in groups:
-
         href = ''
         href_match = re.match(
             r'href="(.*?)"',
