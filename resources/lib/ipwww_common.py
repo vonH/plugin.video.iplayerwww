@@ -335,7 +335,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         date_string = ""
 
     # Modes 201-299 will create a new playable line, otherwise create a new directory line.
-    if mode in (201, 202, 203, 204, 211, 212, 213, 214):
+    if mode in (201, 202, 203, 204, 205, 211, 212, 213, 214):
         isFolder = False
     # Mode 119 is not a folder, but it is also not a playable.
     elif mode == 119:
@@ -446,6 +446,11 @@ def CreateBaseDirectory(content_type):
 
     if content_type == "video":
         ShowLicenceWarning()
+        AddMenuEntry("World Cup UHD trial", 'url', 197,
+                     xbmc.translatePath(
+                       'special://home/addons/plugin.video.iplayerwww/media/tv.png'
+                                        ),
+                     '', '')
         if ADDON.getSetting("menu_video_highlights") == 'true':
             AddMenuEntry(translation(30300), 'iplayer', 106,
                          xbmc.translatePath(
@@ -569,6 +574,11 @@ def CreateBaseDirectory(content_type):
                      '', '')
     else:
         ShowLicenceWarning()
+        AddMenuEntry("World Cup UHD trial", 'url', 197,
+                     xbmc.translatePath(
+                       'special://home/addons/plugin.video.iplayerwww/media/tv.png'
+                                        ),
+                     '', '')
         if ADDON.getSetting("menu_video_highlights") == 'true':
             AddMenuEntry((translation(30323)+translation(30300)), 'iplayer', 106,
                          xbmc.translatePath(

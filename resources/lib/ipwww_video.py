@@ -108,6 +108,33 @@ def ListRedButton():
             AddMenuEntry(name, id, 123, iconimage, '', '')
 
 
+def ListUHDTest():
+    channel_list = [
+        ('uhd_stream_01',  'UHD Test 1'),
+        ('uhd_stream_02',  'UHD Test 2'),
+        ('uhd_stream_03',  'UHD Test 3'),
+        ('uhd_stream_04',  'UHD Test 4'),
+        ('uhd_stream_05',  'UHD Test 5'),
+    ]
+    iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
+    for id, name in channel_list:
+        AddMenuEntry(name, id, 205, iconimage, '', '')
+
+
+def AddAvailableUHDTestItem(name, channelname):
+    source = int(ADDON.getSetting('live_source'))
+    if (source == 1):
+        provider = "ak"
+    elif (source == 2):
+        provider = "llnw"
+    else:
+        provider = "ak"
+    
+    url = "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/dash/uk/full/%s/%s.mpd" % (provider,channelname)
+
+    PlayStream(name, url, "", "", "")
+
+
 # ListLive creates menu entries for all live channels.
 def ListLive():
     channel_list = [
