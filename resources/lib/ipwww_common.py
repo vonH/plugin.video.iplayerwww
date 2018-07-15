@@ -446,11 +446,6 @@ def CreateBaseDirectory(content_type):
 
     if content_type == "video":
         ShowLicenceWarning()
-        AddMenuEntry("World Cup UHD trial", 'url', 197,
-                     xbmc.translatePath(
-                       'special://home/addons/plugin.video.iplayerwww/media/tv.png'
-                                        ),
-                     '', '')
         if ADDON.getSetting("menu_video_highlights") == 'true':
             AddMenuEntry(translation(30300), 'iplayer', 106,
                          xbmc.translatePath(
@@ -501,6 +496,12 @@ def CreateBaseDirectory(content_type):
                          '', '')
         if ADDON.getSetting("menu_video_red_button") == 'true':
             AddMenuEntry(translation(30328), 'url', 118,
+                         xbmc.translatePath(
+                           'special://home/addons/plugin.video.iplayerwww/media/tv.png'
+                                            ),
+                         '', '')
+        if ADDON.getSetting("menu_video_uhd_trial") == 'true':
+            AddMenuEntry(translation(30335), 'url', 197,
                          xbmc.translatePath(
                            'special://home/addons/plugin.video.iplayerwww/media/tv.png'
                                             ),
@@ -574,11 +575,6 @@ def CreateBaseDirectory(content_type):
                      '', '')
     else:
         ShowLicenceWarning()
-        AddMenuEntry("World Cup UHD trial", 'url', 197,
-                     xbmc.translatePath(
-                       'special://home/addons/plugin.video.iplayerwww/media/tv.png'
-                                        ),
-                     '', '')
         if ADDON.getSetting("menu_video_highlights") == 'true':
             AddMenuEntry((translation(30323)+translation(30300)), 'iplayer', 106,
                          xbmc.translatePath(
@@ -629,6 +625,12 @@ def CreateBaseDirectory(content_type):
                          '', '')
         if ADDON.getSetting("menu_video_red_button") == 'true':
             AddMenuEntry((translation(30323)+translation(30328)), 'url', 118,
+                         xbmc.translatePath(
+                           'special://home/addons/plugin.video.iplayerwww/media/tv.png'
+                                            ),
+                         '', '')
+        if ADDON.getSetting("menu_video_uhd_trial") == 'true':
+            AddMenuEntry((translation(30323)+translation(30335)), 'url', 197,
                          xbmc.translatePath(
                            'special://home/addons/plugin.video.iplayerwww/media/tv.png'
                                             ),

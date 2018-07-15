@@ -216,7 +216,7 @@ elif mode == 204:
     Video.AddAvailableRedButtonItem(name, url)
 
 elif mode == 205:
-    Video.AddAvailableUHDTestItem(name, url)
+    Video.AddAvailableUHDTrialItem(name, url)
 
 elif mode == 211:
     Radio.PlayStream(name, url, iconimage, description, subtitles_url)
@@ -228,7 +228,7 @@ elif mode == 213:
     Radio.AddAvailableLiveStreamItem(name, url, iconimage)
 
 elif mode == 197:
-    Video.ListUHDTest()
+    Video.ListUHDTrial()
 
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))

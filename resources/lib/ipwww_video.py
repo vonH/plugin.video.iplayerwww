@@ -108,20 +108,30 @@ def ListRedButton():
             AddMenuEntry(name, id, 123, iconimage, '', '')
 
 
-def ListUHDTest():
+def ListUHDTrial():
     channel_list = [
-        ('uhd_stream_01',  'UHD Test 1'),
-        ('uhd_stream_02',  'UHD Test 2'),
-        ('uhd_stream_03',  'UHD Test 3'),
-        ('uhd_stream_04',  'UHD Test 4'),
-        ('uhd_stream_05',  'UHD Test 5'),
+        ('uhd_stream_01',  'UHD Trial 1'),
+        ('uhd_stream_02',  'UHD Trial 2'),
+        ('uhd_stream_03',  'UHD Trial 3'),
+        ('uhd_stream_04',  'UHD Trial 4'),
+        ('uhd_stream_05',  'UHD Trial 5'),
     ]
-    iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
-    for id, name in channel_list:
-        AddMenuEntry(name, id, 205, iconimage, '', '')
+
+    if int(ADDON.getSetting("stream_protocol")) == 1:
+        xbmcgui.Dialog().notification(translation(30400), translation(30411), xbmcgui.NOTIFICATION_ERROR)
+        return
+
+    ia_available = CheckInputStreamAdaptiveAvailability()
+    if ia_available:
+        iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
+        for id, name in channel_list:
+            AddMenuEntry(name, id, 205, iconimage, '', '')
+    else:
+        xbmcgui.Dialog().notification(translation(30400), translation(30411), xbmcgui.NOTIFICATION_ERROR)
+        return
 
 
-def AddAvailableUHDTestItem(name, channelname):
+def AddAvailableUHDTrialItem(name, channelname):
     source = int(ADDON.getSetting('live_source'))
     if (source == 1):
         provider = "ak"
