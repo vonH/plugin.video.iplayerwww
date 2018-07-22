@@ -61,6 +61,10 @@ def GetPage(page_url, just_episodes=False):
         masthead_title_match = re.search(r'<div.+?id="programmes-main-content".*?<span property="name">(.+?)</span>', html)
         if masthead_title_match:
             masthead_title = masthead_title_match.group(1)
+        else:
+            alternative_masthead_title_match = re.search(r'<div class="br-masthead__title">.*?<a href="[^"]+">([^<]+?)</a>', html, re.M | re.S)
+            if alternative_masthead_title_match:
+                masthead_title = alternative_masthead_title_match.group(1)
 
         list_item_num = 1
 
@@ -87,6 +91,10 @@ def GetPage(page_url, just_episodes=False):
             name_match = re.search(r'<span property="name">(.+?)</span>', programme)
             if name_match:
                 name = name_match.group(1)
+            else:
+                alternative_name_match = re.search(r'<meta property="name" content="([^"]+?)"', programme)
+                if alternative_name_match:
+                    name = alternative_name_match.group(1)
 
             subtitle = ''
             subtitle_match = re.search(r'<span class="programme__subtitle.+?property="name">(.*?)</span>(.*?property="name">(.*?)</span>)?', programme)
@@ -255,6 +263,8 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
 def AddAvailableStreamItem(name, url, iconimage, description):
     """Play a streamm based on settings for preferred catchup source and bitrate."""
     stream_ids = ScrapeAvailableStreams(url)
+    if len(stream_ids) < 1:
+        stream_ids = ScrapeAvailableStreams(url + '/playlist.json')
     if len(stream_ids) < 1:
         #TODO check CBeeBies for special cases
         xbmcgui.Dialog().ok(translation(30403), translation(30404))
