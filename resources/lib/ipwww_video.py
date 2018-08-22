@@ -430,13 +430,13 @@ def ScrapeEpisodes(page_url):
             if episodes:
                 episodes_url = 'https://www.bbc.co.uk' + episodes
                 if search_group:
-                    AddMenuEntry('[B]%s[/B] - %s' % (title, translation(30318)),
+                    AddMenuEntry('%s - %s' % (title, translation(30318)),
                                  episodes_url, 128, icon, '', '')
                 else:
-                    AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(30313)),
+                    AddMenuEntry('%s - %s %s' % (title, more, translation(30313)),
                                  episodes_url, 128, icon, '', '')
             elif more:
-                AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(30313)),
+                AddMenuEntry('%s - %s %s' % (title, more, translation(30313)),
                              main_url, 128, icon, '', '')
 
             if type != "group":
@@ -510,7 +510,7 @@ def ScrapeEpisodes(page_url):
                 CheckAutoplay(title , main_url, icon, synopsis, aired)
 
                 if episodes_url:
-                    AddMenuEntry('[B]%s[/B]' % (episodes_title),
+                    AddMenuEntry('%s' % (episodes_title),
                                  episodes_url, 128, icon, '', '')
 
                 percent = int(100*(page+list_item_num/len(item))/total_pages)
@@ -718,10 +718,10 @@ def ScrapeMarkup(markup):
             more = more_match.group(1)
 
         if episodes_url:
-            AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(30313)),
+            AddMenuEntry('%s - %s %s' % (title, more, translation(30313)),
                          episodes_url, 128, icon, '', '')
         elif more:
-            AddMenuEntry('[B]%s[/B] - %s %s' % (title, more, translation(30313)),
+            AddMenuEntry('%s - %s %s' % (title, more, translation(30313)),
                          main_url, 128, icon, '', '')
 
         if type != "group":
@@ -839,7 +839,7 @@ def ParseHighlightsJSON(item):
     CheckAutoplay(title , main_url, icon, synopsis, aired)
 
     if episodes_url:
-        AddMenuEntry('[B]%s[/B]' % (episodes_title),
+        AddMenuEntry('%s' % (episodes_title),
                      episodes_url, 128, icon, '', '')
 
 
@@ -875,7 +875,7 @@ def ListHighlights(highlights_url):
                 id = entity.get('id')
                 if (title and id):
                     episodes_url = 'https://www.bbc.co.uk/iplayer/group/%s' % id
-                    AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
+                    AddMenuEntry('%s: %s' % (translation(30314), title),
                                  episodes_url, 128, '', '', '')
 
         highlights = ''
@@ -910,14 +910,14 @@ def ListHighlights(highlights_url):
                     if title:
                         if (id and (type == 'group')):
                             if (id == 'popular'):
-                                AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
+                                AddMenuEntry('%s: %s' % (translation(30314), title),
                                              'url', 105, '', '', '')
                             else:
                                 episodes_url = 'https://www.bbc.co.uk/iplayer/group/%s' % id
-                                AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
+                                AddMenuEntry('%s: %s' % (translation(30314), title),
                                              episodes_url, 128, '', '', '')
                         if (id and (type == 'category')):
-                            AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
+                            AddMenuEntry('%s: %s' % (translation(30314), title),
                                          id, 126, '', '', '')
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)

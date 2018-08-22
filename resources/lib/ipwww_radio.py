@@ -123,11 +123,11 @@ def GetPage(page_url, just_episodes=False):
             if station_match:
                 station = station_match.group(1).strip()
 
-            series_title = "[B]%s - %s[/B]" % (station, name)
+            series_title = "%s - %s" % (station, name)
             if just_episodes:
-                title = "[B]%s[/B] - %s" % (masthead_title, name)
+                title = "%s - %s" % (masthead_title, name)
             else:
-                title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
+                title = "%s - %s %s" % (station, name, subtitle)
 
             if series_id:
                 AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
@@ -241,8 +241,8 @@ def GetCategoryPage(page_url, just_episodes=False):
             if station_match:
                 station = station_match.group(1).strip()
 
-            series_title = "[B]%s - %s[/B]" % (station, name)
-            title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
+            series_title = "%s - %s" % (station, name)
+            title = "%s - %s %s" % (station, name, subtitle)
 
             if series_id:
                 AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
@@ -439,7 +439,7 @@ def ListGenres():
     for url, name, group in genres:
         new_url = 'http://www.bbc.co.uk%s' % url
         if group:
-            AddMenuEntry("[B]%s[/B]" % name, new_url, 137, '', '', '')
+            AddMenuEntry("%s" % name, new_url, 137, '', '', '')
         else:
             AddMenuEntry("%s" % name, new_url, 137, '', '', '')
 
@@ -571,15 +571,15 @@ def ListListenList(logged_in):
             description = description_match.group(1).strip()
 
         if series_id:
-            series_title = "[B]%s - %s[/B]" % (station, series_name)
+            series_title = "%s - %s" % (station, series_name)
             AddMenuEntry(series_title, series_id, 131, series_image, description, '')
 
         if episode_id:
             if series_name:
-                episode_title = "[B]%s[/B] - %s - %s" % (station, series_name, episode_name)
+                episode_title = "%s - %s - %s" % (station, series_name, episode_name)
                 episode_url = "http://www.bbc.co.uk/programmes/%s" % episode_id
             else:
-                episode_title = "[B]%s[/B] - %s" % (station, episode_name)
+                episode_title = "%s - %s" % (station, episode_name)
                 episode_url = "http://www.bbc.co.uk/radio/play/%s" % episode_id
             # xbmc.log(episode_url)
             CheckAutoplay(episode_title, episode_url, episode_image, ' ', '')
@@ -631,14 +631,14 @@ def ListFollowing(logged_in):
         description = ''
 
         if series_id:
-            series_title = "[B]%s - %s[/B]" % (station, series_name)
+            series_title = "%s - %s" % (station, series_name)
             AddMenuEntry(series_title, series_id, 131, series_image, description, '')
 
         if episode_id:
             if series_name:
-                episode_title = "[B]%s[/B] - %s - %s" % (station, series_name, episode_name)
+                episode_title = "%s - %s - %s" % (station, series_name, episode_name)
             else:
-                episode_title = "[B]%s[/B] - %s" % (station, episode_name)
+                episode_title = "%s - %s" % (station, episode_name)
             episode_url = "http://www.bbc.co.uk/programmes/%s" % episode_id
             # xbmc.log(episode_url)
             CheckAutoplay(episode_title, episode_url, episode_image, ' ', '')
@@ -682,7 +682,7 @@ def ListMostPopular():
         if station_match:
             station = station_match.group(1)
 
-        title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
+        title = "%s - %s %s" % (station, name, subtitle)
 
         if programme_id and title and image:
             url = "http://www.bbc.co.uk/radio/play/%s" % programme_id
