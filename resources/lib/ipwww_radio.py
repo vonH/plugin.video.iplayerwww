@@ -68,78 +68,32 @@ def GetPage(page_url, just_episodes=False):
                 masthead_title = alternative_masthead_title_match.group(1)
 
         list_item_num = 1
+        data = ''
+        data_match = re.findall(r'<script type="application\/ld\+json">(.*?)<\/script>',
+                                html, re.S)
+        if data_match:
+            json_data = json.loads(data_match[0])
+            for episode in json_data['episode']:
+                programme_id = ''
+                programme_id = episode['identifier']
 
-        programmes = html.split('<div class="programme ')
-        for programme in programmes:
-
-            if not programme.startswith("programme--radio"):
-                continue
-
-            if "available" not in programme: #TODO find a more robust test
-                continue
-
-            series_id = ''
-            series_id_match = re.search(r'<a class="iplayer-text js-lazylink__link" href="/programmes/(.+?)/episodes/player"', programme)
-            if series_id_match:
-                series_id = series_id_match.group(1)
-
-            programme_id = ''
-            programme_id_match = re.search(r'data-pid="(.+?)"', programme)
-            if programme_id_match:
-                programme_id = programme_id_match.group(1)
-
-            name = ''
-            name_match = re.search(r'<span property="name">(.+?)</span>', programme)
-            if name_match:
-                name = name_match.group(1)
-            else:
-                alternative_name_match = re.search(r'<meta property="name" content="([^"]+?)"', programme)
-                if alternative_name_match:
-                    name = alternative_name_match.group(1)
-
-            subtitle = ''
-            subtitle_match = re.search(r'<span class="programme__subtitle.+?property="name">(.*?)</span>(.*?property="name">(.*?)</span>)?', programme)
-            if subtitle_match:
-                series = subtitle_match.group(1)
-                episode = subtitle_match.group(3)
-                if episode:
-                    subtitle = "(%s, %s)" % (series, episode)
-                else:
-                    if series.strip():
-                        subtitle = "(%s)" % series
-
-            image = ''
-            image_match = re.search(r'<meta property="image" content="(.+?)" />', programme)
-            if image_match:
-                image = image_match.group(1)
-
-            synopsis = ''
-            synopsis_match = re.search(r'<span property="description">(.+?)</span>', programme)
-            if synopsis_match:
-                synopsis = synopsis_match.group(1)
-
-            station = ''
-            station_match = re.search(r'<p class="programme__service.+?<strong>(.+?)</strong>.*?</p>', programme)
-            if station_match:
-                station = station_match.group(1).strip()
-
-            series_title = "[B]%s - %s[/B]" % (station, name)
-            if just_episodes:
+                name = ''
+                name = episode['name']
                 title = "[B]%s[/B] - %s" % (masthead_title, name)
-            else:
-                title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
 
-            if series_id:
-                AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
-            elif programme_id: #TODO maybe they are not always mutually exclusive
+                imafe = ''
+                image = episode['image']
+
+                synopsis = ''
+                synopsis = episode['description']
 
                 url = "http://www.bbc.co.uk/radio/play/%s" % programme_id
-                CheckAutoplay(title, url, image, ' ', '')
+                CheckAutoplay(title, url, image, synopsis, '')
 
-            percent = int(100*(page+list_item_num/len(programmes))/total_pages)
-            pDialog.update(percent,translation(30319),name)
+                percent = int(100*(page+list_item_num/len(json_data['episode']))/total_pages)
+                pDialog.update(percent,translation(30319),name)
 
-            list_item_num += 1
+                list_item_num += 1
 
         percent = int(100*page/total_pages)
         pDialog.update(percent,translation(30319))
