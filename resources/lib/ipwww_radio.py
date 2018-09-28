@@ -68,17 +68,14 @@ def GetAtoZPage(page_url, just_episodes=False):
 
         list_item_num = 1
 
-        programmes = html.split('<div class="programme ')
+        programmes = html.split('<li class="grid one-whole">')
         for programme in programmes:
 
-            if not programme.startswith("programme--radio"):
-                continue
-
-            if "available" not in programme: #TODO find a more robust test
+            if not re.search(r'programme--radio', programme):
                 continue
 
             series_id = ''
-            series_id_match = re.search(r'<a class="iplayer-text js-lazylink__link" href="/programmes/(.+?)/episodes/player"', programme)
+            series_id_match = re.search(r'data-lazylink-inc="/programmes/(.+?)/episodes/player.inc"', programme)
             if series_id_match:
                 series_id = series_id_match.group(1)
 
@@ -96,29 +93,18 @@ def GetAtoZPage(page_url, just_episodes=False):
                 if alternative_name_match:
                     name = alternative_name_match.group(1)
 
-            subtitle = ''
-            subtitle_match = re.search(r'<span class="programme__subtitle.+?property="name">(.*?)</span>(.*?property="name">(.*?)</span>)?', programme)
-            if subtitle_match:
-                series = subtitle_match.group(1)
-                episode = subtitle_match.group(3)
-                if episode:
-                    subtitle = "(%s, %s)" % (series, episode)
-                else:
-                    if series.strip():
-                        subtitle = "(%s)" % series
-
             image = ''
             image_match = re.search(r'<meta property="image" content="(.+?)" />', programme)
             if image_match:
                 image = image_match.group(1)
 
             synopsis = ''
-            synopsis_match = re.search(r'<span property="description">(.+?)</span>', programme)
+            synopsis_match = re.search(r'<span property="description">(.+?)<\/span>', programme)
             if synopsis_match:
                 synopsis = synopsis_match.group(1)
 
             station = ''
-            station_match = re.search(r'<p class="programme__service.+?<strong>(.+?)</strong>.*?</p>', programme)
+            station_match = re.search(r'<p class="programme__service.+?<strong>(.+?)<\/strong>.*?<\/p>', programme)
             if station_match:
                 station = station_match.group(1).strip()
 
@@ -126,12 +112,11 @@ def GetAtoZPage(page_url, just_episodes=False):
             if just_episodes:
                 title = "[B]%s[/B] - %s" % (masthead_title, name)
             else:
-                title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
+                title = "[B]%s[/B] - %s" % (station, name)
 
             if series_id:
                 AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
             elif programme_id: #TODO maybe they are not always mutually exclusive
-
                 url = "http://www.bbc.co.uk/radio/play/%s" % programme_id
                 CheckAutoplay(title, url, image, ' ', '')
 
@@ -212,6 +197,7 @@ def GetPage(page_url, just_episodes=False):
                                 html, re.S)
         if data_match:
             json_data = json.loads(data_match[0])
+
             for episode in json_data['episode']:
                 programme_id = ''
                 programme_id = episode['identifier']
@@ -841,7 +827,6 @@ def ScrapeAvailableStreams(url):
             # Note: Need to create list for backwards compatibility
             stream_id_st = [json_data['programmes']['current']['id']]
             # print json.dumps(json_data, indent=2, sort_keys=True)
-
     return stream_id_st
 
 
