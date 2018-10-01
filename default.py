@@ -21,7 +21,7 @@ try:
     from ipwww_common import utf8_unquote_plus, CreateBaseDirectory, KidsMode
     import ipwww_video as Video
     import ipwww_radio as Radio
-except ImportError, error:
+except ImportError as error:
     d = xbmcgui.Dialog()
     d.ok(str(error), 'Please check you installed this plugin correctly.')
     raise

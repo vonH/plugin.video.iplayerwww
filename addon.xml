@@ -16,6 +16,6 @@
     <website></website>
     <email></email>
     <source>https://github.com/vonH/plugin.video.iplayerwww</source>
-    <disclaimer>This add-on is a front end to the BBC iPlayer website. It is not an official BBC product. A UK TV Licence is required to watch the live, catch-up, or on-demand TV content.</disclaimer>
+    <disclaimer lang="en">This add-on is a front end to the BBC iPlayer website. It is not an official BBC product. A UK TV Licence is required to watch the live, catch-up, or on-demand TV content.</disclaimer>
   </extension>
 </addon>
