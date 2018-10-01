@@ -26,7 +26,7 @@ def GetAtoZPage(page_url, just_episodes=False):
 
     total_pages = 1
     current_page = 1
-    page_range = range(1)
+    page_range = list(range(1))
     paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
     next_page = 1
     if paginate:
@@ -34,14 +34,14 @@ def GetAtoZPage(page_url, just_episodes=False):
             current_page_match = re.search(r'page=(\d*)', page_url)
             if current_page_match:
                 current_page = int(current_page_match.group(1))
-            page_range = range(current_page, current_page+1)
+            page_range = list(range(current_page, current_page+1))
             next_page_match = re.search(r'<li class="pagination__next"><a href="(.*?page=)(.*?)">', paginate.group(0))
             if next_page_match:
                 page_base_url = next_page_match.group(1)
                 next_page = int(next_page_match.group(2))
             else:
                 next_page = current_page
-            page_range = range(current_page, current_page+1)
+            page_range = list(range(current_page, current_page+1))
         else:
             pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
             if pages:
@@ -49,7 +49,7 @@ def GetAtoZPage(page_url, just_episodes=False):
                 last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
                 page_base_url = last_page.group(1)
                 total_pages = int(last_page.group(2))
-            page_range = range(1, total_pages+1)
+            page_range = list(range(1, total_pages+1))
 
     for page in page_range:
 
@@ -151,7 +151,7 @@ def GetPage(page_url, just_episodes=False):
 
     total_pages = 1
     current_page = 1
-    page_range = range(1)
+    page_range = list(range(1))
     paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
     next_page = 1
     if paginate:
@@ -159,14 +159,14 @@ def GetPage(page_url, just_episodes=False):
             current_page_match = re.search(r'page=(\d*)', page_url)
             if current_page_match:
                 current_page = int(current_page_match.group(1))
-            page_range = range(current_page, current_page+1)
+            page_range = list(range(current_page, current_page+1))
             next_page_match = re.search(r'<li class="pagination__next"><a href="(.*?page=)(.*?)">', paginate.group(0))
             if next_page_match:
                 page_base_url = next_page_match.group(1)
                 next_page = int(next_page_match.group(2))
             else:
                 next_page = current_page
-            page_range = range(current_page, current_page+1)
+            page_range = list(range(current_page, current_page+1))
         else:
             pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
             if pages:
@@ -174,7 +174,7 @@ def GetPage(page_url, just_episodes=False):
                 last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
                 page_base_url = last_page.group(1)
                 total_pages = int(last_page.group(2))
-            page_range = range(1, total_pages+1)
+            page_range = list(range(1, total_pages+1))
 
     for page in page_range:
 
@@ -246,7 +246,7 @@ def GetCategoryPage(page_url, just_episodes=False):
 
     total_pages = 1
     current_page = 1
-    page_range = range(1)
+    page_range = list(range(1))
     paginate = re.search(r'pgn__list',html)
     next_page = 1
     if paginate:
@@ -257,14 +257,14 @@ def GetCategoryPage(page_url, just_episodes=False):
                 main_base_url = re.search(r'(.+?)\?.+?', page_url).group(1)
             else:
                 main_base_url = page_url
-            page_range = range(current_page, current_page+1)
+            page_range = list(range(current_page, current_page+1))
             next_page_match = re.search(r'pgn__page--next.*?href="(.*?page=)(.*?)"', html)
             if next_page_match:
                 page_base_url = main_base_url + next_page_match.group(1)
                 next_page = int(next_page_match.group(2))
             else:
                 next_page = current_page
-            page_range = range(current_page, current_page+1)
+            page_range = list(range(current_page, current_page+1))
         else:
             pages = re.findall(r'<li class="pgn__page.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
             if pages:
@@ -272,7 +272,7 @@ def GetCategoryPage(page_url, just_episodes=False):
                 last_page = re.search(r'href=".*?page=(.*?)"',last)
                 page_base_url = page_url + '?page='
                 total_pages = int(last_page.group(1))
-            page_range = range(1, total_pages+1)
+            page_range = list(range(1, total_pages+1))
 
     for page in page_range:
 
@@ -405,7 +405,7 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
                         'sbr_high': '320'
                        }
 
-    for location in location_qualities.keys():
+    for location in list(location_qualities.keys()):
         qualities = location_qualities[location]
         qualities.reverse()
         for quality in qualities:
