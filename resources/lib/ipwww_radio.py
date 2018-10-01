@@ -442,6 +442,11 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
 
     for supplier, bitrate, url, encoding in sorted(streams[0], key=itemgetter(1), reverse=True):
         bitrate = int(bitrate)
+        if supplier == 1:
+            supplier = 'Akamai'
+        elif supplier == 2:
+            supplier = 'Limelight'
+
         if bitrate >= 320:
             color = 'ff008000'
         elif bitrate >= 128:
@@ -450,6 +455,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
             color = 'ffffa500'
         else:
             color = 'ffff0000'
+
         title = name + ' - [I][COLOR %s]%d Kbps %s[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
             color, bitrate, encoding, supplier)
         AddMenuEntry(title, url, 201, iconimage, description, '', '')
@@ -805,10 +811,18 @@ def ParseStreams(stream_id):
 
     # Parse the different streams and add them as new directory entries.
     match = re.compile(
-        'media.+?bitrate="(.+?)".+?encoding="(.+?)".+?connection.+?href="(.+?)".+?supplier="(.+?)".+?transferFormat="(.+?)"'
+        'media.+?bitrate="(.+?)".+?encoding="(.+?)"(.+?)<\/media>'
         ).findall(html)
-    for bitrate, encoding, url, supplier, transfer_format in match:
-        retlist.append((supplier, bitrate, url, encoding))
+    for bitrate, encoding, connections in match:
+        stream = re.compile(
+            '<connection.+?href="(.+?)".+?supplier="(.+?)"'
+            ).findall(connections)
+        for url, supplier in stream:
+            if ('akamai' in supplier):
+                supplier = 1
+            elif ('limelight' in supplier):
+                supplier = 2
+            retlist.append((supplier, bitrate, url, encoding))
 
     return retlist, match
 
