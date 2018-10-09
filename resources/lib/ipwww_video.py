@@ -463,6 +463,7 @@ def ScrapeEpisodes(page_url):
                 name = json_data['initialState']['header']['title']
 
             for item in json_data['initialState']['entities']:
+                meta = item.get("meta")
                 item = item.get("props")
                 if not item:
                     continue
@@ -477,10 +478,10 @@ def ScrapeEpisodes(page_url):
 
                 episodes_url = ""
                 episodes_title = ""
-                if 'secondaryHref' in item:
+                if 'secondaryHref' in meta:
                     # Some strings already contain the full URL, need to work around this.
-                    url = item['secondaryHref'].replace('http://www.bbc.co.uk','')
-                    url = item['secondaryHref'].replace('https://www.bbc.co.uk','')
+                    url = meta['secondaryHref'].replace('http://www.bbc.co.uk','')
+                    url = url.replace('https://www.bbc.co.uk','')
                     if url:
                         episodes_url = 'https://www.bbc.co.uk' + url
                         episodes_title = item["title"]
