@@ -191,12 +191,72 @@ def GetAtoZPage(url):
 
     Creates the list of programmes for one character.
     """
-    link = OpenURL('https://www.bbc.co.uk/iplayer/a-z/%s' % url)
-    match = re.compile(
-        '<a href="/iplayer/brand/(.+?)".+?<span class="title">(.+?)</span>',
-        re.DOTALL).findall(link)
-    for programme_id, name in match:
-        AddMenuEntry(name, programme_id, 121, '', '', '')
+    html = OpenURL('https://www.bbc.co.uk/iplayer/a-z/%s' % url)
+
+    # There is a new layout for episodes, scrape it from the JSON received as part of the page
+    match = re.search(
+              r'window\.mediatorDefer\=page\(document\.getElementById\(\"tviplayer\"\),(.*?)\);',
+              html, re.DOTALL)
+    if match:
+        data = match.group(1)
+        json_data = json.loads(data)
+        # print json.dumps(json_data, indent=2, sort_keys=True)
+
+        current_letter = json_data['appStoreState']['currentLetter']
+
+        for item in json_data['appStoreState']['programmes'][current_letter]['entities']:
+            meta = item.get("meta")
+            item = item.get("props")
+            if not item:
+                continue
+
+            main_url = None
+            if 'href' in item:
+                # Some strings already contain the full URL, need to work around this.
+                url = item['href'].replace('http://www.bbc.co.uk','')
+                url = url.replace('https://www.bbc.co.uk','')
+                if url:
+                    main_url = 'https://www.bbc.co.uk' + url
+
+            num_episodes = None
+            if 'episodesAvailable' in meta:
+                if meta['episodesAvailable'] > 1:
+                    num_episodes = str(meta['episodesAvailable'])
+
+            title = ''
+            if 'title' in item:
+                if num_episodes:
+                    title = item['title']+' - '+num_episodes+' episodes available'
+                else:
+                    title = item['title']
+
+            synopsis = ''
+            if 'synopsis' in item:
+                synopsis = item['synopsis']
+
+            icon = ''
+            if 'imageTemplate' in item:
+                icon = item['imageTemplate'].replace("{recipe}","832x468")
+
+            if num_episodes:
+                AddMenuEntry(title, main_url, 139, icon, synopsis, '')
+            else:
+                CheckAutoplay(title , main_url, icon, synopsis, '')
+
+
+def GetMultipleEpisodes(url):
+    html = OpenURL(url)
+    # There is a new layout for episodes, scrape it from the JSON received as part of the page
+    match = re.search(
+              r'window\.mediatorDefer\=page\(document\.getElementById\(\"tviplayer\"\),(.*?)\);',
+              html, re.DOTALL)
+    if match:
+        data = match.group(1)
+        json_data = json.loads(data)
+        # print json.dumps(json_data, indent=2, sort_keys=True)
+
+        if json_data['episode']['tleo_id']:
+            GetEpisodes(json_data['episode']['tleo_id'])
 
 
 def ParseAired(aired):
