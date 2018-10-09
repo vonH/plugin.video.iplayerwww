@@ -80,7 +80,17 @@ def download_subtitles(url):
 
     txt = OpenURL(url)
 
+    styles = []
     # print txt
+
+    # get styles
+    styles = []
+    match = re.search(r'<styling>(.+?)</styling>', txt, re.DOTALL)
+    if match:
+        match = re.findall(r'<style.*?id="(.*?)".*?color="(.*?)"', match.group(1), re.DOTALL)
+        if match:
+            for id, color in match:
+                styles.append((id, color))
 
     i = 0
     prev = None
@@ -121,8 +131,18 @@ def download_subtitles(url):
             # ma['text'] = ma['text'].replace('<.*?>', '')
             # print ma
             if not prev:
-                # first match - do nothing wait till next line
+                # first match - only get the color, wait till next line
                 prev = ma
+                match = re.search(r'style="(.*?)"', line, re.DOTALL)
+                color = None
+                if match:
+                    style = match.group(1)
+                    color = [value for (style_id,value) in styles if style_id == style]
+                else:
+                    # fallback: sometimes, there is direct formatting in the text
+                    match = re.search(r'color="(.*?)"', line, re.DOTALL)
+                    if match:
+                        color = [match.group(1)]
                 continue
 
             if prev['text'] == ma['text']:
@@ -131,15 +151,36 @@ def download_subtitles(url):
                 prev['end_mil'] = ma['end_mil']
             else:
                 i += 1
-                entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (
-                    i, prev['start'], prev['start_mil'], prev['end'], prev['end_mil'], prev['text'])
+                if color:
+                    entry = "%d\n%s,%s --> %s,%s\n<font color=\"%s\">%s</font>\n\n" % (
+                        i, prev['start'], prev['start_mil'], prev['end'], prev['end_mil'], color[0], prev['text'])
+                else:
+                    entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (
+                        i, prev['start'], prev['start_mil'], prev['end'], prev['end_mil'], prev['text'])
                 prev = ma
         elif prev:
             i += 1
-            entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (
-                i, prev['start'], prev['start_mil'], prev['end'], prev['end_mil'], prev['text'])
+            if color:
+                entry = "%d\n%s,%s --> %s,%s\n<font color=\"%s\">%s</font>\n\n" % (
+                    i, prev['start'], prev['start_mil'], prev['end'], prev['end_mil'], color[0], prev['text'])
+            else:
+                entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (
+                    i, prev['start'], prev['start_mil'], prev['end'], prev['end_mil'], prev['text'])
+
+        # get color for this line
+        match = re.search(r'style="(.*?)"', line, re.DOTALL)
+        color = None
+        if match:
+            style = match.group(1)
+            color = [value for (style_id,value) in styles if style_id == style]
+        else:
+            # fallback: sometimes, there is direct formatting in the text
+            match = re.search(r'color="(.*?)"', line, re.DOTALL)
+            if match:
+                color = [match.group(1)]
 
         if entry:
+            print entry.encode('utf-8')
             fw.write(entry)
 
     fw.close()
