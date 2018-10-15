@@ -179,7 +179,6 @@ def download_subtitles(url):
         color = getSubColor(line, styles)
 
         if entry:
-            print entry.encode('utf-8')
             fw.write(entry)
 
     fw.close()
