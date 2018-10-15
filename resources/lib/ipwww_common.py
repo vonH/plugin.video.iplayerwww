@@ -55,6 +55,23 @@ def ParseImageUrl(url):
     return url.replace("{recipe}", "832x468")
 
 
+def getSubColor(line,  styles):
+    color = None
+    match = re.search(r'style="(.*?)"', line, re.DOTALL)
+    if match:
+        style = match.group(1)
+        color = [value for (style_id,value) in styles if style_id == style]
+    else:
+        # fallback: sometimes, there is direct formatting in the text
+        match = re.search(r'color="(.*?)"', line, re.DOTALL)
+        if match:
+            color = [match.group(1)]
+        else:
+            # fallback 2: sometimes, there is no formatting at all, use default
+            color = [value for (style_id,value) in styles if style_id == 's0']
+    return color
+
+
 def download_subtitles(url):
     # Download and Convert the TTAF format to srt
     # SRT:
@@ -133,16 +150,7 @@ def download_subtitles(url):
             if not prev:
                 # first match - only get the color, wait till next line
                 prev = ma
-                match = re.search(r'style="(.*?)"', line, re.DOTALL)
-                color = None
-                if match:
-                    style = match.group(1)
-                    color = [value for (style_id,value) in styles if style_id == style]
-                else:
-                    # fallback: sometimes, there is direct formatting in the text
-                    match = re.search(r'color="(.*?)"', line, re.DOTALL)
-                    if match:
-                        color = [match.group(1)]
+                color = getSubColor(line, styles)
                 continue
 
             if prev['text'] == ma['text']:
@@ -168,16 +176,7 @@ def download_subtitles(url):
                     i, prev['start'], prev['start_mil'], prev['end'], prev['end_mil'], prev['text'])
 
         # get color for this line
-        match = re.search(r'style="(.*?)"', line, re.DOTALL)
-        color = None
-        if match:
-            style = match.group(1)
-            color = [value for (style_id,value) in styles if style_id == style]
-        else:
-            # fallback: sometimes, there is direct formatting in the text
-            match = re.search(r'color="(.*?)"', line, re.DOTALL)
-            if match:
-                color = [match.group(1)]
+        color = getSubColor(line, styles)
 
         if entry:
             print entry.encode('utf-8')
