@@ -603,7 +603,7 @@ def ListChannelHighlights():
         AddMenuEntry(name, id, 106, iconimage, '', '')
 
 
-def ParseSingleJSON(meta, item, name):
+def ParseSingleJSON(meta, item, name, added_playables, added_directories):
     main_url = None
     if 'href' in item:
         # Some strings already contain the full URL, need to work around this.
@@ -654,20 +654,29 @@ def ParseSingleJSON(meta, item, name):
 
     aired = ''
 
-    CheckAutoplay(title , main_url, icon, synopsis, aired)
+    if not main_url in added_playables:
+        CheckAutoplay(title , main_url, icon, synopsis, aired)
+        added_playables.append(main_url)
 
     if num_episodes:
-        title = '[B]'+item['title']+'[/B] - '+num_episodes+' episodes available'
-        AddMenuEntry(title, main_url, 139, icon, synopsis, '')
+        if not main_url in added_directories:
+            title = '[B]'+item['title']+'[/B] - '+num_episodes+' episodes available'
+            AddMenuEntry(title, main_url, 139, icon, synopsis, '')
+            added_directories.append(main_url)
 
     if episodes_url:
-        AddMenuEntry('[B]%s[/B]' % (episodes_title),
-                     episodes_url, 128, icon, synopsis, '')
+        if not main_url in added_directories:
+            AddMenuEntry('[B]%s[/B]' % (episodes_title),
+                         episodes_url, 128, icon, synopsis, '')
+            added_directories.append(main_url)
 
 
 def ParseJSON(json_data):
     """Parses the JSON data containing programme information of a page. Contains a lot of fallbacks
     """
+
+    added_playables = []
+    added_directories = []
 
     programme_data = None
     if 'appStoreState' in json_data:
@@ -696,7 +705,7 @@ def ParseJSON(json_data):
                 if 'props' in item:
                     meta = item.get('meta')
                     item = item.get('props')
-                ParseSingleJSON(meta, item, name)
+                ParseSingleJSON(meta, item, name, added_playables, added_directories)
 
         # The next section is for global and channel highlights. They are a bit tricky.
         groups = None
@@ -709,7 +718,7 @@ def ParseJSON(json_data):
                     item = item.get("props")
                     if not item:
                         continue
-                    ParseSingleJSON(None, item, None)
+                    ParseSingleJSON(None, item, None, added_playables, added_directories)
 
                 title = ''
                 id = ''
@@ -717,8 +726,9 @@ def ParseJSON(json_data):
                 id = entity.get('id')
                 if (title and id):
                     episodes_url = 'https://www.bbc.co.uk/iplayer/group/%s' % id
-                    AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
-                                 episodes_url, 128, '', '', '')
+                    if not episodes_url in added_directories:
+                        AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
+                                     episodes_url, 128, '', '', '')
 
         if 'highlights' in programme_data:
             highlights = programme_data.get('highlights')
@@ -728,7 +738,7 @@ def ParseJSON(json_data):
                     item = item.get("props")
                     if not item:
                         continue
-                    ParseSingleJSON(None, item, None)
+                    ParseSingleJSON(None, item, None, added_playables, added_directories)
 
         if 'bundles' in programme_data:
             bundles = programme_data.get('bundles')
@@ -737,7 +747,7 @@ def ParseJSON(json_data):
                 entity = bundle.get('entities')
                 if entity:
                     for item in entity:
-                        ParseSingleJSON(None, item, None)
+                        ParseSingleJSON(None, item, None, added_playables, added_directories)
                 journey = ''
                 journey = bundle.get('journey')
                 if journey:
@@ -754,8 +764,9 @@ def ParseJSON(json_data):
                                              'url', 105, '', '', '')
                             else:
                                 episodes_url = 'https://www.bbc.co.uk/iplayer/group/%s' % id
-                                AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
-                                             episodes_url, 128, '', '', '')
+                                if not episodes_url in added_directories:
+                                    AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
+                                                 episodes_url, 128, '', '', '')
                         if (id and (type == 'category')):
                             AddMenuEntry('[B]%s: %s[/B]' % (translation(30314), title),
                                          id, 126, '', '', '')
