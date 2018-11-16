@@ -215,8 +215,8 @@ def GetMultipleEpisodes(url):
         json_data = json.loads(data)
         # print json.dumps(json_data, indent=2, sort_keys=True)
 
-        if json_data['episode']['tleoId']:
-            GetEpisodes(json_data['episode']['tleoId'])
+        if json_data['appStoreState']['episode']['tleoId']:
+            GetEpisodes(json_data['appStoreState']['episode']['tleoId'])
 
 
 def ParseAired(aired):
@@ -1229,7 +1229,7 @@ def ScrapeAvailableStreams(url):
     if match:
         data = match.group(1)
         json_data = json.loads(data)
-        json_data = json_data["appStoreState"]
+        json_data = json_data['appStoreState']
         # print json.dumps(json_data, indent=2, sort_keys=True)
         if 'title' in json_data['episode']:
             name = json_data['episode']['title']
