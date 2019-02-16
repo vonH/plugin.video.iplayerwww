@@ -546,10 +546,10 @@ def ListCategories():
     """
     html = OpenURL('https://www.bbc.co.uk/iplayer')
     match = re.compile(
-        '<a href="/iplayer/categories/(.+?)/featured".*?>(.+?)</a>'
+        '<a href="/iplayer/categories/(.+?)/featured".*?><span class="lnk__label">(.+?)</span>'
         ).findall(html)
     for url, name in match:
-        if name == "View all":
+        if ((name == "View all") or (name == "A-Z")):
             continue
         AddMenuEntry(name, url, 126, '', '', '')
 
