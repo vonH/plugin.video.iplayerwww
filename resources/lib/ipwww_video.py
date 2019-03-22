@@ -1184,26 +1184,6 @@ def ParseLiveStreams(channelname, providers):
     return sorted(streams, key=lambda x: (x[1]), reverse=True)
 
 
-def ScrapeJSON(html):
-    json_data = None
-    format = 1
-    match = re.search(r'window\.mediatorDefer\=page\(document\.getElementById\(\"tviplayer\"\),(.*?)\);', html, re.DOTALL)
-    if not match:
-        format = 2
-        match = re.search(r'window.__IPLAYER_REDUX_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
-    if match:
-        data = match.group(1)
-        json_data = json.loads(data)
-        if format == 1:
-            if 'appStoreState' in json_data:
-                json_data = json_data.get('appStoreState')
-            elif 'initialState' in json_data:
-                json_data = json_data.get('initialState')
-        # print json.dumps(json_data, indent=2, sort_keys=True)
-    return json_data
- 
-
-
 def ScrapeAvailableStreams(url):
     # Open page and retrieve the stream ID
     html = OpenURL(url)
@@ -1247,6 +1227,25 @@ def ScrapeAvailableStreams(url):
                 stream_id_st = stream['id']
 
     return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad, 'name': name, 'image':image, 'description': description}
+
+
+def ScrapeJSON(html):
+    json_data = None
+    format = 1
+    match = re.search(r'window\.mediatorDefer\=page\(document\.getElementById\(\"tviplayer\"\),(.*?)\);', html, re.DOTALL)
+    if not match:
+        format = 2
+        match = re.search(r'window.__IPLAYER_REDUX_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+    if match:
+        data = match.group(1)
+        json_data = json.loads(data)
+        if format == 1:
+            if 'appStoreState' in json_data:
+                json_data = json_data.get('appStoreState')
+            elif 'initialState' in json_data:
+                json_data = json_data.get('initialState')
+        # print json.dumps(json_data, indent=2, sort_keys=True)
+    return json_data
 
 
 def CheckAutoplay(name, url, iconimage, plot, aired=None):
