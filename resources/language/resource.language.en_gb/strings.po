@@ -120,6 +120,10 @@ msgctxt "#30211"
 msgid "Catchup bitrate"
 msgstr ""
 
+msgctxt "#30212"
+msgid "Stream protocol"
+msgstr ""
+
 msgctxt "#30220"
 msgid "Live CDN source"
 msgstr ""
@@ -281,6 +285,10 @@ msgctxt "#30334"
 msgid "Following"
 msgstr ""
 
+msgctxt "#30335"
+msgid "UHD Trial Channels"
+msgstr ""
+
 msgctxt "#30400"
 msgid "Error"
 msgstr ""
@@ -323,6 +331,10 @@ msgstr ""
 
 msgctxt "#30410"
 msgid "To watch iPlayer TV content legally, you need a UK TV Licence."
+msgstr ""
+
+msgctxt "#30411"
+msgid "The UHD Trial channels are only available using the DASH stream protocol through InputStream Adaptive."
 msgstr ""
 
 msgctxt "#30500"
@@ -405,3 +417,6 @@ msgctxt "#30528"
 msgid "Radio: Following"
 msgstr ""
 
+msgctxt "#30529"
+msgid "iPlayer: UHD Trial Channels"
+msgstr ""
