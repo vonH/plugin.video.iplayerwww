@@ -587,8 +587,6 @@ def ParseSingleJSON(meta, item, name, added_playables, added_directories):
     aired = ''
     title = ''
 
-    print json.dumps(item, indent=2, sort_keys=True)
-
     if 'episode' in item:
         subitem = item['episode']
         if 'id' in subitem:
