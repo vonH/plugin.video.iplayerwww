@@ -11,7 +11,6 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
-
 plugin_handle = int(sys.argv[1])
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 sys.path.insert(0, os.path.join(ADDON.getAddonInfo("path"), 'resources', 'lib'))
@@ -56,7 +55,6 @@ subtitles_url = None
 logged_in = False
 keyword = None
 
-
 try:
     content_type = utf8_unquote_plus(params["content_type"])
 except:
@@ -94,9 +92,21 @@ try:
 except:
     pass
 
+Radio.Init(mode)
+
 # These are the modes which tell the plugin where to go.
 if mode == 1:
     KidsMode()
+
+elif mode == 3:
+    Radio.ClearCache()
+    CreateBaseDirectory("audio")
+
+elif mode == 98:
+    CreateBaseDirectory("audio")
+
+elif mode == 99:
+    pass
 
 elif mode is None or url is None or len(url) < 1:
     CreateBaseDirectory(content_type)
@@ -136,19 +146,10 @@ elif mode == 113:
     Radio.ListLive()
 
 elif mode == 114:
-    Radio.ListGenres()
+    Radio.ListCategories()
 
 elif mode == 115:
-    Radio.Search(keyword)
-
-elif mode == 116:
-    Radio.ListMostPopular()
-
-elif mode == 117:
-    Radio.ListListenList(logged_in)
-
-elif mode == 199:
-    Radio.ListFollowing(logged_in)
+    Radio.DoSearch(keyword)
 
 elif mode == 118:
     Video.RedButtonDialog()
@@ -191,7 +192,7 @@ elif mode == 131:
     Radio.GetEpisodes(url)
 
 elif mode == 132:
-    Radio.GetAvailableStreams(name, url, iconimage, description)
+    Radio.AddAvailableStreamsDirectory(name, url, iconimage, description)
 
 elif mode == 133:
     Radio.AddAvailableLiveStreamsDirectory(name, url, iconimage)
@@ -200,7 +201,7 @@ elif mode == 134:
     Video.ScrapeAtoZEpisodes(url)
 
 elif mode == 136:
-    Radio.GetPage(url)
+    Radio.GetProgrammesPage(url)
 
 elif mode == 137:
     Radio.GetCategoryPage(url)
@@ -210,6 +211,12 @@ elif mode == 138:
 
 elif mode == 139:
     Video.GetMultipleEpisodes(url)
+
+elif mode == 140:
+    Radio.GetSearchPage(url)
+
+elif mode == 141:
+    Radio.ListSubcategories(url)
 
 # Modes 201-299 will create a playable menu entry, not a directory
 elif mode == 201:
@@ -225,7 +232,7 @@ elif mode == 204:
     Video.AddAvailableRedButtonItem(name, url)
 
 elif mode == 211:
-    Radio.PlayStream(name, url, iconimage, description, subtitles_url)
+    Radio.PlayStream(name, url, iconimage, description)
 
 elif mode == 212:
     Radio.AddAvailableStreamItem(name, url, iconimage, description)
@@ -233,6 +240,10 @@ elif mode == 212:
 elif mode == 213:
     Radio.AddAvailableLiveStreamItem(name, url, iconimage)
 
+elif mode == 214:
+    Radio.PlayLiveStream(name, url, iconimage, description)
 
+elif mode == 215:
+    Radio.GoToProgrammesPage(logged_in, url)
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))

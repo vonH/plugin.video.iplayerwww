@@ -66,3 +66,9 @@ target/
 *.bak
 *~
 *.orig
+
+# other
+/test/
+!/resources/lib/
+.idea
+.DS_Store
