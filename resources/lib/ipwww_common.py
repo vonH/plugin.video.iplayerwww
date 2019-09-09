@@ -410,7 +410,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
 
     video_streaminfo = {'codec': 'h264'}
     if not isFolder:
-        if int(ADDON.getSetting('stream_protocol')) == 0:
+        if int(ADDON.getSetting('stream_protocol')) == 0 and mode not in (211, 212, 213, 214):
             listitem.setPath(url)
             listitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
             listitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
