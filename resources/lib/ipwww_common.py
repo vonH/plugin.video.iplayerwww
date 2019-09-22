@@ -94,7 +94,7 @@ def format_subtitle(caption, span_replacer, index):
     text = re.sub(r'<br\s?/>', '\n', text)
     text = re.sub(r'<span.*?>(.*?)</span>', span_replacer, text, flags=re.DOTALL)
     if caption['color']:
-        text = re.sub(r'(^|</font>)([^<]+)(<font|$)', r'\1<font color="%s">\2</font>\3' % 
+        text = re.sub(r'(^|</font>)([^<]+)(<font|$)', r'\1<font color="%s">\2</font>\3' %
             caption['color'], text, flags=re.DOTALL)
         if not re.search(r'<font.*?>(.*?)</font>', text, re.DOTALL):
             text = '<font color="%s">%s</font>' %  (caption['color'], text)
@@ -219,10 +219,10 @@ def SignInBBCiD():
                'username': username,
                'password': password,
                'attempts':'0'}
-    
+
     #Regular expression to get 'nonce' from login page
     p = re.compile('action="([^""]*)"')
-    
+
     with requests.Session() as s:
         resp = s.get('https://www.bbc.com/', headers=headers)
 
@@ -234,11 +234,11 @@ def SignInBBCiD():
 
         url = "https://account.bbc.com%s" % HTMLParser.HTMLParser().unescape(url)
         resp = s.post(url, data=post_data, headers=headers)
-    
+
         for cookie in s.cookies:
             cookie_jar.set_cookie(cookie)
         cookie_jar.save(ignore_discard=True)
-    
+
     with requests.Session() as s:
         resp = s.get('https://www.bbc.co.uk/iplayer', headers=headers)
 
@@ -250,7 +250,7 @@ def SignInBBCiD():
 
         url = "https://account.bbc.com%s" % HTMLParser.HTMLParser().unescape(url)
         resp = s.post(url, data=post_data, headers=headers)
-    
+
         for cookie in s.cookies:
             cookie_jar.set_cookie(cookie)
         cookie_jar.save(ignore_discard=True)
@@ -277,11 +277,11 @@ def StatusBBCiD():
                       headers=headers, allow_redirects=False)
     if r.status_code == 200:
         return True
-    else: 
+    else:
         return False
 
 
-def CheckLogin(logged_in):
+def CheckLogin(logged_in, reason=None):
     if(logged_in == True or StatusBBCiD() == True):
         logged_in = True
         return True
@@ -291,7 +291,11 @@ def CheckLogin(logged_in):
         if ADDON.getSetting('bbc_id_autologin') == 'true':
             attemptLogin = True
         else:
-            attemptLogin = xbmcgui.Dialog().yesno(translation(30308), translation(30312))
+            if reason:
+                msg = reason + translation(30312)
+            else:
+                msg = translation(30312)
+            attemptLogin = xbmcgui.Dialog().yesno(translation(30308), msg)
         if attemptLogin:
             SignInBBCiD()
             if(StatusBBCiD()):
@@ -305,9 +309,12 @@ def CheckLogin(logged_in):
     return False
 
 
-def OpenURL(url):
+def OpenURL(url, decode_errors='strict', request_headers={}):
+    curr_headers = {}
+    curr_headers.update(headers)
+    curr_headers.update(request_headers)
     try:
-        r = requests.get(url, headers=headers, cookies=cookie_jar)
+        r = requests.get(url, headers=curr_headers, cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), "%s" % e)
@@ -320,10 +327,10 @@ def OpenURL(url):
         cookie_jar.save(ignore_discard=True)
     except:
         pass
-    return HTMLParser.HTMLParser().unescape(r.content.decode('utf-8'))
+    return HTMLParser.HTMLParser().unescape(r.content.decode('utf-8', decode_errors))
 
 
-def OpenURLPost(url, post_data):
+def OpenURLPost(url, post_data, request_headers={}):
 
     headers_ssl = {
                    'User-Agent': user_agent,
@@ -331,8 +338,36 @@ def OpenURLPost(url, post_data):
                    'Accept':'*/*',
                    'Referer':'https://ssl.bbc.co.uk/id/signin',
                    'Content-Type':'application/x-www-form-urlencoded'}
+    headers_ssl.update(request_headers)
     try:
         r = requests.post(url, headers=headers_ssl, data=post_data, allow_redirects=False,
+                          cookies=cookie_jar)
+    except requests.exceptions.RequestException as e:
+        dialog = xbmcgui.Dialog()
+        dialog.ok(translation(30400), "%s" % e)
+        sys.exit(1)
+    try:
+        for cookie in r.cookies:
+            cookie_jar.set_cookie(cookie)
+        #Set ignore_discard to overcome issue of not having session
+        #as cookie_jar is reinitialised for each action.
+        cookie_jar.save(ignore_discard=True)
+    except:
+        pass
+    return r
+
+
+def open_url_delete(url, request_headers={}):
+
+    headers_ssl = {
+                   'User-Agent': user_agent,
+                   'Host':'ssl.bbc.co.uk',
+                   'Accept':'*/*',
+                   'Referer':'https://ssl.bbc.co.uk/id/signin',
+                   'Content-Type':'application/x-www-form-urlencoded'}
+    headers_ssl.update(request_headers)
+    try:
+        r = requests.delete(url, headers=headers_ssl, allow_redirects=False,
                           cookies=cookie_jar)
     except requests.exceptions.RequestException as e:
         dialog = xbmcgui.Dialog()
@@ -363,12 +398,15 @@ def utf8_unquote_plus(str):
     return urllib.unquote_plus(str).decode('utf-8')
 
 
-def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None, logged_in=False):
+def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None, logged_in=False, commands=None):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
-    if not iconimage:
-        iconimage="DefaultFolder.png"
+
+    iconimage = "DefaultFolder.png" if not iconimage or iconimage == 'None' else iconimage
+    description = "" if not description or description == 'None' else description
+    subtitles_url = "" if not subtitles_url or subtitles_url == 'None' else subtitles_url
+
     listitem_url = (sys.argv[0] + "?url=" + utf8_quote_plus(url) + "&mode=" + str(mode) +
                     "&name=" + utf8_quote_plus(name) +
                     "&iconimage=" + utf8_quote_plus(iconimage) +
@@ -387,13 +425,14 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     if mode in (201, 202, 203, 204, 211, 212, 213, 214):
         isFolder = False
     # Mode 119 is not a folder, but it is also not a playable.
-    elif mode == 119:
+    elif mode == 119 or mode == 99:
         isFolder = False
     else:
         isFolder = True
 
     listitem = xbmcgui.ListItem(label=name, label2=description,
-                                iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+                                iconImage=iconimage, thumbnailImage=iconimage)
+
     if aired:
         listitem.setInfo("video", {
             "title": name,
@@ -420,12 +459,14 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
             listitem.addStreamInfo('subtitle', {'language': 'en'})
 
     # Mode 119 is not a folder, but it is also not a playable.
-    if mode == 119:
+    if mode == 119 or mode == 99:
         listitem.setProperty("IsPlayable", 'false')
     else:
         listitem.setProperty("IsPlayable", str(not isFolder).lower())
     listitem.setProperty("IsFolder", str(isFolder).lower())
     listitem.setProperty("Property(Addon.Name)", "iPlayer WWW")
+    if commands:
+        listitem.addContextMenuItems(commands)
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                 url=listitem_url, listitem=listitem, isFolder=isFolder)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
@@ -453,7 +494,6 @@ def ShowLicenceWarning():
         ok = dialog.ok(translation(30405), translation(30410))
         if ok:
             ADDON.setSetting("licence_warning_shown", 'true')
-
 
 def CreateBaseDirectory(content_type):
     if ADDON.getSetting('kids_password'):
@@ -559,53 +599,10 @@ def CreateBaseDirectory(content_type):
         AddMenuEntry(translation(30325), 'url', 119,
                      xbmc.translatePath(
                        'special://home/addons/plugin.video.iplayerwww/media/settings.png'
-                                        ), 
+                                        ),
                      '', '')
     elif content_type == "audio":
-        if ADDON.getSetting("menu_radio_live") == 'true':
-            AddMenuEntry(translation(30321), 'url', 113,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/live.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_az") == 'true':
-            AddMenuEntry(translation(30302), 'url', 112,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/lists.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_categories") == 'true':
-            AddMenuEntry(translation(30303), 'url', 114,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/lists.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_search") == 'true':
-            AddMenuEntry(translation(30304), 'url', 115,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/search.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_most_popular") == 'true':
-            AddMenuEntry(translation(30301), 'url', 116,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/popular.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_added") == 'true':
-            AddMenuEntry(translation(30307), 'url', 117,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/favourites.png'
-                                            ),
-                         '', '')
-        """
-        if ADDON.getSetting("menu_radio_following") == 'true':
-            AddMenuEntry(translation(30334), 'url', 199,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/favourites.png'
-                                            ),
-                         '', '')
-        """
+        create_audio_directory()
         AddMenuEntry(translation(30325), 'url', 119,
                      xbmc.translatePath(
                        'special://home/addons/plugin.video.iplayerwww/media/settings.png'
@@ -679,52 +676,31 @@ def CreateBaseDirectory(content_type):
                            'special://home/addons/plugin.video.iplayerwww/media/favourites.png'
                                             ),
                          '', '')
-
-        if ADDON.getSetting("menu_radio_live") == 'true':
-            AddMenuEntry((translation(30324)+translation(30321)), 'url', 113,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/live.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_az") == 'true':
-            AddMenuEntry((translation(30324)+translation(30302)), 'url', 112,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/lists.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_categories") == 'true':
-            AddMenuEntry((translation(30324)+translation(30303)), 'url', 114,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/lists.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_search") == 'true':
-            AddMenuEntry((translation(30324)+translation(30304)), 'url', 115,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/search.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_most_popular") == 'true':
-            AddMenuEntry((translation(30324)+translation(30301)), 'url', 116,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/popular.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_added") == 'true':
-            AddMenuEntry((translation(30324)+translation(30307)), 'url', 117,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/favourites.png'
-                                            ),
-                         '', '')
-        if ADDON.getSetting("menu_radio_following") == 'true':
-            AddMenuEntry((translation(30324)+translation(30334)), 'url', 199,
-                         xbmc.translatePath(
-                           'special://home/addons/plugin.video.iplayerwww/media/favourites.png'
-                                            ),
-                         '', '')
+        create_audio_directory()
         AddMenuEntry(translation(30325), 'url', 119,
                      xbmc.translatePath(
                        'special://home/addons/plugin.video.iplayerwww/media/settings.png'
                                         ),
                      '', '')
+
+def create_audio_directory():
+    media_path = "special://home/addons/plugin.video.iplayerwww/media/"
+    favourites_png = xbmc.translatePath(media_path + "favourites.png")
+    lists_png = xbmc.translatePath(media_path + "lists.png")
+    live_png = xbmc.translatePath(media_path + "live.png")
+    search_png = xbmc.translatePath(media_path + "search.png")
+    settings_png = xbmc.translatePath(media_path + "settings.png")
+    if ADDON.getSetting("menu_radio_all") == 'true':
+        if ADDON.getSetting("menu_radio_live") == 'true':
+            title = translation(30324) + translation(30526)
+            AddMenuEntry(title, 'url', 113, live_png, title, '')
+        if ADDON.getSetting("menu_radio_categories") == 'true':
+            title = translation(30324) + translation(30533)
+            AddMenuEntry(title, 'url', 114, lists_png, title, '')
+        if ADDON.getSetting("menu_radio_az") == 'true':
+            title = translation(30324) + translation(30524)
+            AddMenuEntry(title, 'url', 112, lists_png, title, '')
+        if ADDON.getSetting("menu_radio_search") == 'true':
+            title = translation(30324) + translation(30531)
+            AddMenuEntry(title, 'url', 115, search_png, title, '')
 

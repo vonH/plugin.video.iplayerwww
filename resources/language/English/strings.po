@@ -129,17 +129,20 @@ msgid "Live bitrate"
 msgstr ""
 
 msgctxt "#30231"
-msgid "Radio CDN source"
+msgid "CDN source"
 msgstr ""
 
 msgctxt "#30232"
-msgid "Radio location"
+msgid "Live listening location"
 msgstr ""
 
 msgctxt "#30233"
-msgid "Max Live Radio bitrate"
+msgid "Live max bitrate"
 msgstr ""
 
+msgctxt "#30234"
+msgid "Catchup max bitrate"
+msgstr ""
 
 msgctxt "#30300"
 msgid "Highlights"
@@ -382,26 +385,169 @@ msgid "Radio: Listen Live"
 msgstr ""
 
 msgctxt "#30523"
-msgid "Radio: Programme List A-Z"
+msgid "Radio: Programmes A-Z"
 msgstr ""
 
 msgctxt "#30524"
-msgid "Radio: Categories"
+msgid "Programmes A-Z"
 msgstr ""
 
 msgctxt "#30525"
-msgid "Radio: Search"
+msgid "Radio: Programmes Search"
 msgstr ""
 
 msgctxt "#30526"
-msgid "Radio: Most Popular"
+msgid "Listen Live"
 msgstr ""
 
-msgctxt "#30527"
-msgid "Radio: Added"
+msgctxt "#30530"
+msgid "BBC Radio"
 msgstr ""
 
-msgctxt "#30528"
-msgid "Radio: Following"
+msgctxt "#30531"
+msgid "Programmes Search"
 msgstr ""
 
+msgctxt "#30532"
+msgid "Radio: Genres/Formats"
+msgstr ""
+
+msgctxt "#30533"
+msgid "Genres/Formats"
+msgstr ""
+
+msgctxt "#30534"
+msgid "Radio: Display subcategories"
+msgstr ""
+
+msgctxt "#30535"
+msgid "All"
+msgstr ""
+
+msgctxt "#30536"
+msgid "Radio: Page size for Programmes Search"
+msgstr ""
+
+msgctxt "#30537"
+msgid "Main Menu"
+msgstr ""
+
+msgctxt "#30538"
+msgid "Radio: Include HTML in debug log (may be very large)"
+msgstr ""
+
+msgctxt "#30539"
+msgid "Radio"
+msgstr ""
+
+msgctxt "#30540"
+msgid "Radio: Include JSON in debug log (may be very large)"
+msgstr ""
+
+msgctxt "#30541"
+msgid "Radio: Enable text formatting"
+msgstr ""
+
+msgctxt "#30542"
+msgid "Search Again"
+msgstr ""
+
+msgctxt "#30543"
+msgid "Radio: Keep previous search string"
+msgstr ""
+
+msgctxt "#30545"
+msgid "Available in the UK only"
+msgstr ""
+
+msgctxt "#30546"
+msgid "This programme is available to play in the UK only"
+msgstr ""
+
+msgctxt "#30547"
+msgid "(Page %s of %s)"
+msgstr ""
+
+msgctxt "#30548"
+msgid "Go to page..."
+msgstr ""
+
+msgctxt "#30549"
+msgid "Radio: Enter page number"
+msgstr ""
+
+msgctxt "#30550"
+msgid "Radio: Cache page data"
+msgstr ""
+
+msgctxt "#30551"
+msgid "Disk and Memory"
+msgstr ""
+
+msgctxt "#30552"
+msgid "Disk"
+msgstr ""
+
+msgctxt "#30553"
+msgid "Off"
+msgstr ""
+
+msgctxt "#30554"
+msgid "Radio: Cache expiry (hours)"
+msgstr ""
+
+msgctxt "#30555"
+msgid "Radio: Clear cache"
+msgstr ""
+
+msgctxt "#30556"
+msgid "Radio: Cache cleared"
+msgstr ""
+
+msgctxt "#30557"
+msgid "Genres"
+msgstr ""
+
+msgctxt "#30558"
+msgid "Formats"
+msgstr ""
+
+msgctxt "#30559"
+msgid "Radio: Live listening location"
+msgstr ""
+
+msgctxt "#30560"
+msgid "Radio: Live CDN source"
+msgstr ""
+
+msgctxt "#30561"
+msgid "Radio: Live max bitrate"
+msgstr ""
+
+msgctxt "#30562"
+msgid "Radio: Catchup CDN source"
+msgstr ""
+
+msgctxt "#30563"
+msgid "Radio: Catchup max bitrate"
+msgstr ""
+
+msgctxt "#30564"
+msgid "Radio: Paginate episodes"
+msgstr ""
+
+msgctxt "#30565"
+msgid "Radio: Episodes sort order"
+msgstr ""
+
+msgctxt "#30566"
+msgid "Latest"
+msgstr ""
+
+msgctxt "#30567"
+msgid "Oldest"
+msgstr ""
+
+msgctxt "#30568"
+msgid "(max %s latest episodes)"
+msgstr ""
