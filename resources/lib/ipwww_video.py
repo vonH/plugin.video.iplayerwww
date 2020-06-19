@@ -909,16 +909,8 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     liz.setPath(url)
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
         subtitles_file = download_subtitles(subtitles_url)
+        liz.setSubtitles([subtitles_file])
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
-    if subtitles_url and ADDON.getSetting('subtitles') == 'true':
-        # Successfully started playing something?
-        while True:
-            if xbmc.Player().isPlaying():
-                break
-            else:
-                xbmc.sleep(500)
-        xbmc.Player().setSubtitles(subtitles_file)
-
 
 def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     """Will create one menu entry for each available stream of a particular stream_id"""
