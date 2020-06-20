@@ -133,11 +133,22 @@ def download_subtitles(url):
     styles = []
     match = re.search(r'<styling>(.+?)</styling>', txt, re.DOTALL)
     if match:
-        match = re.findall(r'<style.*?color="(.*?)".*?id="(.*?)"', match.group(1), re.DOTALL)
+        match = re.findall(r'<style(.*?)/>', match.group(1), re.DOTALL)
         if match:
-            for color, id in match:
-                styles.append((id, color[0:7]))
-    # span_replacer = make_span_replacer(styles)
+            for style_line in match:
+                match = re.search(r'id="(.*?)"', style_line, re.DOTALL)
+                id = None
+                if match:
+                    id = match.group(1)
+                color = None
+                match = re.search(r'color="(.*?)"', style_line, re.DOTALL)
+                if match:
+                    # Some of the subtitle files use #ffffff color coding, others use plain text.
+                    if match.group(1).startswith('#'):
+                        styles.append((id, match.group(1)[0:7]))
+                    else:
+                        styles.append((id, match.group(1)))
+                    # span_replacer = make_span_replacer(styles)
     # print "Retrieved styles"
     # print styles
 
@@ -147,13 +158,27 @@ def download_subtitles(url):
     if body:
         # print "Located body"
         # print body.group(1).encode('utf-8')
-        frames = []
-        frames = re.findall(r'<p.*?begin=\"(.*?)".*?end=\"(.*?)".*?style="(.*?)".*?>(.*?)</p>', body.group(1), re.DOTALL)
+        frames = re.findall(r'<p(.*?)>(.*?)</p>', body.group(1), re.DOTALL)
+        # frames = re.findall(r'<p.*?begin=\"(.*?)".*?end=\"(.*?)".*?style="(.*?)".*?>(.*?)</p>', body.group(1), re.DOTALL)
         if frames:
             index = 1
             # print "Found %s frames"%len(frames)
             # print frames
-            for start, end, style, frame in frames:
+            for formatting, content in frames:
+                start = ''
+                match = re.search(r'begin=\"(.*?)"', formatting, re.DOTALL)
+                if match:
+                    start = match.group(1)
+                end = ''
+                match = re.search(r'end=\"(.*?)"', formatting, re.DOTALL)
+                if match:
+                    end = match.group(1)
+                style = None
+                match = re.search(r'style=\"(.*?)"', formatting, re.DOTALL)
+                if match:
+                    style = match.group(1)
+                else:
+                    style = False
                 start_split = re.split('\.',start)
                 # print start_split
                 if(len(start_split)>1):
@@ -168,7 +193,7 @@ def download_subtitles(url):
 
                 spans = []
                 text = ''
-                spans = re.findall(r'<span.*?style="(.*?)">(.*?)</span>', frame, re.DOTALL)
+                spans = re.findall(r'<span.*?style="(.*?)">(.*?)</span>', content, re.DOTALL)
                 if (spans):
                     num_spans = len(spans)
                     for num, (substyle, line) in enumerate(spans):
@@ -177,6 +202,13 @@ def download_subtitles(url):
                         color = [value for (style_id, value) in styles if substyle == style_id]
                         # print substyle, color, line.encode('utf-8')
                         text = text+'<font color="%s">%s</font>' %  (color[0], line)
+                else:
+                    if style:
+                        color = [value for (style_id, value) in styles if style == style_id]
+                        text = text+'<font color="%s">%s</font>' %  (color[0], content)
+                    else:
+                         text = text+content
+                    # print substyle, color, line.encode('utf-8')
                 entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (index, start_split[0], start_mil_f, end_split[0], end_mil_f, text)
                 if entry:
                     fw.write(entry)
