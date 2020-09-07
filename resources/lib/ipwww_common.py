@@ -133,7 +133,7 @@ def download_subtitles(url):
     styles = []
     match = re.search(r'<styling>(.+?)</styling>', txt, re.DOTALL)
     if match:
-        match = re.findall(r'<style(.*?)/>', match.group(1), re.DOTALL)
+        match = re.findall(r'<style(.*?)>', match.group(1), re.DOTALL)
         if match:
             for style_line in match:
                 match = re.search(r'id="(.*?)"', style_line, re.DOTALL)
