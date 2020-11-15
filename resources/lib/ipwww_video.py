@@ -14,6 +14,7 @@ from ipwww_common import translation, AddMenuEntry, OpenURL, \
                          ParseImageUrl, download_subtitles
 
 import xbmc
+import xbmcvfs
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
@@ -41,8 +42,8 @@ def CheckInputStreamAdaptiveAvailability():
 def RedButtonDialog():
     if ADDON.getSetting('redbutton_warning') == 'true':
         dialog = xbmcgui.Dialog()
-        ret = dialog.yesno(translation(30405), translation(30406), '',
-                           translation(30407), translation(30409), translation(30408))
+        ret = dialog.yesno(translation(30405), translation(30406) + "\n" + translation(30407),
+                           translation(30409), translation(30408))
         if ret:
             ListRedButton()
     else:
@@ -100,7 +101,7 @@ def ListRedButton():
         ('sport_stream_23b', 'BBC Red Button 23b'),
         ('sport_stream_24b', 'BBC Red Button 24b'),
     ]
-    iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
+    iconimage = xbmcvfs.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
     for id, name in channel_list:
         if ADDON.getSetting('streams_autoplay') == 'true':
             AddMenuEntry(name, id, 203, iconimage, '', '')
@@ -123,7 +124,7 @@ def ListUHDTrial():
 
     ia_available = CheckInputStreamAdaptiveAvailability()
     if ia_available:
-        iconimage = xbmc.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
+        iconimage = xbmcvfs.translatePath('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
         for id, name in channel_list:
             AddMenuEntry(name, id, 205, iconimage, '', '')
     else:
@@ -182,7 +183,7 @@ def ListLive():
         ('bbc_one_yorks',                    'BBC One Yorks',),
     ]
     for id, name in channel_list:
-        iconimage = xbmc.translatePath(
+        iconimage = xbmcvfs.translatePath(
             os.path.join('special://home/addons/plugin.video.iplayerwww/media', id + '.png'))
         if ADDON.getSetting('streams_autoplay') == 'true':
             AddMenuEntry(name, id, 203, iconimage, '', '')
@@ -236,7 +237,7 @@ def ListChannelAtoZ():
         ('tv/s4c',           's4cpbs',                      'S4C'),
     ]
     for id, img, name in channel_list:
-        iconimage = xbmc.translatePath(
+        iconimage = xbmcvfs.translatePath(
             os.path.join('special://home/addons/plugin.video.iplayerwww/media', img + '.png'))
         url = "https://www.bbc.co.uk/%s/a-z" % id
         AddMenuEntry(name, url, 134, iconimage, '', '')
@@ -515,7 +516,7 @@ def ListChannelHighlights():
         ('tv/s4c',           's4cpbs',                      'S4C'),
     ]
     for id, img, name in channel_list:
-        iconimage = xbmc.translatePath(
+        iconimage = xbmcvfs.translatePath(
             os.path.join('special://home/addons/plugin.video.iplayerwww/media', img + '.png'))
         AddMenuEntry(name, id, 106, iconimage, '', '')
 
@@ -1000,7 +1001,8 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), translation(30401))
         raise
-    liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
+    liz = xbmcgui.ListItem(name)
+    liz.setArt({'icon':'DefaultVideo.png', 'thumb':iconimage})
     liz.setInfo(type='Video', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
