@@ -428,9 +428,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
         dialog = xbmcgui.Dialog()
         dialog.ok(translation(30400), translation(30401))
         raise
-    liz = xbmcgui.ListItem(name)
-    liz.setArt({'icon':'DefaultVideo.png', 'thumb':iconimage})
-
+    liz = xbmcgui.ListItem(name, iconImage='DefaultVideo.png', thumbnailImage=iconimage)
     liz.setInfo(type='Audio', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
@@ -596,7 +594,7 @@ def ListLive():
         ('bbc_radio_york', 'BBC Radio York'),
     ]
     for id, name in channel_list:
-        iconimage = xbmcvfs.translatePath(
+        iconimage = xbmc.translatePath(
             os.path.join('special://home/addons/plugin.video.iplayerwww/media', id + '.png'))
         if ADDON.getSetting('streams_autoplay') == 'true':
             AddMenuEntry(name, id, 213, iconimage, '', '')
