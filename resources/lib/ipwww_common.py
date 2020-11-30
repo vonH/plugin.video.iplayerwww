@@ -412,9 +412,9 @@ def utf8_quote_plus(unicode):
 # Gets a unicode string from a 'urlencoded' string
 def utf8_unquote_plus(str):
     if major_version == 2:
-        return urllib.unquote_plus(unicode.encode('utf-8'))
+        return urllib.unquote_plus(str).decode('utf-8')
     elif major_version == 3:
-        return urllib.parse.unquote_plus(unicode.encode('utf-8'))
+        return urllib.parse.unquote_plus(str)
 
 
 def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None, logged_in=False):
