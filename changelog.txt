@@ -1,5 +1,7 @@
-v3.0.49~alpha
+v3.0.49
 Fixes for new subtitle XML format.
+Added initial compatibility with Python 3 (does not work on 19 yet).
+Fixed issue for programmes with multiple pages.
 
 v3.0.48
 Added support for BBC Scotland.
