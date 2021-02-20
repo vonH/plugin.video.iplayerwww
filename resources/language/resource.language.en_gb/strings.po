@@ -144,6 +144,9 @@ msgctxt "#30233"
 msgid "Max Live Radio bitrate"
 msgstr ""
 
+msgctxt "#30240"
+msgid "Subtitle CDN source"
+msgstr ""
 
 msgctxt "#30300"
 msgid "Highlights"
