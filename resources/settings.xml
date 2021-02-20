@@ -29,6 +29,7 @@
     <setting id="menu_video_search" label="30517" type="bool" default="true"/>
     <setting id="menu_video_live" label="30518" type="bool" default="true"/>
     <setting id="menu_video_red_button" label="30519" type="bool" default="true"/>
+    <setting id="menu_video_uhd_trial" label="30529" type="bool" default="true"/>
     <setting id="menu_video_watching" label="30520" type="bool" default="true"/>
     <setting id="menu_video_added" label="30521" type="bool" default="true"/>
     <setting id="menu_radio_live" label="30522" type="bool" default="true"/>
@@ -43,14 +44,15 @@
     <setting label="30103" type="lsep"  />
     <setting id="streams_autoplay" label="30205" type="bool" default="true" />
     <setting label="30101" type="lsep"  />
-    <setting id="catchup_source" label="30210" type="enum" values="Any|Akamai|Limelight|Bidi|Cloudfront" default="0" enable="true" />
-    <setting id="catchup_bitrate" label="30211" type="enum" values="Highest|0.8 Mbps|1.0 Mbps|1.5 Mbps|1.8 Mbps|2.4 Mbps|3.1 Mbps|5.5 Mbps" default="0" enable="eq(-3,true)" />
-    <setting id="live_source" label="30220" type="enum" values="Any|Akamai|Limelight|Bidi|Cloudfront" default="0" enable="eq(-4,true)" />
-    <setting id="live_bitrate" label="30230" type="enum" values="Highest|0.1 Mbps|0.2 Mbps|0.3 Mbps|0.6 Mbps|1.0 Mbps|1.8 Mbps|3.1 Mbps|5.5 Mbps" default="0" enable="eq(-5,true)" />
+    <setting id="stream_protocol" label="30212" type="enum" values="DASH|HLS" default="1" />
+    <setting id="catchup_source" label="30210" type="enum" values="Any|Akamai|Limelight|Bidi" default="0" enable="true" />
+    <setting id="catchup_bitrate" label="30211" type="enum" values="Highest|0.8 Mbps|1.0 Mbps|1.5 Mbps|1.8 Mbps|2.4 Mbps|3.1 Mbps|5.5 Mbps" default="0" enable="eq(-4,true) + eq(-2,1)" />
+    <setting id="live_source" label="30220" type="enum" values="Any|Akamai|Limelight" default="0" enable="eq(-5,true)" />
+    <setting id="live_bitrate" label="30230" type="enum" values="Highest|0.1 Mbps|0.2 Mbps|0.3 Mbps|0.6 Mbps|1.0 Mbps|1.8 Mbps|3.1 Mbps|5.5 Mbps" default="0" enable="eq(-6,true) + eq(-4,1)" />
     <setting id="subtitle_source" label="30240" type="enum" values="Any|Akamai|Limelight" default="0" />
     <setting label="30102" type="lsep"  />
-    <setting id="radio_source" label="30231" type="enum" values="Any|Akamai|Limelight" default="0" enable="eq(-7,true)" />
-    <setting id="radio_location" label="30232" type="enum" values="UK|International" default="0" enable="eq(-8,true)" />
-    <setting id="radio_live_bitrate" label="30233" type="enum" values="48 Kbps|96 Kbps|128 Kbps|320 Kbps" default="3" enable="eq(-9,true)" />
+    <setting id="radio_source" label="30231" type="enum" values="Any|Akamai|Limelight" default="0" enable="eq(-8,true)" />
+    <setting id="radio_location" label="30232" type="enum" values="UK|International" default="0" enable="eq(-9,true)" />
+    <setting id="radio_live_bitrate" label="30233" type="enum" values="48 Kbps|96 Kbps|128 Kbps|320 Kbps" default="3" enable="eq(-10,true)" />
 </category>
 </settings>
