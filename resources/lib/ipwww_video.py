@@ -32,22 +32,6 @@ def tp(path):
         return xbmcvfs.translatePath(path)
 
 
-def CheckInputStreamAdaptiveAvailability():
-    # If DASH is selected as stream_protocol, we need to check if inputstream.adaptive
-    # is available and the version is correct.
-    if xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)"):
-        if (xbmcaddon.Addon(id='inputstream.adaptive').getAddonInfo('version') < "1.0.6"):
-            # Version is smaller than 1.0.6, fall back to HLS
-            ADDON.setSetting('stream_protocol','1')
-            return False
-        else:
-            return True
-    else:
-        # inputstream.adaptive is not available, fall back to HLS
-        ADDON.setSetting('stream_protocol','1')
-        return False
-
-
 def RedButtonDialog():
     if ADDON.getSetting('redbutton_warning') == 'true':
         dialog = xbmcgui.Dialog()
@@ -126,19 +110,9 @@ def ListUHDTrial():
         ('uhd_stream_04',  'UHD Trial 4'),
         ('uhd_stream_05',  'UHD Trial 5'),
     ]
-
-    if int(ADDON.getSetting("stream_protocol")) == 1:
-        xbmcgui.Dialog().notification(translation(30400), translation(30411), xbmcgui.NOTIFICATION_ERROR)
-        return
-
-    ia_available = CheckInputStreamAdaptiveAvailability()
-    if ia_available:
-        iconimage = tp('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
-        for id, name in channel_list:
-            AddMenuEntry(name, id, 205, iconimage, '', '')
-    else:
-        xbmcgui.Dialog().notification(translation(30400), translation(30411), xbmcgui.NOTIFICATION_ERROR)
-        return
+    iconimage = tp('special://home/addons/plugin.video.iplayerwww/media/red_button.png')
+    for id, name in channel_list:
+        AddMenuEntry(name, id, 205, iconimage, '', '')
 
 
 def AddAvailableUHDTrialItem(name, channelname):
@@ -159,7 +133,7 @@ def AddAvailableUHDTrialItem(name, channelname):
 def ListLive():
     channel_list = [
         ('bbc_one_hd',                       'BBC One'),
-        ('bbc_two_hd',                       'BBC Two'),
+        ('bbc_two_england',                  'BBC Two'),
         ('bbc_four_hd',                      'BBC Four'),
         ('cbbc_hd',                          'CBBC'),
         ('cbeebies_hd',                      'CBeebies'),
@@ -875,15 +849,7 @@ def Search(search_entered):
 
 
 def AddAvailableLiveStreamItemSelector(name, channelname, iconimage):
-    if ((int(ADDON.getSetting('stream_protocol')) == 1) or
-        (channelname.startswith('sport_stream_'))):
-        return AddAvailableLiveStreamItem(name, channelname, iconimage)
-    elif int(ADDON.getSetting('stream_protocol')) == 0:
-        ia_available = CheckInputStreamAdaptiveAvailability()
-        if ia_available:
-            return AddAvailableLiveDASHStreamItem(name, channelname, iconimage)
-        else:
-            return AddAvailableLiveStreamItem(name, channelname, iconimage)
+    return AddAvailableLiveDASHStreamItem(name, channelname, iconimage)
 
 
 def AddAvailableLiveDASHStreamItem(name, channelname, iconimage):
@@ -948,39 +914,11 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
         iconimage: only used for displaying the channel.
         channelname: determines which channel is queried.
     """
-    if ((int(ADDON.getSetting('stream_protocol')) == 1) or
-        (channelname.startswith('sport_stream_'))):
-        streams = ParseLiveStreams(channelname, '')
-
-        # Add each stream to the Kodi selection menu.
-        for id, bitrate, codecs, resolution, url, provider_name in streams:
-            # For easier selection use colors to indicate high and low bitrate streams
-            if bitrate > 2.1:
-                color = 'ff008000'
-            elif bitrate > 1.0:
-                color = 'ffffff00'
-            elif bitrate > 0.6:
-                color = 'ffffa500'
-            else:
-                color = 'ffff0000'
-
-            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR fff1f1f1]%s[/COLOR][/I]' % (
-                color, bitrate, provider_name)
-            # Finally add them to the selection menu.
-            AddMenuEntry(title, url, 201, iconimage, '', '')
-
-    elif int(ADDON.getSetting('stream_protocol')) == 0:
-        ia_available = CheckInputStreamAdaptiveAvailability()
-        if ia_available:
-            streams = ParseLiveDASHStreams(channelname)
-            suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
-            for supplier, bitrate, url, resolution in streams:
-                title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (suppliers[supplier])
-                AddMenuEntry(title, url, 201, iconimage, '', '')
-        else:
-            # In this case, we reset the stream_protocol setting and the easiest way is
-            # to call this function recursively to avoid doubling a lot of code.
-            AddAvailableLiveStreamsDirectory(name, channelname, iconimage)
+    streams = ParseLiveDASHStreams(channelname)
+    suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
+    for supplier, bitrate, url, resolution in streams:
+        title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (suppliers[supplier])
+        AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
 def ListWatching(logged_in):
@@ -1029,9 +967,8 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     liz.setInfo(type='Video', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
-    if ADDON.getSetting('stream_protocol') == '0':
-        liz.setProperty('inputstreamaddon', 'inputstream.adaptive')
-        liz.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+    liz.setProperty('inputstream', 'inputstream.adaptive')
+    liz.setProperty('inputstream.adaptive.manifest_type', 'mpd')
     if subtitles_url and ADDON.getSetting('subtitles') == 'true':
         # print "Downloading subtitles"
         subtitles_file = download_subtitles(subtitles_url)
@@ -1053,21 +990,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
     bitrates = [0, 800, 1012, 1500, 1800, 2400, 3116, 5510]
     for supplier, bitrate, url, resolution, protocol in sorted(streams[0], key=itemgetter(1), reverse=True):
-        if bitrate in (5, 7):
-            color = 'ff008000'
-        elif bitrate == 6:
-            color = 'ff0084ff'
-        elif bitrate in (3, 4):
-            color = 'ffffff00'
-        else:
-            color = 'ffffa500'
-        title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR ffd3d3d3]%s (%s)[/COLOR][/I]' % (
-            color, bitrates[bitrate] / 1000, suppliers[supplier], protocol)
-        if int(ADDON.getSetting('stream_protocol')) == 1:
-            title = name + ' - [I][COLOR %s]%0.1f Mbps[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
-                color, bitrates[bitrate] / 1000, suppliers[supplier])
-        else:
-            title = name + ' - [I][COLOR ffd3d3d3]%s[/COLOR][/I]' % (suppliers[supplier])
+        title = name + ' - [I][COLOR ffd3d3d3]%s[/COLOR][/I]' % (suppliers[supplier])
         AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
 
 
@@ -1127,14 +1050,7 @@ def ParseMediaselector(stream_id):
 
 
 def ParseStreamsHLSDASH(stream_id):
-    if int(ADDON.getSetting('stream_protocol')) == 1:
-        return ParseStreams(stream_id)
-    elif int(ADDON.getSetting('stream_protocol')) == 0:
-        ia_available = CheckInputStreamAdaptiveAvailability()
-        if ia_available:
-            return ParseDASHStreams(stream_id)
-        else:
-            return ParseStreams(stream_id)
+    return ParseDASHStreams(stream_id)
 
 
 def ParseStreams(stream_id):

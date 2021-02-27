@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.iplayerwww" name="iPlayer WWW" version="3.0.50~beta" provider-name="CaptainT, Cas, ihurst, primaeval">
+<addon id="plugin.video.iplayerwww" name="iPlayer WWW" version="4.0.0~beta" provider-name="CaptainT, Cas, ihurst, primaeval">
   <requires>
-    <import addon="xbmc.python" version="2.25.0"/>
+    <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.requests" version="2.7.0"/>
+    <import addon="inputstream.adaptive" version="2.6.0"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>audio video</provides>

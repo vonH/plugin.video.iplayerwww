@@ -467,7 +467,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     if not isFolder:
         if int(ADDON.getSetting('stream_protocol')) == 0:
             listitem.setPath(url)
-            listitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+            listitem.setProperty('inputstream', 'inputstream.adaptive')
             listitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
         else:
             if resolution:
