@@ -769,46 +769,12 @@ def AddAvailableStreamItem(name, url, iconimage, description):
         subtitles_url = ''
     streams = streams_all[0]
     source = int(ADDON.getSetting('catchup_source'))
-    bitrate = int(ADDON.getSetting('catchup_bitrate'))
     # print "Selected source is %s"%source
-    # print "Selected bitrate is %s"%bitrate
     # print streams
     if source > 0:
-        if bitrate > 0:
-            # Case 1: Selected source and selected bitrate
-            match = [x for x in streams if ((x[0] == source) and (x[1] == bitrate))]
-            if len(match) == 0:
-                # Fallback: Use same bitrate but different supplier.
-                match = [x for x in streams if (x[1] == bitrate)]
-                if len(match) == 0:
-                    # Second Fallback: Use any lower bitrate from selected source.
-                    match = [x for x in streams if (x[0] == source) and (x[1] in list(range(1, bitrate)))]
-                    match.sort(key=lambda x: x[1], reverse=True)
-                    if len(match) == 0:
-                        # Third Fallback: Use any lower bitrate from any source.
-                        match = [x for x in streams if (x[1] in list(range(1, bitrate)))]
-                        match.sort(key=lambda x: x[1], reverse=True)
-        else:
-            # Case 2: Selected source and any bitrate
-            match = [x for x in streams if (x[0] == source)]
-            if len(match) == 0:
-                # Fallback: Use any source and any bitrate
-                match = streams
-            match.sort(key=lambda x: x[1], reverse=True)
+        match = [x for x in streams if (x[0] == source)]
     else:
-        if bitrate > 0:
-            # Case 3: Any source and selected bitrate
-            match = [x for x in streams if (x[1] == bitrate)]
-            if len(match) == 0:
-                # Fallback: Use any source and any lower bitrate
-                match = streams
-                match = [x for x in streams if (x[1] in list(range(1, bitrate)))]
-                match.sort(key=lambda x: x[1], reverse=True)
-        else:
-            # Case 4: Any source and any bitrate
-            # Play highest available bitrate
-            match = streams
-            match.sort(key=lambda x: x[1], reverse=True)
+        match = streams
     PlayStream(name, match[0][2], iconimage, description, subtitles_url)
 
 
@@ -860,11 +826,9 @@ def AddAvailableLiveDASHStreamItem(name, channelname, iconimage):
     if source > 0:
         match = [x for x in streams if (x[0] == source)]
         if len(match) == 0:
-            match = [x for x in streams if (x[1] in range(1, bitrate))]
-            match.sort(key=lambda x: x[1], reverse=True)
+            match = streams
     else:
         match = streams
-        match.sort(key=lambda x: x[1], reverse=True)
     PlayStream(name, match[0][2], iconimage, '', '')
 
 
@@ -950,8 +914,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     else:
         subtitles_url = ''
     suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
-    bitrates = [0, 800, 1012, 1500, 1800, 2400, 3116, 5510]
-    for supplier, bitrate, url, resolution, protocol in sorted(streams[0], key=itemgetter(1), reverse=True):
+    for supplier, bitrate, url, resolution, protocol in streams[0]:
         title = name + ' - [I][COLOR ffd3d3d3]%s[/COLOR][/I]' % (suppliers[supplier])
         AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
 
