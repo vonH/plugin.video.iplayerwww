@@ -1,9 +1,8 @@
 v4.0.0~beta
 Initial release for Matrix.
+New dependency inputstream.adaptive.
+HLS streams have been removed. As a consequence, bitrate settings have been removed. Bitrate needs to be configured in inputstream.adaptive.
 Switched to PC mediaselector.
-COMPATIBILITY NOTE: As a result there are no more HD streams over HLS.
-In order to get HD streams, inputstream.adaptive is required.
-Set "Stream protocol" in the add-on settings to "DASH" to get HD streams after making sure inputstream.adaptive is available.
 New mediaselector also adds the following new features:
 - Access to new CDN Cloudfront (Amazon)
 - Access to new subtitle sources. If you experience issues with subtitles, first try the new "Subtitle source" setting in the add-on settings before reporting issues.
