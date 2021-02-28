@@ -868,44 +868,6 @@ def AddAvailableLiveDASHStreamItem(name, channelname, iconimage):
     PlayStream(name, match[0][2], iconimage, '', '')
 
 
-def AddAvailableLiveStreamItem(name, channelname, iconimage):
-    """Play a live stream based on settings for preferred live source and bitrate."""
-    stream_bitrates = [9999, 0.1, 0.2, 0.3, 0.6, 1.0, 1.8, 3.1, 5.5]
-
-    if int(ADDON.getSetting('live_source')) == 1:
-        providers = [('ak', 'Akamai')]
-    elif int(ADDON.getSetting('live_source')) == 2:
-        providers = [('llnw', 'Limelight')]
-    else:
-        providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-    bitrate_selected = int(ADDON.getSetting('live_bitrate'))
-    if bitrate_selected > len(stream_bitrates) - 1:
-        bitrate_selected = 0
-        ADDON.setSetting('live_bitrate', str(bitrate_selected))
-
-    streams_available = ParseLiveStreams(channelname, providers)
-
-    # print streams_available
-    # Play the prefered option
-    if bitrate_selected > 0:
-        match = [x for x in streams_available if (x[1] == stream_bitrates[bitrate_selected])]
-        if len(match) == 0:
-            # Fallback: Use any bitrate lower than the selected from any source.
-            match = [x for x in streams_available if (x[1] <= stream_bitrates[bitrate_selected] )]
-            match.sort(key=lambda x: x[1], reverse=True)
-            if len(match) == 0:
-                # Fallback: Selected bitrate is too low. Use lowest available bitrate.
-                match = sorted(streams_available, key=lambda x: x[1], reverse=False)
-        # print "Selected bitrate is %s"%stream_bitrates[bitrate_selected]
-        # print match
-        # print "Playing %s from %s with bitrate %s"%(name, match[0][4], match [0][1])
-        if len(match) > 0: #TODO error message
-            PlayStream(name, match[0][4], iconimage, '', '')
-    # Play the fastest available stream of the preferred provider
-    else:
-        PlayStream(name, streams_available[0][4], iconimage, '', '')
-
-
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     """Retrieves the available live streams for a channel
 
@@ -1053,66 +1015,6 @@ def ParseStreamsHLSDASH(stream_id):
     return ParseDASHStreams(stream_id)
 
 
-def ParseStreams(stream_id):
-    streams = []
-    subtitles = []
-    # print "Parsing streams for PID: %s"%stream_id
-    mediaselector = ParseMediaselector(stream_id)
-    source = int(ADDON.getSetting('catchup_source'))
-    for m3u8_url, protocol, supplier, transfer_format in mediaselector[0]:
-        tmp_sup = 0
-        tmp_br = 0
-        if transfer_format == 'hls':
-            if 'akamai' in supplier and source in [0,1]:
-                tmp_sup = 1
-            elif 'limelight' in supplier and source in [0,2]:
-                tmp_sup = 2
-            elif 'bidi' in supplier and source in [0,3]:
-                tmp_sup = 3
-            elif 'cloudfront' in supplier and source in [0,4]:
-                tmp_sup = 4
-            else:
-                continue
-            # print m3u8_url
-            m3u8_breakdown = re.compile('(.+?)pc_hd_abr_v2_hls_master.+?m3u8(.+?)$').findall(m3u8_url)
-            m3u8_html = OpenURL(m3u8_url)
-            m3u8_match = re.compile('BANDWIDTH=(.+?),.+?RESOLUTION=(.+?)(?:,.+?\n|\n)(.+?)\n').findall(m3u8_html)
-            for bandwidth, resolution, stream in m3u8_match:
-                url = "%s%s%s" % (m3u8_breakdown[0][0], stream, m3u8_breakdown[0][1])
-                if int(bandwidth) <= 1000000:
-                    tmp_br = 1
-                elif int(bandwidth) <= 1100000:
-                    tmp_br = 2
-                elif int(bandwidth) <= 1510000:
-                    tmp_br = 3
-                elif int(bandwidth) <= 1900000:
-                    tmp_br = 4
-                elif int(bandwidth) <= 2410000:
-                    tmp_br = 5
-                elif int(bandwidth) <= 3120000:
-                    tmp_br = 6
-                elif int(bandwidth) >= 5500000:
-                    tmp_br = 7
-                # print url
-                streams.append((tmp_sup, tmp_br, url, resolution, protocol))
-
-    source = int(ADDON.getSetting('subtitle_source'))
-    for href, protocol, supplier in mediaselector[1]:
-        if 'akamai' in supplier and source in [0,1]:
-            tmp_sup = 1
-        elif 'limelight' in supplier and source in [0,2]:
-            tmp_sup = 2
-        elif 'bidi' in supplier and source in [0,3]:
-            tmp_sup = 3
-        elif 'cloudfront' in supplier and source in [0,4]:
-            tmp_sup = 4
-        else:
-            continue
-        subtitles.append((tmp_sup, href, protocol))
-
-    return streams, subtitles
-
-
 def ParseDASHStreams(stream_id):
     streams = []
     subtitles = []
@@ -1151,39 +1053,6 @@ def ParseDASHStreams(stream_id):
     # print streams
     # print subtitles
     return streams, subtitles
-
-
-def ParseLiveStreams(channelname, providers):
-    streams = []
-    # print "Parsing streams for PID: %s"%channelname
-    mediaselector = ParseMediaselector(channelname)
-    # print mediaselector
-    for provider_url, protocol, provider_name, transfer_format in mediaselector[0]:
-        if transfer_format == 'hls':
-            html = OpenURL(provider_url)
-            match = re.compile('#EXT-X-STREAM-INF:PROGRAM-ID=(.+?),BANDWIDTH=(.+?),CODECS="(.*?)",RESOLUTION=(.+?)\s*(.+?.m3u8)').findall(html)
-            # print match
-            tmp_sup = ''
-            if 'akamai' in provider_name:
-                tmp_sup = 'Akamai'
-            elif 'll' in provider_name or 'limelight' in provider_name:
-                tmp_sup = 'Limelight'
-            elif 'bidi' in provider_name:
-                tmp_sup = 'Bidi'
-            elif 'cloudfront' in provider_name:
-                tmp_sup = 'Cloudfront'
-            else:
-                continue
-            # Add provider name to the stream list.
-            streams.extend([list(stream) + [tmp_sup] for stream in match])
-
-    # print streams
-    # Convert bitrate to Mbps for further processing
-    for i in list(range(len(streams))):
-        streams[i][1] = round(int(streams[i][1])/1000000.0, 1)
-    # print streams
-    # Return list sorted by bitrate
-    return sorted(streams, key=lambda x: (x[1]), reverse=True)
 
 
 def ParseLiveDASHStreams(channelname):
