@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.iplayerwww" name="iPlayer WWW" version="4.0.0~beta2" provider-name="CaptainT, Cas, ihurst, primaeval">
+<addon id="plugin.video.iplayerwww" name="iPlayer WWW" version="4.0.0~beta3" provider-name="CaptainT, Cas, ihurst, primaeval">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.requests" version="2.7.0"/>
@@ -29,6 +29,10 @@ Switched to PC mediaselector.
 New mediaselector also adds the following new features:
 - Access to new CDN Cloudfront (Amazon)
 - Access to new subtitle sources. If you experience issues with subtitles, first try the new "Subtitle source" setting in the add-on settings before reporting issues.
+Radio Categories now uses the Categories of BBC Sounds.
+Known issues:
+- BBC2 live and all live Radio is broken, most likely due to a bug in inputstream.adaptive
+- Radio A-Z is currently broken
    </news>
   </extension>
 </addon>

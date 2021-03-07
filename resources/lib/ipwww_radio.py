@@ -240,119 +240,99 @@ def GetPage(page_url, just_episodes=False):
 
 
 
-def GetCategoryPage(page_url, just_episodes=False):
+def GetCategoryPage(category, just_episodes=False):
 
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create(translation(30319))
 
+    page_base_url = 'https://www.bbc.co.uk/sounds/category/'+category
+    page_url = page_base_url+'?sort=title'
+    # print('Opening '+page_url)
     html = OpenURL(page_url)
 
     total_pages = 1
     current_page = 1
     page_range = list(range(1))
-    paginate = re.search(r'pgn__list',html)
+    paginate = re.search(r'pagination-button__number',html)
     next_page = 1
     if paginate:
-        if int(ADDON.getSetting('radio_paginate_episodes')) == 0:
-            current_page_match = re.search(r'page=(\d*)', page_url)
-            if current_page_match:
-                current_page = int(current_page_match.group(1))
-                main_base_url = re.search(r'(.+?)\?.+?', page_url).group(1)
-            else:
-                main_base_url = page_url
-            page_range = list(range(current_page, current_page+1))
-            next_page_match = re.search(r'pgn__page--next.*?href="(.*?page=)(.*?)"', html)
-            if next_page_match:
-                page_base_url = main_base_url + next_page_match.group(1)
-                next_page = int(next_page_match.group(2))
-            else:
-                next_page = current_page
-            page_range = list(range(current_page, current_page+1))
-        else:
-            pages = re.findall(r'<li class="pgn__page.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
-            if pages:
-                last = pages[-2]
-                last_page = re.search(r'href=".*?page=(.*?)"',last)
-                page_base_url = page_url + '?page='
-                total_pages = int(last_page.group(1))
+        pages = re.findall(r'class="sc-c-pagination-button__number.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
+        if pages:
+            last = pages[-1]
+            last_page = re.search(r'<span>(.*?)</span>',last)
+            total_pages = int(last_page.group(1))
             page_range = list(range(1, total_pages+1))
 
     for page in page_range:
-
+        # print('Processing page '+str(page))
         if page > current_page:
-            page_url = page_base_url + str(page)
+            page_url = page_base_url+'?page='+str(page)+'&sort=title'
+            # print(page_url)
             html = OpenURL(page_url)
-
-        list_item_num = 1
-
-        programmes = html.split('<div class="programme-item')
-        for programme in programmes:
-
-            series_id = ''
-            series_id_match = re.search(r'<a class="category-episodes" href="/programmes/(.+?)/episodes"', programme)
-            if series_id_match:
-                series_id = series_id_match.group(1)
-
-            programme_id = ''
-            programme_id_match = re.search(r'href="/programmes/(.+?)"', programme)
-            if programme_id_match:
-                programme_id = programme_id_match.group(1)
-
-            name = ''
-            name_match = re.search(r'<span class="programme-item-title.+?>(.+?)</span>', programme)
-            if name_match:
-                name = name_match.group(1)
-
-            subtitle = ''
-            subtitle_match = re.search(r'<p class="programme-item-subtitle.+?>(.+?)</p>', programme)
-            if subtitle_match:
-                subtitle = subtitle_match.group(1)
-
-            image = ''
-            image_match = re.search(r'class="media__image" src="(.+?)"', programme)
-            if image_match:
-                image = 'http://' + image_match.group(1)
-
-            synopsis = ''
-            synopsis_match = re.search(r'<p class="programme-item-synopsis.+?>(.+?)</p>', programme)
-            if synopsis_match:
-                synopsis = synopsis_match.group(1)
-
-            station = ''
-            station_match = re.search(r'class="programme-item-network.+?>\s*(.+?)\s*</a>', programme)
-            if station_match:
-                station = station_match.group(1).strip()
-
-            series_title = "[B]%s - %s[/B]" % (station, name)
-            title = "[B]%s[/B] - %s %s" % (station, name, subtitle)
-
-            if series_id:
-                AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
-            elif programme_id: #TODO maybe they are not always mutually exclusive
-
-                url = "http://www.bbc.co.uk/radio/play/%s" % programme_id
-                CheckAutoplay(title, url, image, ' ', '')
-
-            percent = int(100*(page+list_item_num/len(programmes))/total_pages)
-            pDialog.update(percent,translation(30319),name)
-
-            list_item_num += 1
-
+        match = re.search(r'window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+        if match:
+            data = match.group(1)
+            json_data = json.loads(data)
+            # print(json_data)
+            if 'modules' in json_data:
+                # print('Has modules')
+                if 'data' in json_data['modules']:
+                    # print('Has data')
+                    for data in json_data['modules']['data']:
+                        # print('Data-ID: '+data['id'])
+                        if ('id' in data and data['id'] == 'container_list'):
+                            if 'data' in data:
+                               for programme in data['data']:
+                                   # print(programme)
+                                   pro_name = []
+                                   pro_url = []
+                                   pro_icon = []
+                                   pro_syn = []
+                                   pro_brand = []
+                                   pro_brand_url = []
+                                   pro_brand_syn = []
+                                   if 'titles' in programme:
+                                       pro_name = programme['titles']['primary']
+                                   if ('secondary' in programme['titles'] and programme['titles']['secondary'] is not None):
+                                       pro_name += ' - '+programme['titles']['secondary']
+                                   if ('tertiary' in programme['titles'] and programme['titles']['tertiary'] is not None):
+                                       pro_name += ' - '+programme['titles']['tertiary']
+                                   if 'image_url' in programme:
+                                       pro_icon = programme['image_url'].replace("{recipe}","624x624")
+                                   if 'urn' in programme:
+                                       pro_url = 'https://www.bbc.co.uk/sounds/play/'+programme['urn'][-8:]
+                                   if 'synopses' in programme:
+                                       if ('long' in programme['synopses'] and programme['synopses']['long'] is not None):
+                                           pro_syn = programme['synopses']['long']
+                                       elif ('medium' in programme['synopses'] and programme['synopses']['medium'] is not None):
+                                           pro_syn = programme['synopses']['medium']
+                                       elif ('short' in programme['synopses'] and programme['synopses']['short'] is not None):
+                                           pro_syn = programme['synopses']['short']
+                                   # print(pro_name)
+                                   # print(pro_icon)
+                                   # print(pro_url)
+                                   # print(pro_syn)
+                                   CheckAutoplay(pro_name, pro_url, pro_icon, pro_syn, '')
+                                   if ('container' in programme and programme['container'] is not None):
+                                       if programme['container']['type'] == 'brand':
+                                           pro_brand = '[B]'+programme['container']['title']+'[/B]'
+                                           pro_brand_url = programme['container']['id']
+                                           if 'synopses' in programme['container']:
+                                               if ('long' in programme['container']['synopses'] and
+                                                   programme['container']['synopses']['long'] is not None):
+                                                    pro_brand_syn = programme['container']['synopses']['long']
+                                               elif ('medium' in programme['container']['synopses'] and
+                                                     programme['container']['synopses']['medium'] is not None):
+                                                    pro_brand_syn = programme['container']['synopses']['medium']
+                                               elif ('short' in programme['container']['synopses'] and
+                                                     programme['container']['synopses']['short'] is not None):
+                                                   pro_brand_syn = programme['container']['synopses']['short']
+                                           AddMenuEntry(pro_brand, pro_brand_url, 137, pro_icon, pro_brand_syn, '')
         percent = int(100*page/total_pages)
         pDialog.update(percent,translation(30319))
 
-
-    if int(ADDON.getSetting('radio_paginate_episodes')) == 0:
-        if current_page < next_page:
-            page_url = page_base_url + str(next_page)
-            AddMenuEntry(" [COLOR ffffa500]%s >>[/COLOR]" % translation(30320), page_url, 137, '', '', '')
-
-    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
-
-    pDialog.close()
-
 
 
 def GetEpisodes(url):
@@ -360,65 +340,31 @@ def GetEpisodes(url):
     GetPage(new_url,True)
 
 
-
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-    location_qualities = {'uk' : ['sbr_vlow', 'sbr_low', 'sbr_med', 'sbr_high'], 'nonuk': ['sbr_vlow', 'sbr_low'] }
-    location_settings = ['uk', 'nonuk']
-
-    location = location_settings[int(ADDON.getSetting('radio_location'))]
-
-    for provider_url, provider_name in providers:
-        qualities = location_qualities[location]
-        max_quality = int(ADDON.getSetting('radio_live_bitrate')) + 1
-        max_quality = min(len(qualities),max_quality)
-        qualities = qualities[0:max_quality]
-        qualities.reverse()
-        for quality in qualities:
-            url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/%s/%s/%s/%s.m3u8' % (location, quality, provider_url, channelname)
-
-            PlayStream(name, url, iconimage, '', '')
+    streams = ParseStreams(channelname)
+    # print('Located live streams')
+    # print(streams)
+    source = int(ADDON.getSetting('radio_source'))
+    if source > 0:
+        # Case 1: Selected source
+        match = [x for x in streams if (x[2] == source)]
+        if len(match) == 0:
+            # Fallback: Use any source and any bitrate
+            match = streams
+    else:
+        # Case 3: Any source
+        # Play highest available bitrate
+        match = streams
+    PlayStream(name, match[0][0], iconimage, '', '')
 
 
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
-    """Retrieves the available live streams for a channel
-
-    Args:
-        name: only used for displaying the channel.
-        iconimage: only used for displaying the channel.
-        channelname: determines which channel is queried.
-    """
-    providers = [('ak', 'Akamai'), ('llnw', 'Limelight')]
-    location_qualities = {
-                          'uk' : ['sbr_vlow', 'sbr_low', 'sbr_med', 'sbr_high'],
-                          'nonuk': ['sbr_vlow', 'sbr_low']
-                         }
-    location_names = {'uk': 'UK', 'nonuk': 'International'}
-    quality_colours = {
-                       'sbr_vlow': 'ffff0000',
-                       'sbr_low': 'ffffa500',
-                       'sbr_med': 'ffffff00',
-                       'sbr_high': 'ff008000'
-                       }
-    quality_bitrates = {
-                        'sbr_vlow': '48',
-                        'sbr_low': '96',
-                        'sbr_med': '128',
-                        'sbr_high': '320'
-                       }
-
-    for location in list(location_qualities.keys()):
-        qualities = location_qualities[location]
-        qualities.reverse()
-        for quality in qualities:
-            for provider_url, provider_name in providers:
-                url = 'http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/%s/%s/%s/%s.m3u8' % (location, quality, provider_url, channelname)
-
-                title = name + ' - [I][COLOR %s]%s Kbps[/COLOR] [COLOR fff1f1f1]%s[/COLOR] [COLOR ffb4b4b4]%s[/COLOR][/I]' % (
-                    quality_colours[quality], quality_bitrates[quality] , location_names[location], provider_name)
-
-                AddMenuEntry(title, url, 201, '', '', '')
+    streams = ParseStreams(channelname)
+    suppliers = ['', 'Akamai', 'Limelight']
+    for href, protocol, supplier, transfer_format, bitrate in streams:
+        title = name + ' - [I][COLOR ffd3d3d3]%s - %s kbps[/COLOR][/I]' % (suppliers[supplier], bitrate)
+        AddMenuEntry(title, href, 211, iconimage, '', '', '')
 
 
 def PlayStream(name, url, iconimage, description, subtitles_url):
@@ -437,6 +383,8 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     liz.setInfo(type='Audio', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
+    liz.setProperty('inputstream', 'inputstream.adaptive')
+    liz.setProperty('inputstream.adaptive.manifest_type', 'mpd')
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
 
 
@@ -444,26 +392,10 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     """Will create one menu entry for each available stream of a particular stream_id"""
 
     streams = ParseStreams(stream_id)
-
-    for supplier, bitrate, url, encoding in sorted(streams[0], key=itemgetter(1), reverse=True):
-        bitrate = int(bitrate)
-        if supplier == 1:
-            supplier = 'Akamai'
-        elif supplier == 2:
-            supplier = 'Limelight'
-
-        if bitrate >= 320:
-            color = 'ff008000'
-        elif bitrate >= 128:
-            color = 'ffffff00'
-        elif bitrate >= 96:
-            color = 'ffffa500'
-        else:
-            color = 'ffff0000'
-
-        title = name + ' - [I][COLOR %s]%d Kbps %s[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
-            color, bitrate, encoding, supplier)
-        AddMenuEntry(title, url, 201, iconimage, description, '', '')
+    suppliers = ['', 'Akamai', 'Limelight']
+    for href, protocol, supplier, transfer_format, bitrate in streams:
+        title = name + ' - [I][COLOR ffd3d3d3]%s - %s kbps[/COLOR][/I]' % (suppliers[supplier], bitrate)
+        AddMenuEntry(title, href, 211, iconimage, description, '', '')
 
 
 def AddAvailableStreamItem(name, url, iconimage, description):
@@ -473,22 +405,19 @@ def AddAvailableStreamItem(name, url, iconimage, description):
         #TODO check CBeeBies for special cases
         xbmcgui.Dialog().ok(translation(30403), translation(30404))
         return
-    streams_all = ParseStreams(stream_ids)
-    streams = streams_all[0]
+    streams = ParseStreams(stream_ids)
     source = int(ADDON.getSetting('radio_source'))
     if source > 0:
         # Case 1: Selected source
-        match = [x for x in streams if (x[0] == source)]
+        match = [x for x in streams if (x[2] == source)]
         if len(match) == 0:
             # Fallback: Use any source and any bitrate
             match = streams
-        match.sort(key=lambda x: x[1], reverse=True)
     else:
         # Case 3: Any source
         # Play highest available bitrate
         match = streams
-        match.sort(key=lambda x: x[1], reverse=True)
-    PlayStream(name, match[0][2], iconimage, description, '')
+    PlayStream(name, match[0][0], iconimage, description, '')
 
 
 
@@ -515,27 +444,36 @@ def ListGenres():
     Only creates the corresponding directories for each character.
     """
     genres = []
-    html = OpenURL('http://www.bbc.co.uk/radio/programmes/genres')
-    mains = html.split('<div class="category__box island--vertical">')
-
-    for main in mains:
-        current_main_match = re.search(r'<a.+?class="gel-double-pica-bold".+?href="(.+?)">(.+?)</a>',main)
-        if current_main_match:
-            genres.append((current_main_match.group(1), current_main_match.group(2), True))
-            current_sub_match = re.findall(r'<a.+?class="gel-long-primer-bold".+?href="(.+?)">(.+?)</a>',main)
-            for sub_match_url, sub_match_name in current_sub_match:
-                genres.append((sub_match_url, current_main_match.group(2)+' - '+sub_match_name, False))
-
-    for url, name, group in genres:
-        new_url = 'http://www.bbc.co.uk%s' % url
-        if group:
-            AddMenuEntry("[B]%s[/B]" % name, new_url, 137, '', '', '')
-        else:
-            AddMenuEntry("%s" % name, new_url, 137, '', '', '')
-
-    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
-    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+    html = OpenURL('https://www.bbc.co.uk/sounds/categories')
+    match = re.search(r'window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+    if match:
+        data = match.group(1)
+        json_data = json.loads(data)
+        # print(json_data)
+        if 'modules' in json_data:
+            if 'data' in json_data['modules']:
+                for type_id in json_data['modules']['data']:
+                    # print(type_id)
+                    if 'data' in type_id:
+                        for category in type_id['data']:
+                            # print(category)
+                            cat_name = []
+                            cat_image = []
+                            cat_url = []
+                            if 'titles' in category:
+                                cat_name = category['titles']['primary']
+                                if ('secondary' in category['titles'] and category['titles']['secondary'] is not None):
+                                    cat_name += ' - '+category['titles']['secondary']
+                                if ('tertiary' in category['titles'] and category['titles']['tertiary'] is not None):
+                                    cat_name += ' - '+category['titles']['tertiary']
+                            if 'image_url' in category:
+                                cat_image = category['image_url'].replace("{recipe}","624x624")
+                            if 'id' in category:
+                                cat_url = category['id']
+                            # print(cat_name)
+                            # print(cat_image)
+                            # print(cat_url)
+                            AddMenuEntry(cat_name, cat_url, 137, cat_image, '', '')
 
 
 def ListLive():
@@ -806,34 +744,60 @@ def Search(search_entered):
 def GetAvailableStreams(name, url, iconimage, description):
     """Calls AddAvailableStreamsDirectory based on user settings"""
     stream_ids = ScrapeAvailableStreams(url)
+    # print('Scraped streams for '+url)
+    # print(stream_ids)
     if stream_ids:
         AddAvailableStreamsDirectory(name, stream_ids, iconimage, description)
 
 
 def ParseStreams(stream_id):
     retlist = []
-    # print "Parsing streams for PID: %s"%stream_id[0]
+    # print('Parsing streams for PID:')
+    # print(stream_id)
     # Open the page with the actual strem information and display the various available streams.
-    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/apple-ipad-hls/vpid/%s/proto/http?cb=%d" % (stream_id[0], random.randrange(10000,99999)) #NOTE magic from get_iplayer
-
+    NEW_URL = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/pc/vpid/%s/format/json/jsfunc/JS_callbacks0' % stream_id
+    # print(NEW_URL)
     html = OpenURL(NEW_URL)
 
-    # Parse the different streams and add them as new directory entries.
-    match = re.compile(
-        'media.+?bitrate="(.+?)".+?encoding="(.+?)"(.+?)<\/media>'
-        ).findall(html)
-    for bitrate, encoding, connections in match:
-        stream = re.compile(
-            '<connection.+?href="(.+?)".+?supplier="(.+?)"'
-            ).findall(connections)
-        for url, supplier in stream:
-            if ('akamai' in supplier):
-                supplier = 1
-            elif ('limelight' in supplier):
-                supplier = 2
-            retlist.append((supplier, bitrate, url, encoding))
-
-    return retlist, match
+    match = re.search(r'JS_callbacks0.*?\((.*?)\);', html, re.DOTALL)
+    if match:
+        json_data = json.loads(match.group(1))
+        if json_data:
+            # print(json.dumps(json_data, sort_keys=True, indent=2))
+            if 'media' in json_data:
+                for media in json_data['media']:
+                    if 'kind' in media:
+                        if media['kind'].startswith('audio'):
+                            bitrate = ''
+                            if 'bitrate' in media:
+                                bitrate = media['bitrate']
+                            if 'connection' in media:
+                                for connection in media['connection']:
+                                    href = ''
+                                    protocol = ''
+                                    supplier = ''
+                                    transfer_format = ''
+                                    if 'href' in connection:
+                                        href = connection['href']
+                                    if 'protocol' in connection:
+                                        protocol = connection['protocol']
+                                    if 'supplier' in connection:
+                                        supplier = connection['supplier']
+                                        if ('akamai' in supplier):
+                                            supplier = 1
+                                        elif ('limelight' in supplier or 'll' in supplier):
+                                            supplier = 2
+                                    if 'transferFormat' in connection:
+                                        transfer_format = connection['transferFormat']
+                                    if transfer_format == 'dash':
+                                        retlist.append((href, protocol, supplier, transfer_format, bitrate))
+            elif 'result' in json_data:
+                if json_data['result'] == 'geolocation':
+                    # print "Geoblock detected, raising error message"
+                    dialog = xbmcgui.Dialog()
+                    dialog.ok(translation(30400), translation(30401))
+                    raise
+    return retlist
 
 
 def ScrapeAvailableStreams(url):
@@ -847,8 +811,7 @@ def ScrapeAvailableStreams(url):
         if match:
             data = match.group(1)
             json_data = json.loads(data)
-            # Note: Need to create list for backwards compatibility
-            stream_id_st = [json_data['programmes']['current']['id']]
+            stream_id_st = json_data['programmes']['current']['id']
             # print json.dumps(json_data, indent=2, sort_keys=True)
     return stream_id_st
 
