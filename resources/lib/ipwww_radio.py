@@ -24,13 +24,11 @@ def GetAtoZPage(page_url, just_episodes=False):
 
     pDialog = xbmcgui.DialogProgressBG()
     pDialog.create(translation(30319))
-
     html = OpenURL(page_url)
-
     total_pages = 1
     current_page = 1
     page_range = list(range(1))
-    paginate = re.search(r'<ol.+?class="pagination.*?</ol>',html)
+    paginate = re.search(r'<ol class="pagination">.*?</ol>', html, re.DOTALL)
     next_page = 1
     if paginate:
         if int(ADDON.getSetting('radio_paginate_episodes')) == 0:
@@ -46,18 +44,18 @@ def GetAtoZPage(page_url, just_episodes=False):
                 next_page = current_page
             page_range = list(range(current_page, current_page+1))
         else:
-            pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0))
+            pages = re.findall(r'<li.+?class="pagination__page.*?</li>',paginate.group(0),re.DOTALL)
             if pages:
                 last = pages[-1]
                 last_page = re.search(r'<a.+?href="(.*?=)(.*?)"',last)
-                page_base_url = last_page.group(1)
+                page_base_url = page_url+last_page.group(1)
                 total_pages = int(last_page.group(2))
             page_range = list(range(1, total_pages+1))
 
     for page in page_range:
 
         if page > current_page:
-            page_url = 'http://www.bbc.co.uk' + page_base_url + str(page)
+            page_url = page_base_url + str(page)
             html = OpenURL(page_url)
 
         masthead_title = ''
@@ -71,14 +69,14 @@ def GetAtoZPage(page_url, just_episodes=False):
 
         list_item_num = 1
 
-        programmes = html.split('<li class="grid one-whole">')
+        programmes = html.split('<li class="grid 1/1 atoz-title">')
         for programme in programmes:
 
             if not re.search(r'programme--radio', programme):
                 continue
 
             series_id = ''
-            series_id_match = re.search(r'data-lazylink-inc="/programmes/(.+?)/episodes/player.inc"', programme)
+            series_id_match = re.search(r'/programmes/(.+?)/episodes/player', programme)
             if series_id_match:
                 series_id = series_id_match.group(1)
 
@@ -88,7 +86,7 @@ def GetAtoZPage(page_url, just_episodes=False):
                 programme_id = programme_id_match.group(1)
 
             name = ''
-            name_match = re.search(r'<span property="name">(.+?)</span>', programme)
+            name_match = re.search(r'<span class="programme__title delta"><span>(.+?)</span>', programme)
             if name_match:
                 name = name_match.group(1)
             else:
@@ -97,17 +95,17 @@ def GetAtoZPage(page_url, just_episodes=False):
                     name = alternative_name_match.group(1)
 
             image = ''
-            image_match = re.search(r'<meta property="image" content="(.+?)" />', programme)
+            image_match = re.search(r'data-src="(.+?)" />', programme)
             if image_match:
                 image = image_match.group(1)
 
             synopsis = ''
-            synopsis_match = re.search(r'<span property="description">(.+?)<\/span>', programme)
+            synopsis_match = re.search(r'p class="programme__synopsis.*?<span>(.+?)<\/span>', programme)
             if synopsis_match:
                 synopsis = synopsis_match.group(1)
 
             station = ''
-            station_match = re.search(r'<p class="programme__service.+?<strong>(.+?)<\/strong>.*?<\/p>', programme)
+            station_match = re.search(r'<p class="programme__service micro text--subtle">(.+?)<\/p>', programme)
             if station_match:
                 station = station_match.group(1).strip()
 
@@ -120,7 +118,7 @@ def GetAtoZPage(page_url, just_episodes=False):
             if series_id:
                 AddMenuEntry(series_title, series_id, 131, image, synopsis, '')
             elif programme_id: #TODO maybe they are not always mutually exclusive
-                url = "http://www.bbc.co.uk/radio/play/%s" % programme_id
+                url = "https://www.bbc.co.uk/sounds/play/%s" % programme_id
                 CheckAutoplay(title, url, image, ' ', '')
 
             percent = int(100*(page+list_item_num/len(programmes))/total_pages)
@@ -199,29 +197,30 @@ def GetPage(page_url, just_episodes=False):
         data_match = re.findall(r'<script type="application\/ld\+json">(.*?)<\/script>',
                                 html, re.S)
         if data_match:
-            json_data = json.loads(data_match[0])
+            for matches in data_match:
+                json_data = json.loads(matches)
+                if 'episode' in json_data:
+                    for episode in json_data['episode']:
+                        programme_id = ''
+                        programme_id = episode['identifier']
 
-            for episode in json_data['episode']:
-                programme_id = ''
-                programme_id = episode['identifier']
+                        name = ''
+                        name = episode['name']
+                        title = "[B]%s[/B] - %s" % (masthead_title, name)
 
-                name = ''
-                name = episode['name']
-                title = "[B]%s[/B] - %s" % (masthead_title, name)
+                        image = ''
+                        image = episode['image']
 
-                imafe = ''
-                image = episode['image']
+                        synopsis = ''
+                        synopsis = episode['description']
 
-                synopsis = ''
-                synopsis = episode['description']
+                        url = "https://www.bbc.co.uk/sounds/play/%s" % programme_id
+                        CheckAutoplay(title, url, image, synopsis, '')
 
-                url = "http://www.bbc.co.uk/radio/play/%s" % programme_id
-                CheckAutoplay(title, url, image, synopsis, '')
+                        percent = int(100*(page+list_item_num/len(json_data['episode']))/total_pages)
+                        pDialog.update(percent,translation(30319),name)
 
-                percent = int(100*(page+list_item_num/len(json_data['episode']))/total_pages)
-                pDialog.update(percent,translation(30319),name)
-
-                list_item_num += 1
+                        list_item_num += 1
 
         percent = int(100*page/total_pages)
         pDialog.update(percent,translation(30319))
@@ -336,7 +335,7 @@ def GetCategoryPage(category, just_episodes=False):
 
 
 def GetEpisodes(url):
-    new_url = 'http://www.bbc.co.uk/programmes/%s/episodes/player' % url
+    new_url = 'https://www.bbc.co.uk/programmes/%s/episodes/player' % url
     GetPage(new_url,True)
 
 
@@ -361,7 +360,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
 
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     streams = ParseStreams(channelname)
-    suppliers = ['', 'Akamai', 'Limelight']
+    suppliers = ['', 'Akamai', 'Limelight', 'Cloudfront']
     for href, protocol, supplier, transfer_format, bitrate in streams:
         title = name + ' - [I][COLOR ffd3d3d3]%s - %s kbps[/COLOR][/I]' % (suppliers[supplier], bitrate)
         AddMenuEntry(title, href, 211, iconimage, '', '', '')
@@ -392,7 +391,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     """Will create one menu entry for each available stream of a particular stream_id"""
 
     streams = ParseStreams(stream_id)
-    suppliers = ['', 'Akamai', 'Limelight']
+    suppliers = ['', 'Akamai', 'Limelight', 'Cloudfront']
     for href, protocol, supplier, transfer_format, bitrate in streams:
         title = name + ' - [I][COLOR ffd3d3d3]%s - %s kbps[/COLOR][/I]' % (suppliers[supplier], bitrate)
         AddMenuEntry(title, href, 211, iconimage, description, '', '')
@@ -434,7 +433,7 @@ def ListAtoZ():
         ('Y', 'y'), ('Z', 'z'), ('0-9', '@')]
 
     for name, url in characters:
-        url = 'http://www.bbc.co.uk/programmes/a-z/by/%s/player' % url
+        url = 'https://www.bbc.co.uk/programmes/a-z/by/%s/player' % url
         AddMenuEntry(name, url, 138, '', '', '')
 
 
@@ -787,6 +786,10 @@ def ParseStreams(stream_id):
                                             supplier = 1
                                         elif ('limelight' in supplier or 'll' in supplier):
                                             supplier = 2
+                                        elif ('cloudfront' in supplier):
+                                            supplier = 3
+                                        else:
+                                            supplier = 0
                                     if 'transferFormat' in connection:
                                         transfer_format = connection['transferFormat']
                                     if transfer_format == 'dash':
