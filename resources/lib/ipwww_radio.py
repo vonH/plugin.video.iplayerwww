@@ -736,8 +736,80 @@ def Search(search_entered):
     if search_entered is None:
         return False
 
-    url = 'http://www.bbc.co.uk/radio/programmes/a-z/by/%s/current' % search_entered
-    GetPage(url)
+    url = 'https://www.bbc.co.uk/sounds/search?q=%s' % search_entered
+    html = OpenURL(url)
+
+    pDialog = xbmcgui.DialogProgressBG()
+    pDialog.create(translation(30319))
+
+    total_pages = 1
+    current_page = 1
+    page_range = list(range(1))
+    pages = re.findall(r'<div class="ssrcss-16didf7-StyledButtonContent e1b2sq420">(.+?)</div>',html)
+    next_page = 1
+    if pages:
+        total_pages = int(pages[-2])
+        page_base_url = url+'&page='
+        page_range = list(range(1, total_pages+1))
+
+    for page in page_range:
+
+        if page > current_page:
+            page_url = page_base_url + str(page)
+            html = OpenURL(page_url)
+
+        match = re.search(r'window.__INITIAL_DATA__=(.*?);\s*</script>', html, re.DOTALL)
+
+        if match:
+            data = match.group(1)
+            json_data = json.loads(data)
+            # print(json_data)
+            if 'data' in json_data:
+                # print('Has data')
+                for data in json_data['data']:
+                    if data.startswith('search-results'):
+                        data = json_data['data'][data]
+                    # print(data)
+                    if ('name' in data and data['name'] == 'search-results'):
+                        # print(data['name'])
+                        if 'data' in data:
+                           if 'initialResults' in data['data']:
+                               if 'items' in data['data']['initialResults']:
+                                   for programme in data['data']['initialResults']['items']:
+                                       pro_name = []
+                                       pro_url = []
+                                       pro_icon = []
+                                       pro_syn = []
+                                       if 'headline' in programme:
+                                           pro_name = programme['headline']
+                                       if 'image' in programme:
+                                           if 'src' in programme['image']:
+                                               pro_icon = programme['image']['src'].replace("314x176","416x234")
+                                       if 'url' in programme:
+                                           pro_url = 'https://www.bbc.co.uk/sounds/play/'+programme['url'][-8:]
+                                       if 'description' in programme:
+                                           pro_syn = programme['description']
+                                       # print(pro_name)
+                                       # print(pro_icon)
+                                       # print(pro_url)
+                                       # print(pro_syn)
+                                       CheckAutoplay(pro_name, pro_url, pro_icon, pro_syn, '')
+
+        percent = int(100*page/total_pages)
+        pDialog.update(percent,translation(30319))
+
+
+    if int(ADDON.getSetting('radio_paginate_episodes')) == 0:
+        if current_page < next_page:
+            page_url = 'http://www.bbc.co.uk' + page_base_url + str(next_page)
+            AddMenuEntry(" [COLOR ffffa500]%s >>[/COLOR]" % translation(30320), page_url, 136, '', '', '')
+
+    #BUG: this should sort by original order but it doesn't (see http://trac.kodi.tv/ticket/10252)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
+
+    pDialog.close()
+
 
 
 def GetAvailableStreams(name, url, iconimage, description):
