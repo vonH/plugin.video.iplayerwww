@@ -4,8 +4,8 @@ import sys
 import os
 import re
 from operator import itemgetter
-from ipwww_common import translation, AddMenuEntry, OpenURL, \
-                         CheckLogin, CreateBaseDirectory
+from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
+                                       CheckLogin, CreateBaseDirectory
 
 major_version = sys.version_info.major
 import xbmc

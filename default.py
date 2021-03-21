@@ -14,16 +14,14 @@ import xbmcplugin
 
 plugin_handle = int(sys.argv[1])
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
-sys.path.insert(0, os.path.join(ADDON.getAddonInfo("path"), 'resources', 'lib'))
 
 try:
-    import ipwww_common as Common
-    from ipwww_common import utf8_unquote_plus, CreateBaseDirectory, KidsMode
-    import ipwww_video as Video
-    import ipwww_radio as Radio
+    from resources.lib import ipwww_common as Common
+    from resources.lib import ipwww_video as Video
+    from resources.lib import ipwww_radio as Radio
 except ImportError as error:
     d = xbmcgui.Dialog()
-    d.ok(str(error), 'Please check you installed this plugin correctly.')
+    d.ok(str(error), xbmcaddon.Addon(Common.addonid).getLocalizedString(30413))
     raise
 
 
@@ -58,19 +56,19 @@ keyword = None
 
 
 try:
-    content_type = utf8_unquote_plus(params["content_type"])
+    content_type = Common.utf8_unquote_plus(params["content_type"])
 except:
     pass
 try:
-    url = utf8_unquote_plus(params["url"])
+    url = Common.utf8_unquote_plus(params["url"])
 except:
     pass
 try:
-    name = utf8_unquote_plus(params["name"])
+    name = Common.utf8_unquote_plus(params["name"])
 except:
     pass
 try:
-    iconimage = utf8_unquote_plus(params["iconimage"])
+    iconimage = Common.utf8_unquote_plus(params["iconimage"])
 except:
     pass
 try:
@@ -78,11 +76,11 @@ try:
 except:
     pass
 try:
-    description = utf8_unquote_plus(params["description"])
+    description = Common.utf8_unquote_plus(params["description"])
 except:
     pass
 try:
-    subtitles_url = utf8_unquote_plus(params["subtitles_url"])
+    subtitles_url = Common.utf8_unquote_plus(params["subtitles_url"])
 except:
     pass
 try:
@@ -90,16 +88,16 @@ try:
 except:
     pass
 try:
-    keyword = utf8_unquote_plus(params["keyword"])
+    keyword = Common.utf8_unquote_plus(params["keyword"])
 except:
     pass
 
 # These are the modes which tell the plugin where to go.
 if mode == 1:
-    KidsMode()
+    Common.KidsMode()
 
 elif mode is None or url is None or len(url) < 1:
-    CreateBaseDirectory(content_type)
+    Common.CreateBaseDirectory(content_type)
 
 # Modes 101-119 will create a main directory menu entry
 elif mode == 101:

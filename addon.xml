@@ -9,19 +9,19 @@
         <provides>audio video</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">TV and Radio from BBC iPlayer</summary>
-    <description lang="en">This add-on enables playing of Live and Catchup TV (UK only) and Radio content (UK or international) from the BBC iPlayer website. It is not created, maintained or in any way affiliated with the BBC. The add-on only provides an interface to access the BBC iPlayer website from Kodi.</description>
+    <summary lang="en_GB">TV and Radio from BBC iPlayer</summary>
+    <description lang="en_GB">This add-on enables playing of Live and Catchup TV (UK only) and Radio content (UK or international) from the BBC iPlayer website. It is not created, maintained or in any way affiliated with the BBC. The add-on only provides an interface to access the BBC iPlayer website from Kodi.</description>
     <platform>all</platform>
-    <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
+    <license>GPL-2.0-or-later</license>
     <forum>https://forum.kodi.tv/showthread.php?tid=353349</forum>
     <source>https://github.com/vonH/plugin.video.iplayerwww</source>
-    <disclaimer lang="en">This add-on is a front end to the BBC iPlayer website. It is not an official BBC product. A UK TV Licence is required to watch the live, catch-up, or on-demand TV content.</disclaimer>
+    <disclaimer lang="en_GB">This add-on is a front end to the BBC iPlayer website. It is not an official BBC product. A UK TV Licence is required to watch the live, catch-up, or on-demand TV content.</disclaimer>
     <assets>
         <icon>resources/icon.png</icon>
         <fanart>resources/fanart.jpg</fanart>
     </assets>
     <news>
-v4.0.0~beta
+v4.0.0
 Initial release for Matrix.
 New dependency inputstream.adaptive.
 HLS streams have been removed. As a consequence, bitrate settings have been removed. Bitrate needs to be configured in inputstream.adaptive.
