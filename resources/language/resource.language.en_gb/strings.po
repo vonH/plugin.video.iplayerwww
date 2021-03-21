@@ -340,6 +340,10 @@ msgctxt "#30411"
 msgid "The UHD Trial channels are only available using the DASH stream protocol through InputStream Adaptive."
 msgstr ""
 
+msgctxt "#30412"
+msgid "Sorry, this programme appears to be unavailable. If you reached this point from Radio Search, it is most likely caused by the website returning search results that don't exist."
+msgstr ""
+
 msgctxt "#30500"
 msgid "Display"
 msgstr ""

@@ -588,12 +588,12 @@ def CreateBaseDirectory(content_type):
                            'special://home/addons/plugin.video.iplayerwww/media/tv.png'
                                             ),
                          '', '')
-        if ADDON.getSetting("menu_video_red_button") == 'true':
-            AddMenuEntry(translation(30328), 'url', 118,
-                         tp(
-                           'special://home/addons/plugin.video.iplayerwww/media/tv.png'
-                                            ),
-                         '', '')
+        # if ADDON.getSetting("menu_video_red_button") == 'true':
+        #     AddMenuEntry(translation(30328), 'url', 118,
+        #                  tp(
+        #                    'special://home/addons/plugin.video.iplayerwww/media/tv.png'
+        #                                     ),
+        #                  '', '')
         if ADDON.getSetting("menu_video_uhd_trial") == 'true':
             AddMenuEntry(translation(30335), 'url', 197,
                          tp(
@@ -717,12 +717,12 @@ def CreateBaseDirectory(content_type):
                            'special://home/addons/plugin.video.iplayerwww/media/tv.png'
                                             ),
                          '', '')
-        if ADDON.getSetting("menu_video_red_button") == 'true':
-            AddMenuEntry((translation(30323)+translation(30328)), 'url', 118,
-                         tp(
-                           'special://home/addons/plugin.video.iplayerwww/media/tv.png'
-                                            ),
-                         '', '')
+        # if ADDON.getSetting("menu_video_red_button") == 'true':
+        #     AddMenuEntry((translation(30323)+translation(30328)), 'url', 118,
+        #                  tp(
+        #                    'special://home/addons/plugin.video.iplayerwww/media/tv.png'
+        #                                     ),
+        #                  '', '')
         if ADDON.getSetting("menu_video_uhd_trial") == 'true':
             AddMenuEntry((translation(30323)+translation(30335)), 'url', 197,
                          xbmc.translatePath(

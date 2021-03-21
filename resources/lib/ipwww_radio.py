@@ -888,6 +888,10 @@ def ScrapeAvailableStreams(url):
             json_data = json.loads(data)
             stream_id_st = json_data['programmes']['current']['id']
             # print json.dumps(json_data, indent=2, sort_keys=True)
+        else:
+            dialog = xbmcgui.Dialog()
+            dialog.ok(translation(30400), translation(30412))
+            raise
     return stream_id_st
 
 

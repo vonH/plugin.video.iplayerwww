@@ -32,7 +32,7 @@ New mediaselector also adds the following new features:
 Radio Categories now uses the Categories of BBC Sounds.
 Known issues:
 - BBC2 live and all live Radio is broken, most likely due to a bug in inputstream.adaptive
-- Radio Search also results in programmes that are unavailable and will not play
+- No Red Button
    </news>
   </extension>
 </addon>
