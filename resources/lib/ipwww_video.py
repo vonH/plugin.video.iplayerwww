@@ -9,9 +9,9 @@ import datetime
 import time
 import json
 from operator import itemgetter
-from ipwww_common import translation, AddMenuEntry, OpenURL, \
-                         CheckLogin, CreateBaseDirectory, GetCookieJar, \
-                         ParseImageUrl, download_subtitles
+from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
+                                       CheckLogin, CreateBaseDirectory, GetCookieJar, \
+                                       ParseImageUrl, download_subtitles
 
 major_version = sys.version_info.major
 import xbmc
