@@ -6,7 +6,8 @@ Switched to PC mediaselector.
 New mediaselector also adds the following new features:
 - Access to new CDN Cloudfront (Amazon)
 - Access to new subtitle sources. If you experience issues with subtitles, first try the new "Subtitle source" setting in the add-on settings before reporting issues.
-Radio Categories now uses the Categories of BBC Sounds.
+- Radio Categories now uses the Categories of BBC Sounds.
+
 Known issues:
 - BBC2 live and all live Radio is broken, most likely due to a bug in inputstream.adaptive
 - No Red Button
