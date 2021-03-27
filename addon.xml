@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.iplayerwww" name="iPlayer WWW" version="3.0.50~beta" provider-name="CaptainT, Cas, ihurst, primaeval">
+<addon id="plugin.video.iplayerwww" name="iPlayer WWW" version="3.0.50~beta2" provider-name="CaptainT, Cas, ihurst, primaeval">
   <requires>
     <import addon="xbmc.python" version="2.25.0"/>
     <import addon="script.module.requests" version="2.7.0"/>
@@ -28,6 +28,12 @@ Set "Stream protocol" in the add-on settings to "DASH" to get HD streams after m
 New mediaselector also adds the following new features:
 - Access to new CDN Cloudfront (Amazon)
 - Access to new subtitle sources. If you experience issues with subtitles, first try the new "Subtitle source" setting in the add-on settings before reporting issues.
+
+Radio Categories now uses the Categories of BBC Sounds.
+
+Known issues:
+- Live TV and Radio over DASH is broken, most likely due to a bug in inputstream.adaptive.
+- Red Button is only available for HLS.
    </news>
   </extension>
 </addon>
