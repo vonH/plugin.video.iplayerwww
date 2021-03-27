@@ -71,7 +71,7 @@ def GetAtoZPage(page_url, just_episodes=False):
 
         list_item_num = 1
 
-        programmes = html.split('<li class="grid one-whole">')
+        programmes = html.split('<li class="grid 1/1 atoz-title">')
         for programme in programmes:
 
             if not re.search(r'programme--radio', programme):
