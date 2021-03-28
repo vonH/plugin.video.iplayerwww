@@ -1,4 +1,4 @@
-v3.0.50~beta
+v3.0.50
 Switched to PC mediaselector.
 COMPATIBILITY NOTE: As a result there are no more HD streams over HLS.
 In order to get HD streams, inputstream.adaptive is required.
