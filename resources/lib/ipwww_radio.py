@@ -891,7 +891,7 @@ def ParseStreams(stream_id):
     # print "Parsing streams for PID: %s"%stream_id[0]
     # Open the page with the actual strem information and display the various available streams.
 
-    if int(ADDON.getSetting('stream_protocol')) == 0:
+    if int(ADDON.getSetting('stream_protocol')) == 1:
         NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/apple-ipad-hls/vpid/%s/proto/http?cb=%d" % (stream_id[0], random.randrange(10000,99999)) #NOTE magic from get_iplayer
 
         html = OpenURL(NEW_URL)
