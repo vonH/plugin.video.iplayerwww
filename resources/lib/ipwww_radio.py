@@ -425,10 +425,13 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
         raise
     liz = xbmcgui.ListItem(name)
     liz.setArt({'icon':'DefaultVideo.png', 'thumb':iconimage})
-
+    
     liz.setInfo(type='Audio', infoLabels={'Title': name})
     liz.setProperty("IsPlayable", "true")
     liz.setPath(url)
+    if int(ADDON.getSetting('stream_protocol')) == 1:
+        liz.setProperty('inputstream', 'inputstream.adaptive')
+        liz.setProperty('inputstream.adaptive.manifest_type', 'mpd')
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
 
 
