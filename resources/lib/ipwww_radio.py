@@ -890,24 +890,73 @@ def ParseStreams(stream_id):
     retlist = []
     # print "Parsing streams for PID: %s"%stream_id[0]
     # Open the page with the actual strem information and display the various available streams.
-    NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/apple-ipad-hls/vpid/%s/proto/http?cb=%d" % (stream_id[0], random.randrange(10000,99999)) #NOTE magic from get_iplayer
 
-    html = OpenURL(NEW_URL)
+    if int(ADDON.getSetting('stream_protocol')) == 0:
+        NEW_URL = "http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/apple-ipad-hls/vpid/%s/proto/http?cb=%d" % (stream_id[0], random.randrange(10000,99999)) #NOTE magic from get_iplayer
 
-    # Parse the different streams and add them as new directory entries.
-    match = re.compile(
-        'media.+?bitrate="(.+?)".+?encoding="(.+?)"(.+?)<\/media>'
-        ).findall(html)
-    for bitrate, encoding, connections in match:
-        stream = re.compile(
-            '<connection.+?href="(.+?)".+?supplier="(.+?)"'
-            ).findall(connections)
-        for url, supplier in stream:
-            if ('akamai' in supplier):
-                supplier = 1
-            elif ('limelight' in supplier):
-                supplier = 2
-            retlist.append((supplier, bitrate, url, encoding))
+        html = OpenURL(NEW_URL)
+
+        # Parse the different streams and add them as new directory entries.
+        match = re.compile(
+            'media.+?bitrate="(.+?)".+?encoding="(.+?)"(.+?)<\/media>'
+            ).findall(html)
+        for bitrate, encoding, connections in match:
+            stream = re.compile(
+                '<connection.+?href="(.+?)".+?supplier="(.+?)"'
+                ).findall(connections)
+            for url, supplier in stream:
+                if ('akamai' in supplier):
+                    supplier = 1
+                elif ('limelight' in supplier):
+                    supplier = 2
+                retlist.append((supplier, bitrate, url, encoding))
+    else:
+        NEW_URL = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/pc/vpid/%s/format/json/jsfunc/JS_callbacks0' % stream_id
+        # print(NEW_URL)
+        html = OpenURL(NEW_URL)
+
+        match = re.search(r'JS_callbacks0.*?\((.*?)\);', html, re.DOTALL)
+        if match:
+            json_data = json.loads(match.group(1))
+            if json_data:
+                # print(json.dumps(json_data, sort_keys=True, indent=2))
+                if 'media' in json_data:
+                    for media in json_data['media']:
+                        if 'kind' in media:
+                            if media['kind'].startswith('audio'):
+                                bitrate = ''
+                                if 'bitrate' in media:
+                                    bitrate = media['bitrate']
+                                if 'connection' in media:
+                                    for connection in media['connection']:
+                                        href = ''
+                                        protocol = ''
+                                        supplier = ''
+                                        transfer_format = ''
+                                        if 'href' in connection:
+                                            href = connection['href']
+                                        if 'protocol' in connection:
+                                            protocol = connection['protocol']
+                                        if 'supplier' in connection:
+                                            supplier = connection['supplier']
+                                            if ('akamai' in supplier):
+                                                supplier = 1
+                                            elif ('limelight' in supplier or 'll' in supplier):
+                                                supplier = 2
+                                            elif ('cloudfront' in supplier):
+                                                supplier = 3
+                                            else:
+                                                supplier = 0
+                                        if 'transferFormat' in connection:
+                                            transfer_format = connection['transferFormat']
+                                        if transfer_format == 'dash':
+                                            retlist.append((href, protocol, supplier, transfer_format, bitrate))
+                elif 'result' in json_data:
+                    if json_data['result'] == 'geolocation':
+                        # print "Geoblock detected, raising error message"
+                        dialog = xbmcgui.Dialog()
+                        dialog.ok(translation(30400), translation(30401))
+                        raise
 
     return retlist, match
 
