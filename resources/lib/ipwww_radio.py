@@ -373,20 +373,20 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
 
                 PlayStream(name, url, iconimage, '', '')
     else:
-        streams = ParseStreams(channelname)
+        streams = ParseStreams([channelname])
         # print('Located live streams')
         # print(streams)
         source = int(ADDON.getSetting('radio_source'))
         if source > 0:
             # Case 1: Selected source
-            match = [x for x in streams if (x[2] == source)]
+            match = [x for x in streams[0] if (x[2] == source)]
             if len(match) == 0:
                 # Fallback: Use any source and any bitrate
-                match = streams
+                match = streams[0]
         else:
             # Case 3: Any source
             # Play highest available bitrate
-            match = streams
+            match = streams[0]
         PlayStream(name, match[0][0], iconimage, '', '')
 
 
@@ -430,9 +430,9 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
 
                     AddMenuEntry(title, url, 201, '', '', '')
     else:
-        streams = ParseStreams(channelname)
+        streams = ParseStreams([channelname])
         suppliers = ['', 'Akamai', 'Limelight', 'Cloudfront']
-        for href, protocol, supplier, transfer_format, bitrate in streams:
+        for href, protocol, supplier, transfer_format, bitrate in streams[0]:
             title = name + ' - [I][COLOR ffd3d3d3]%s - %s kbps[/COLOR][/I]' % (suppliers[supplier], bitrate)
             AddMenuEntry(title, href, 211, iconimage, '', '', '')
 
@@ -464,25 +464,31 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
 
     streams = ParseStreams(stream_id)
 
-    for supplier, bitrate, url, encoding in sorted(streams[0], key=itemgetter(1), reverse=True):
-        bitrate = int(bitrate)
-        if supplier == 1:
-            supplier = 'Akamai'
-        elif supplier == 2:
-            supplier = 'Limelight'
+    if int(ADDON.getSetting('stream_protocol')) == 1:
+        for supplier, bitrate, url, encoding in sorted(streams[0], key=itemgetter(1), reverse=True):
+            bitrate = int(bitrate)
+            if supplier == 1:
+                supplier = 'Akamai'
+            elif supplier == 2:
+                supplier = 'Limelight'
 
-        if bitrate >= 320:
-            color = 'ff008000'
-        elif bitrate >= 128:
-            color = 'ffffff00'
-        elif bitrate >= 96:
-            color = 'ffffa500'
-        else:
-            color = 'ffff0000'
+            if bitrate >= 320:
+                color = 'ff008000'
+            elif bitrate >= 128:
+                color = 'ffffff00'
+            elif bitrate >= 96:
+                color = 'ffffa500'
+            else:
+                color = 'ffff0000'
 
-        title = name + ' - [I][COLOR %s]%d Kbps %s[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
-            color, bitrate, encoding, supplier)
-        AddMenuEntry(title, url, 201, iconimage, description, '', '')
+            title = name + ' - [I][COLOR %s]%d Kbps %s[/COLOR] [COLOR ffd3d3d3]%s[/COLOR][/I]' % (
+                color, bitrate, encoding, supplier)
+            AddMenuEntry(title, url, 201, iconimage, description, '', '')
+    else:
+        suppliers = ['', 'Akamai', 'Limelight', 'Cloudfront']
+        for href, protocol, supplier, transfer_format, bitrate in streams[0]:
+            title = name + ' - [I][COLOR ffd3d3d3]%s - %s kbps[/COLOR][/I]' % (suppliers[supplier], bitrate)
+            AddMenuEntry(title, href, 211, iconimage, '', '', '')
 
 
 def AddAvailableStreamItem(name, url, iconimage, description):
@@ -494,21 +500,34 @@ def AddAvailableStreamItem(name, url, iconimage, description):
         return
     streams_all = ParseStreams(stream_ids)
     streams = streams_all[0]
-    source = int(ADDON.getSetting('radio_source'))
-    if source > 0:
-        # Case 1: Selected source
-        match = [x for x in streams if (x[0] == source)]
-        if len(match) == 0:
-            # Fallback: Use any source and any bitrate
+    if int(ADDON.getSetting('stream_protocol')) == 1:
+        source = int(ADDON.getSetting('radio_source'))
+        if source > 0:
+            # Case 1: Selected source
+            match = [x for x in streams if (x[0] == source)]
+            if len(match) == 0:
+                # Fallback: Use any source and any bitrate
+                match = streams
+            match.sort(key=lambda x: x[1], reverse=True)
+        else:
+            # Case 3: Any source
+            # Play highest available bitrate
             match = streams
-        match.sort(key=lambda x: x[1], reverse=True)
+            match.sort(key=lambda x: x[1], reverse=True)
+        PlayStream(name, match[0][2], iconimage, description, '')
     else:
-        # Case 3: Any source
-        # Play highest available bitrate
-        match = streams
-        match.sort(key=lambda x: x[1], reverse=True)
-    PlayStream(name, match[0][2], iconimage, description, '')
-
+        source = int(ADDON.getSetting('radio_source'))
+        if source > 0:
+            # Case 1: Selected source
+            match = [x for x in streams if (x[2] == source)]
+            if len(match) == 0:
+                # Fallback: Use any source and any bitrate
+                match = streams
+        else:
+            # Case 3: Any source
+            # Play highest available bitrate
+            match = streams
+        PlayStream(name, match[0][0], iconimage, '', '')
 
 
 def ListAtoZ():
@@ -938,7 +957,7 @@ def ParseStreams(stream_id):
                     supplier = 2
                 retlist.append((supplier, bitrate, url, encoding))
     else:
-        NEW_URL = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/pc/vpid/%s/format/json/jsfunc/JS_callbacks0' % stream_id
+        NEW_URL = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/pc/vpid/%s/format/json/jsfunc/JS_callbacks0' % stream_id[0]
         # print(NEW_URL)
         html = OpenURL(NEW_URL)
 
