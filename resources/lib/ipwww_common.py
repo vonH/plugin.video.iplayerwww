@@ -440,12 +440,14 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
             "plot": description,
             "plotoutline": description,
             "date": date_string,
-            "aired": aired})
+            "aired": aired,
+            "mediatype" : "episode"})
     else:
         listitem.setInfo("video", {
             "title": name,
             "plot": description,
-            "plotoutline": description})
+            "plotoutline": description,
+            "mediatype" : "episode"})
 
     video_streaminfo = {'codec': 'h264'}
     if not isFolder:
