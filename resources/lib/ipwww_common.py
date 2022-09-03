@@ -434,20 +434,34 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
     listitem = xbmcgui.ListItem(label=name, label2=description)
     listitem.setArt({'icon':'DefaultFolder.png', 'thumb':iconimage})
 
-    if aired:
-        listitem.setInfo("video", {
-            "title": name,
-            "plot": description,
-            "plotoutline": description,
-            "date": date_string,
-            "aired": aired,
-            "mediatype" : "episode"})
+    if mode in (201, 202, 203, 204, 205, 211, 212, 213):
+        if aired:
+            listitem.setInfo("video", {
+                "title": name,
+                "plot": description,
+                "plotoutline": description,
+                "date": date_string,
+                "aired": aired,
+                "mediatype" : "episode"})
+        else:
+            listitem.setInfo("video", {
+                "title": name,
+                "plot": description,
+                "plotoutline": description,
+                "mediatype" : "episode"})
     else:
-        listitem.setInfo("video", {
-            "title": name,
-            "plot": description,
-            "plotoutline": description,
-            "mediatype" : "episode"})
+        if aired:
+            listitem.setInfo("video", {
+                "title": name,
+                "plot": description,
+                "plotoutline": description,
+                "date": date_string,
+                "aired": aired})
+        else:
+            listitem.setInfo("video", {
+                "title": name,
+                "plot": description,
+                "plotoutline": description})
 
     video_streaminfo = {'codec': 'h264'}
     if not isFolder:
