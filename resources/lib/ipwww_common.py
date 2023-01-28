@@ -134,7 +134,7 @@ def download_subtitles(url):
     # TT:
     # <p begin="0:01:12.400" end="0:01:13.880">Thinking.</p>
     outfile = os.path.join(DIR_USERDATA, 'iplayer.srt')
-    # print "Downloading subtitles from %s to %s"%(url, outfile)
+    # print("Downloading subtitles from %s to %s",url, outfile)
     fw = codecs.open(outfile, 'w', encoding='utf-8')
 
     if not url:
@@ -143,7 +143,7 @@ def download_subtitles(url):
         return
 
     txt = OpenURL(url)
-    # print txt
+    # print(txt)
 
     # get styles
     styles = []
@@ -225,6 +225,11 @@ def download_subtitles(url):
                     else:
                          text = text+content
                     # print substyle, color, line.encode('utf-8')
+                # Sometimes, there are color formats within one display.
+                spans = re.findall(r'<span tts:color="(.*?)">(.*?)</span>', text, re.DOTALL)
+                if (spans):
+                    nospan=re.sub(r'<span tts:color','<font color',content)
+                    text=re.sub(r'/span','/font',nospan)
                 entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (index, start_split[0], start_mil_f, end_split[0], end_mil_f, text)
                 if entry:
                     fw.write(entry)
