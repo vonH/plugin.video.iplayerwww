@@ -228,7 +228,7 @@ def download_subtitles(url):
                 # Sometimes, there are color formats within one display.
                 spans = re.findall(r'<span tts:color="(.*?)">(.*?)</span>', text, re.DOTALL)
                 if (spans):
-                    nospan=re.sub(r'<span tts:color','<font color',content)
+                    nospan=re.sub(r'<span tts:color','<font color',text)
                     text=re.sub(r'/span','/font',nospan)
                 entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (index, start_split[0], start_mil_f, end_split[0], end_mil_f, text)
                 if entry:
