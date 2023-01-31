@@ -242,7 +242,7 @@ def download_subtitles(url):
                                     continue
                                 elif (cflag==False):
                                     color = default_color[0]
-                                text=text+'<font color="'+color+'>'+part+'</font>'
+                                text=text+'<font color="'+color+'">'+part+'</font>'
                                 cflag = False
                     else:
                         text=text+'<font color="'+default_color[0]+'">'+content+'</font>'
