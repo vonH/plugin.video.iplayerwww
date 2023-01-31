@@ -180,6 +180,7 @@ def download_subtitles(url):
             index = 1
             # print "Found %s frames"%len(frames)
             # print frames
+            p = re.compile(r'<span(.*?)>(.*?)</span>')
             for formatting, content in frames:
                 start = ''
                 match = re.search(r'begin=\"(.*?)"', formatting, re.DOTALL)
@@ -194,7 +195,10 @@ def download_subtitles(url):
                 if match:
                     style = match.group(1)
                 else:
-                    style = False
+                    # If no style is found, we assume that s0, the default style should be applied.
+                    # Note this is dangerous, as we also assume that s0 will always be defined.
+                    # If it is not, the add-on will return an error a little later.
+                    style = 's0'
                 start_split = re.split('\.',start)
                 # print start_split
                 if(len(start_split)>1):
@@ -211,6 +215,7 @@ def download_subtitles(url):
                 text = ''
                 spans = re.findall(r'<span.*?style="(.*?)">(.*?)</span>', content, re.DOTALL)
                 if (spans):
+                    # Old style ttml: Everything is encapsulated in <span style= statements
                     num_spans = len(spans)
                     for num, (substyle, line) in enumerate(spans):
                         if num >0:
@@ -219,17 +224,35 @@ def download_subtitles(url):
                         # print substyle, color, line.encode('utf-8')
                         text = text+'<font color="%s">%s</font>' %  (color[0], line)
                 else:
-                    if style:
-                        color = [value for (style_id, value) in styles if style == style_id]
-                        text = text+'<font color="%s">%s</font>' %  (color[0], content)
+                    # New style ttml: style is set per display (or not at all), and within each
+                    # display, there may be several substyles defined by <span tts:color=
+                    default_color = [value for (style_id, value) in styles if style == style_id]
+                    spans = re.search(r'<span', content, re.DOTALL)
+                    if (spans):
+                        cflag = False
+                        default_color = [value for (style_id, value) in styles if style == style_id]
+                        color = default_color[0]
+                        content_split=p.split(content)
+                        for part in content_split:
+                            if part:
+                                match = re.search(r'color="(.*?)"', part, re.DOTALL)
+                                if match:
+                                    color = match.group(1)
+                                    cflag = True
+                                    continue
+                                elif (cflag==False):
+                                    color = default_color[0]
+                                text=text+'<font color="'+color+'>'+part+'</font>'
+                                cflag = False
                     else:
-                         text = text+content
+                        text=text+'<font color="'+default_color[0]+'>'+content+'</font>'
+                    # if style:
+                    #     color = [value for (style_id, value) in styles if style == style_id]
+                    #     text = text+'<font color="%s">%s</font>' %  (color[0], content)
+                    # else:
+                    #      text = text+content
                     # print substyle, color, line.encode('utf-8')
-                # Sometimes, there are color formats within one display.
-                spans = re.findall(r'<span tts:color="(.*?)">(.*?)</span>', text, re.DOTALL)
-                if (spans):
-                    nospan=re.sub(r'<span tts:color','<font color',text)
-                    text=re.sub(r'/span','/font',nospan)
+
                 entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (index, start_split[0], start_mil_f, end_split[0], end_mil_f, text)
                 if entry:
                     fw.write(entry)
