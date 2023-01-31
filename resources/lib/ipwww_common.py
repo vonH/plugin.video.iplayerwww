@@ -245,7 +245,7 @@ def download_subtitles(url):
                                 text=text+'<font color="'+color+'>'+part+'</font>'
                                 cflag = False
                     else:
-                        text=text+'<font color="'+default_color[0]+'>'+content+'</font>'
+                        text=text+'<font color="'+default_color[0]+'">'+content+'</font>'
                     # if style:
                     #     color = [value for (style_id, value) in styles if style == style_id]
                     #     text = text+'<font color="%s">%s</font>' %  (color[0], content)
