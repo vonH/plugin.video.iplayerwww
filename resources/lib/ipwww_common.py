@@ -71,54 +71,6 @@ def ParseImageUrl(url):
     return url.replace("{recipe}", "832x468")
 
 
-def getSubColor(line, styles):
-    color = None
-    match = re.search(r'^[^>]+style="(.*?)"', line, re.DOTALL)
-    if match:
-        style = match.group(1)
-        color = [value for (style_id,value) in styles if style_id == style]
-    else:
-        # fallback: sometimes, there is direct formatting in the text
-        match = re.search(r'^[^>]+color="(.*?)"', line, re.DOTALL)
-        if match:
-            color = [match.group(1)]
-        else:
-            # fallback 2: sometimes, there is no formatting at all, use default
-            color = [value for (style_id,value) in styles if style_id == 's0']
-    if color:
-        return color[0]
-    else:
-        return None
-
-
-def make_span_replacer(styles):
-    def replace_span(m_span):
-        repl_span = None
-        color_span = getSubColor(m_span.group(0), styles)
-        if color_span:
-            repl_span = '<font color="%s">%s</font>' % (color_span, m_span.group(1))
-        else:
-            repl_span = m_span.group(1)
-        return repl_span
-    return replace_span
-
-
-def format_subtitle(caption, span_replacer, index):
-    subtitle = None
-    text = caption['text']
-    text = re.sub(r'&#[0-9]+;', '', text)
-    text = re.sub(r'<br\s?/>', '\n', text)
-    text = re.sub(r'<span.*?>(.*?)</span>', span_replacer, text, flags=re.DOTALL)
-    if caption['color']:
-        text = re.sub(r'(^|</font>)([^<]+)(<font|$)', r'\1<font color="%s">\2</font>\3' % 
-            caption['color'], text, flags=re.DOTALL)
-        if not re.search(r'<font.*?>(.*?)</font>', text, re.DOTALL):
-            text = '<font color="%s">%s</font>' %  (caption['color'], text)
-    subtitle = "%d\n%s,%s --> %s,%s\n%s\n\n" % (
-        index, caption['start'], caption['start_mil'], caption['end'], caption['end_mil'], text)
-    return subtitle
-
-
 def download_subtitles(url):
     # Download and Convert the TTAF format to srt
     # SRT:
@@ -173,7 +125,6 @@ def download_subtitles(url):
                             styles.append((id, '#00ff00'))
                         else:
                             styles.append((id, match.group(1)))
-                    # span_replacer = make_span_replacer(styles)
     # print "Retrieved styles"
     # print styles
 
