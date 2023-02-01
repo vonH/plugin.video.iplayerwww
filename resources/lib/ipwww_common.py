@@ -163,7 +163,16 @@ def download_subtitles(url):
                     if match.group(1).startswith('#'):
                         styles.append((id, match.group(1)[0:7]))
                     else:
-                        styles.append((id, match.group(1)))
+                        if (match.group(1)=='white'):
+                            styles.append((id, '#ffffff'))
+                        elif (match.group(1)=='yellow'):
+                            styles.append((id, '#ffff00'))
+                        elif (match.group(1)=='cyan'):
+                            styles.append((id, '#00ffff'))
+                        elif (match.group(1)=='lime'):
+                            styles.append((id, '#00ff00'))
+                        else:
+                            styles.append((id, match.group(1)))
                     # span_replacer = make_span_replacer(styles)
     # print "Retrieved styles"
     # print styles
@@ -237,7 +246,16 @@ def download_subtitles(url):
                             if part:
                                 match = re.search(r'color="(.*?)"', part, re.DOTALL)
                                 if match:
-                                    color = match.group(1)
+                                    if (match.group(1)=='white'):
+                                        color = '#ffffff'
+                                    elif (match.group(1)=='yellow'):
+                                        color = '#ffff00'
+                                    elif (match.group(1)=='cyan'):
+                                        color = '#00ffff'
+                                    elif (match.group(1)=='lime'):
+                                        color = '#00ff00'
+                                    else:
+                                        color = match.group(1)
                                     cflag = True
                                     continue
                                 elif (cflag==False):
@@ -253,6 +271,8 @@ def download_subtitles(url):
                     #      text = text+content
                     # print substyle, color, line.encode('utf-8')
 
+                # Get correct line breaks according to SRT
+                text = re.sub(r'<br\s?/>', '\n', text)
                 entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (index, start_split[0], start_mil_f, end_split[0], end_mil_f, text)
                 if entry:
                     fw.write(entry)
