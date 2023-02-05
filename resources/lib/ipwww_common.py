@@ -178,8 +178,6 @@ def download_subtitles(url):
                     # Old style ttml: Everything is encapsulated in <span style= statements
                     num_spans = len(spans)
                     for num, (substyle, line) in enumerate(spans):
-                        if num >0:
-                            text = text+'\n'
                         color = [value for (style_id, value) in styles if substyle == style_id]
                         # print substyle, color, line.encode('utf-8')
                         text = text+'<font color="%s">%s</font>' %  (color[0], line)
