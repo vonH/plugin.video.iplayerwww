@@ -294,12 +294,35 @@ def SignOutBBCiD():
         xbmcgui.Dialog().notification(translation(30326), translation(30309))
 
 
-def StatusBBCiD():
-    r = requests.head("https://account.bbc.com/account", cookies=cookie_jar,
-                      headers=headers, allow_redirects=False)
-    if r.status_code == 200:
+def StatusBBCiD(cookies=cookie_jar):
+    """Check authentication status.
+    Return True if already authenticated or token refresh succeeded.
+    Return False when the user needs to sign-in.
+
+    Authentication check is done by a request to account.bbc.com/account.
+    - If the server returns the account page the current access tokens are valid.
+    - If not, the server redirects to session.bbc.com/session.
+    At a request to session.bbc.com/session the server either:
+    - redirects to account.bbc.com/auth, i.e. the user needs to sign in.
+    - or sets new token cookies for domain bbc.com and redirects to
+      session.bbc.co.uk/session,
+    which sets new token cookies for domain bbc.co.uk and redirects back to
+    account.bbc.com/account; the page that was originally requested.
+
+    """
+    account_page = 'https://account.bbc.com/account'
+
+    with requests.Session() as session:
+        session.cookies = cookies
+        # Make a request to the account page and follow all redirects
+        response = session.head(account_page, headers=headers, allow_redirects=True)
+
+    if response.url == account_page:
+        if response.history:
+            # Access token has been refreshed when redirected.
+            cookies.save()
         return True
-    else: 
+    else:
         return False
 
 
