@@ -348,21 +348,25 @@ def CheckLogin(logged_in):
 
 
 def OpenURL(url):
-    try:
-        r = requests.get(url, headers=headers, cookies=cookie_jar)
-    except requests.exceptions.RequestException as e:
-        dialog = xbmcgui.Dialog()
-        dialog.ok(translation(30400), "%s" % e)
-        sys.exit(1)
-    try:
-        for cookie in r.cookies:
-            cookie_jar.set_cookie(cookie)
-        #Set ignore_discard to overcome issue of not having session
-        #as cookie_jar is reinitialised for each action.
-        cookie_jar.save(ignore_discard=True)
-    except:
-        pass
-    return unescape(r.content.decode('utf-8'))
+    with requests.Session() as session:
+        session.cookies = cookie_jar
+        session.headers = headers
+        try:
+            r = session.get(url)
+        except requests.exceptions.RequestException as e:
+            dialog = xbmcgui.Dialog()
+            dialog.ok(translation(30400), "%s" % e)
+            sys.exit(1)
+        try:
+            #Set ignore_discard to overcome issue of not having session
+            #as cookie_jar is reinitialised for each action.
+            # Refreshed token cookies are set on intermediate requests.
+            # Only save if there have been any.
+            if r.history:
+                cookie_jar.save(ignore_discard=True)
+        except:
+            pass
+        return unescape(r.content.decode('utf-8'))
 
 
 def OpenURLPost(url, post_data):
