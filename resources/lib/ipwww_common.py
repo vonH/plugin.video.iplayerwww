@@ -406,7 +406,7 @@ def utf8_unquote_plus(str):
     return urllib.parse.unquote_plus(str)
 
 
-def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None, logged_in=False):
+def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
@@ -417,8 +417,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
                     "&name=" + utf8_quote_plus(name) +
                     "&iconimage=" + utf8_quote_plus(iconimage) +
                     "&description=" + utf8_quote_plus(description) +
-                    "&subtitles_url=" + utf8_quote_plus(subtitles_url) +
-                    "&logged_in=" + str(logged_in))
+                    "&subtitles_url=" + utf8_quote_plus(subtitles_url))
     if mode in (101,203,113,213):
         listitem_url = listitem_url + "&time=" + str(time.time())
     if aired:

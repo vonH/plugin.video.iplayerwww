@@ -544,7 +544,7 @@ def ListLive():
             AddMenuEntry(name, id, 133, iconimage, '', '')
 
 
-def ListListenList(logged_in):
+def ListListenList():
     """Scrapes all episodes of the favourites page."""
     html = OpenURL('http://www.bbc.co.uk/radio/favourites')
 
@@ -611,7 +611,7 @@ def ListListenList(logged_in):
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
 
-def ListFollowing(logged_in):
+def ListFollowing():
     """Scrapes all episodes of the favourites page."""
     html = OpenURL('https://www.bbc.co.uk/radio/favourites/programmes')
 

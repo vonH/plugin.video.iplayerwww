@@ -964,14 +964,14 @@ def GetJsonDataWithBBCid(url, retry=True):
         return
 
 
-def ListWatching(logged_in):
+def ListWatching():
     url = "https://www.bbc.co.uk/iplayer/watching"
     data = GetJsonDataWithBBCid(url)
     if data:
         ParseJSON(data, url)
 
 
-def ListFavourites(logged_in):
+def ListFavourites():
     url = "https://www.bbc.co.uk/iplayer/added"
     data = GetJsonDataWithBBCid(url)
     if data:
