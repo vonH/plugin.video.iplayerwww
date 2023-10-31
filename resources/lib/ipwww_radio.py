@@ -545,10 +545,6 @@ def ListLive():
 
 
 def ListListenList(logged_in):
-    if(CheckLogin(logged_in) == False):
-        CreateBaseDirectory('audio')
-        return
-
     """Scrapes all episodes of the favourites page."""
     html = OpenURL('http://www.bbc.co.uk/radio/favourites')
 
@@ -616,10 +612,6 @@ def ListListenList(logged_in):
 
 
 def ListFollowing(logged_in):
-    if(CheckLogin(logged_in) == False):
-        CreateBaseDirectory('audio')
-        return
-
     """Scrapes all episodes of the favourites page."""
     html = OpenURL('https://www.bbc.co.uk/radio/favourites/programmes')
 

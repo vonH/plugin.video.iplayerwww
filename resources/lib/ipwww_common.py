@@ -326,10 +326,8 @@ def StatusBBCiD(cookies=cookie_jar):
         return False
 
 
-def CheckLogin(logged_in):
-    if(logged_in == True or StatusBBCiD() == True):
-        return True
-    elif ADDON.getSetting('bbc_id_enabled') != 'true':
+def CheckLogin():
+    if ADDON.getSetting('bbc_id_enabled') != 'true':
         xbmcgui.Dialog().ok(translation(30308), translation(30311))
     else:
         if ADDON.getSetting('bbc_id_autologin') == 'true':
@@ -343,7 +341,6 @@ def CheckLogin(logged_in):
                 return True
             else:
                 xbmcgui.Dialog().notification(translation(30308), translation(30310))
-
     return False
 
 
