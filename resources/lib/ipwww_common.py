@@ -284,14 +284,16 @@ def SignInBBCiD(cookies=cookie_jar):
 
 
 def SignOutBBCiD():
+    """Sign out from BBC account
+
+    Clearing the cookie jar is absolutely enough to get signed out, but
+    let's be nice and inform the Beeb as well.
+    """
     sign_out_url="https://account.bbc.com/signout"
     OpenURL(sign_out_url)
     cookie_jar.clear()
     cookie_jar.save()
-    if (StatusBBCiD()):
-        xbmcgui.Dialog().notification(translation(30326), translation(30310))
-    else:
-        xbmcgui.Dialog().notification(translation(30326), translation(30309))
+    xbmcgui.Dialog().notification(translation(30326), translation(30309))
 
 
 def StatusBBCiD(cookies=cookie_jar):
