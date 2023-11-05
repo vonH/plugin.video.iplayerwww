@@ -445,7 +445,7 @@ def ScrapeAtoZEpisodes(page_url):
                 else:
                     page_base_url = page_url+"?page="
                 if current_page < last_page:
-                    next_page = curent_page+1
+                    next_page = current_page+1
                 else:
                    next_page = current_page
                 page_range = list(range(current_page, current_page+1))
