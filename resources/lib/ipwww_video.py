@@ -856,10 +856,13 @@ def AddAvailableStreamItem(name, url, iconimage, description):
         description = stream_ids['description']
     if ((not stream_ids['stream_id_st']) or (ADDON.getSetting('search_ad') == 'true')) and stream_ids['stream_id_ad']:
         streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_ad'])
+        strm_id = stream_ids['stream_id_ad']
     elif ((not stream_ids['stream_id_st']) or (ADDON.getSetting('search_signed') == 'true')) and stream_ids['stream_id_sl']:
         streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_sl'])
+        strm_id = stream_ids['stream_id_sl']
     else:
         streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_st'])
+        strm_id = stream_ids['stream_id_st']
     if streams_all[1]:
         # print "Setting subtitles URL"
         subtitles_url = streams_all[1][0][1]
@@ -874,7 +877,8 @@ def AddAvailableStreamItem(name, url, iconimage, description):
         match = [x for x in streams if (x[0] == source)]
     else:
         match = streams
-    PlayStream(name, match[0][2], iconimage, description, subtitles_url)
+    PlayStream(name, match[0][2], iconimage, description, subtitles_url,
+               episode_id=stream_ids['episode_id'], stream_id=strm_id)
 
 
 def GetAvailableStreams(name, url, iconimage, description, resume_time='', total_time=''):
@@ -890,15 +894,15 @@ def GetAvailableStreams(name, url, iconimage, description, resume_time='', total
     # If we found standard streams, append them to the list.
     if stream_ids['stream_id_st']:
         AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description,
-                                     resume_time, total_time)
+                                     stream_ids['episode_id'], resume_time, total_time)
     # If we searched for Audio Described programmes and they have been found, append them to the list.
     if stream_ids['stream_id_ad'] or not stream_ids['stream_id_st']:
         AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage,
-                                     description, resume_time, total_time)
+                                     description, stream_ids['episode_id'], resume_time, total_time)
     # If we search for Signed programmes and they have been found, append them to the list.
     if stream_ids['stream_id_sl'] or not stream_ids['stream_id_st']:
         AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage,
-                                     description, resume_time, total_time)
+                                     description, stream_ids['episode_id'], resume_time, total_time)
 
 
 def Search(search_entered):
@@ -983,7 +987,7 @@ def ListFavourites():
         ParseJSON(data, url)
 
 
-def PlayStream(name, url, iconimage, description, subtitles_url):
+def PlayStream(name, url, iconimage, description, subtitles_url, episode_id=None, stream_id=None):
     if iconimage == '':
         iconimage = 'DefaultVideo.png'
     html = OpenURL(url)
@@ -1004,9 +1008,10 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
         subtitles_file = download_subtitles(subtitles_url)
         liz.setSubtitles([subtitles_file])
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
+    ipwww_resume.monitor_progress(episode_id, stream_id)
 
 
-def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, resume_time="", total_time=""):
+def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, episode_id, resume_time="", total_time=""):
     """Will create one menu entry for each available stream of a particular stream_id"""
     # print("Stream ID: %s"%stream_id)
     streams = ParseStreamsHLSDASH(stream_id)
@@ -1021,7 +1026,7 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, resume
     for supplier, bitrate, url, resolution, protocol in streams[0]:
         title = name + ' - [I][COLOR ffd3d3d3]%s[/COLOR][/I]' % (suppliers[supplier])
         AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution,
-                     resume_time=resume_time, total_time=total_time)
+                     episode_id=episode_id, stream_id=stream_id, resume_time=resume_time, total_time=total_time)
 
 
 def ParseMediaselector(stream_id):
@@ -1187,7 +1192,8 @@ def ScrapeAvailableStreams(url):
                 xbmc.log("iPlayer WWW warning: New stream kind: %s" % stream['kind'])
                 stream_id_st = stream['id']
 
-    return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad, 'name': name, 'image':image, 'description': description}
+    return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad,
+            'name': name, 'image':image, 'description': description, 'episode_id': json_data['episode'].get('id', '')}
 
 
 def ScrapeJSON(html):
@@ -1209,9 +1215,10 @@ def ScrapeJSON(html):
     return json_data
 
 
-def CheckAutoplay(name, url, iconimage, plot, aired=None):
+def CheckAutoplay(name, url, iconimage, plot, aired=None, resume_time="", total_time=""):
     if ADDON.getSetting('streams_autoplay') == 'true':
-        AddMenuEntry(name, url, 202, iconimage, plot, '', aired=aired)
+        mode = 202
     else:
-        AddMenuEntry(name, url, 122, iconimage, plot, '', aired=aired)
-
+        mode = 122
+    AddMenuEntry(name, url, mode, iconimage, plot, '', aired=aired,
+                 resume_time=resume_time, total_time=total_time)
