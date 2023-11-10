@@ -1215,10 +1215,10 @@ def ScrapeJSON(html):
     return json_data
 
 
-def CheckAutoplay(name, url, iconimage, plot, aired=None, resume_time="", total_time=""):
+def CheckAutoplay(name, url, iconimage, plot, aired=None, resume_time="", total_time="", context_mnu=None):
     if ADDON.getSetting('streams_autoplay') == 'true':
         mode = 202
     else:
         mode = 122
     AddMenuEntry(name, url, mode, iconimage, plot, '', aired=aired,
-                 resume_time=resume_time, total_time=total_time)
+                 resume_time=resume_time, total_time=total_time, context_mnu=context_mnu)

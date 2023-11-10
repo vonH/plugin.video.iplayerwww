@@ -38,8 +38,14 @@ def parse_watching_item(item_data):
         resume_time = ''
     info = '\n'.join((props.get('title', ''), props.get('subtitle', ''), props.get('secondarySubLabel', '')))
     image = props.get('imageTemplate', 'DefaultFolder.png').replace('{recipe}', '832x468')
+
+    ct_menus = []
+    all_episodes_link = meta.get('secondaryHref')
+    if all_episodes_link:
+        ct_menus.append(('View all episodes',
+                         f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url=https://www.bbc.co.uk{all_episodes_link})'))
     return {'name': title, 'url': url, 'iconimage': image, 'plot': info,
-            'resume_time': str(resume_time), 'total_time': str(duration)}
+            'resume_time': str(resume_time), 'total_time': str(duration), 'context_mnu': ct_menus}
 
 
 class PlayState:

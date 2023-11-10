@@ -417,7 +417,7 @@ def utf8_unquote_plus(str):
 
 
 def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None,
-                 resume_time="", total_time="", episode_id="", stream_id=""):
+                 resume_time="", total_time="", episode_id="", stream_id="", context_mnu=None):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
@@ -487,6 +487,9 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
                 "title": name,
                 "plot": description,
                 "plotoutline": description})
+
+    if context_mnu:
+        listitem.addContextMenuItems(context_mnu)
 
     video_streaminfo = {'codec': 'h264'}
     if not isFolder:
