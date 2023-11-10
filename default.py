@@ -87,6 +87,9 @@ try:
 except:
     pass
 
+resume_time = params.get('resume_time', '')
+total_time = params.get('total_time', '')
+
 try:
     # These are the modes which tell the plugin where to go.
     if mode == 1:
@@ -158,7 +161,7 @@ try:
         Video.GetEpisodes(url)
 
     elif mode == 122:
-        Video.GetAvailableStreams(name, url, iconimage, description)
+        Video.GetAvailableStreams(name, url, iconimage, description, resume_time, total_time)
 
     elif mode == 123:
         Video.AddAvailableLiveStreamsDirectory(name, url, iconimage)

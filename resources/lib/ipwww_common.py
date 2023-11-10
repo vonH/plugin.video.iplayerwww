@@ -435,18 +435,24 @@ def iso_duration_2_seconds(iso_str: str) -> int:
     return None
 
 
-def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None):
+def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None,
+                 resume_time = '', total_time = ''):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
 
     if not iconimage:
         iconimage="DefaultFolder.png"
-    listitem_url = (sys.argv[0] + "?url=" + utf8_quote_plus(url) + "&mode=" + str(mode) +
-                    "&name=" + utf8_quote_plus(name) +
-                    "&iconimage=" + utf8_quote_plus(iconimage) +
-                    "&description=" + utf8_quote_plus(description) +
-                    "&subtitles_url=" + utf8_quote_plus(subtitles_url))
+    listitem_url = ''.join((
+        sys.argv[0],
+        "?url=", utf8_quote_plus(url),
+        "&mode=", str(mode),
+        "&name=", utf8_quote_plus(name),
+        "&iconimage=", utf8_quote_plus(iconimage),
+        "&description=", utf8_quote_plus(description),
+        "&subtitles_url=", utf8_quote_plus(subtitles_url),
+        "&resume_time=", resume_time,
+        "&total_time=", total_time))
     if mode in (101,203,113,213):
         listitem_url = listitem_url + "&time=" + str(time.time())
     if aired:
@@ -482,6 +488,9 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
                 "plot": description,
                 "plotoutline": description,
                 "mediatype" : "episode"})
+        if resume_time:
+            listitem.setProperty('ResumeTime', resume_time)
+            listitem.setProperty('TotalTime', total_time if total_time else '7200')
     else:
         if aired:
             listitem.setInfo("video", {

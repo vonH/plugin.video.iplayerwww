@@ -823,7 +823,7 @@ def ParseJSON(programme_data, current_url):
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
 
-def select_synopsis(synopses):
+def SelectSynopsis(synopses):
     if synopses is None:
         return ''
     return (synopses.get('editorial')
@@ -833,21 +833,18 @@ def select_synopsis(synopses):
 
 
 def ParseEpisode(episode_data):
-    epsiode_id = episode_data['id']
-    title = episode_data.get('title')
-    subtitle = episode_data.get('subtitle', '')
+    title = episode_data.get('title', '')
+    subtitle = episode_data.get('subtitle')
     if subtitle:
         title = ' - '.join((title, subtitle))
     version_data = episode_data['versions'][0]
-    description = ''.join((title,
-                           '\n\n',
-                           select_synopsis(episode_data.get('synopses')),
+    description = ''.join((SelectSynopsis(episode_data.get('synopses')),
                            '\n\n[I]',
                            version_data['availability']['remaining']['text'],
                            '[/I]'))
 
     return {
-        'url': 'https://www.bbc.co.uk/iplayer/episode/' + epsiode_id,
+        'url': 'https://www.bbc.co.uk/iplayer/episode/' + episode_data['id'],
         'name': title,
         'iconimage': episode_data.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468'),
         'description': description,
@@ -910,7 +907,7 @@ def AddAvailableStreamItem(name, url, iconimage, description):
     PlayStream(name, match[0][2], iconimage, description, subtitles_url)
 
 
-def GetAvailableStreams(name, url, iconimage, description):
+def GetAvailableStreams(name, url, iconimage, description, resume_time='', total_time=''):
     """Calls AddAvailableStreamsDirectory based on user settings"""
     #print url
     stream_ids = ScrapeAvailableStreams(url)
@@ -922,13 +919,16 @@ def GetAvailableStreams(name, url, iconimage, description):
         description = stream_ids['description']
     # If we found standard streams, append them to the list.
     if stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description)
+        AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description,
+                                     resume_time, total_time)
     # If we searched for Audio Described programmes and they have been found, append them to the list.
     if stream_ids['stream_id_ad'] or not stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage, description)
+        AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage,
+                                     description, resume_time, total_time)
     # If we search for Signed programmes and they have been found, append them to the list.
     if stream_ids['stream_id_sl'] or not stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage, description)
+        AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage,
+                                     description, resume_time, total_time)
 
 
 def Search(search_entered):
@@ -1001,8 +1001,24 @@ def GetJsonDataWithBBCid(url, retry=True):
 def ListWatching():
     url = "https://www.bbc.co.uk/iplayer/watching"
     data = GetJsonDataWithBBCid(url)
-    if data:
-        ParseJSON(data, url)
+    if not data:
+        return
+
+    for watching_item in data['items']['elements']:
+        episode = watching_item['episode']
+        item_data = ParseEpisode(episode)
+
+        full_title =  item_data['name']
+        item_data['description'] = '\n\n'.join((full_title, item_data['description']))
+        remaining_seconds = watching_item.get('remaining')
+        if remaining_seconds:
+            item_data['name'] = '{} - [I]{} min left[/I]'.format(episode.get('title', ''), int(remaining_seconds / 60))
+            # Resume a little bit earlier, so it's easier to recognise where you've left off.
+            item_data['resume_time'] = str(max(watching_item['offset'] - 10, 0))
+        else:
+            item_data['name'] = '{} - [I]next episode[/I]'.format(episode.get('title', ''))
+
+        CheckAutoplay(**item_data)
 
 
 def ListFavourites():
@@ -1035,7 +1051,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
 
 
-def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
+def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, resume_time="", total_time=""):
     """Will create one menu entry for each available stream of a particular stream_id"""
     # print("Stream ID: %s"%stream_id)
     streams = ParseStreamsHLSDASH(stream_id)
@@ -1049,7 +1065,8 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
     for supplier, bitrate, url, resolution, protocol in streams[0]:
         title = name + ' - [I][COLOR ffd3d3d3]%s[/COLOR][/I]' % (suppliers[supplier])
-        AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
+        AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution,
+                     resume_time=resume_time, total_time=total_time)
 
 
 def ParseMediaselector(stream_id):
@@ -1237,9 +1254,10 @@ def ScrapeJSON(html):
     return json_data
 
 
-def CheckAutoplay(name, url, iconimage, plot, aired=None):
+def CheckAutoplay(name, url, iconimage, description, aired=None, resume_time="", total_time=""):
     if ADDON.getSetting('streams_autoplay') == 'true':
-        AddMenuEntry(name, url, 202, iconimage, plot, '', aired=aired)
+        mode = 202
     else:
-        AddMenuEntry(name, url, 122, iconimage, plot, '', aired=aired)
-
+        mode = 122
+    AddMenuEntry(name, url, mode, iconimage, description, '', aired=aired,
+                 resume_time=resume_time, total_time=total_time)
