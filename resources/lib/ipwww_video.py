@@ -12,6 +12,7 @@ from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
                                        ParseImageUrl, download_subtitles, GeoBlockedError
+from resources.lib import ipwww_resume
 
 import xbmc
 import xbmcvfs
@@ -876,7 +877,7 @@ def AddAvailableStreamItem(name, url, iconimage, description):
     PlayStream(name, match[0][2], iconimage, description, subtitles_url)
 
 
-def GetAvailableStreams(name, url, iconimage, description):
+def GetAvailableStreams(name, url, iconimage, description, resume_time='', total_time=''):
     """Calls AddAvailableStreamsDirectory based on user settings"""
     #print url
     stream_ids = ScrapeAvailableStreams(url)
@@ -888,13 +889,16 @@ def GetAvailableStreams(name, url, iconimage, description):
         description = stream_ids['description']
     # If we found standard streams, append them to the list.
     if stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description)
+        AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description,
+                                     resume_time, total_time)
     # If we searched for Audio Described programmes and they have been found, append them to the list.
     if stream_ids['stream_id_ad'] or not stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage, description)
+        AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage,
+                                     description, resume_time, total_time)
     # If we search for Signed programmes and they have been found, append them to the list.
     if stream_ids['stream_id_sl'] or not stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage, description)
+        AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage,
+                                     description, resume_time, total_time)
 
 
 def Search(search_entered):
@@ -968,7 +972,8 @@ def ListWatching():
     url = "https://www.bbc.co.uk/iplayer/watching"
     data = GetJsonDataWithBBCid(url)
     if data:
-        ParseJSON(data, url)
+        for item_data in ipwww_resume.parse_watching(data):
+            CheckAutoplay(**item_data)
 
 
 def ListFavourites():
@@ -1001,7 +1006,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
 
 
-def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
+def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, resume_time="", total_time=""):
     """Will create one menu entry for each available stream of a particular stream_id"""
     # print("Stream ID: %s"%stream_id)
     streams = ParseStreamsHLSDASH(stream_id)
@@ -1015,7 +1020,8 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
     for supplier, bitrate, url, resolution, protocol in streams[0]:
         title = name + ' - [I][COLOR ffd3d3d3]%s[/COLOR][/I]' % (suppliers[supplier])
-        AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
+        AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution,
+                     resume_time=resume_time, total_time=total_time)
 
 
 def ParseMediaselector(stream_id):
