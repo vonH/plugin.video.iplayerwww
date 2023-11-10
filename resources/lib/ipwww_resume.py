@@ -44,6 +44,11 @@ def parse_watching_item(item_data):
     if all_episodes_link:
         ct_menus.append(('View all episodes',
                          f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url=https://www.bbc.co.uk{all_episodes_link})'))
+    programme_id = meta.get('programmeId')
+    if programme_id:
+        ct_menus.append(('Remove',
+                         f'RunPlugin(plugin://plugin.video.iplayerwww?mode=301&episode_id={programme_id}&url=url)'))
+
     return {'name': title, 'url': url, 'iconimage': image, 'plot': info,
             'resume_time': str(resume_time), 'total_time': str(duration), 'context_mnu': ct_menus}
 

@@ -11,7 +11,8 @@ import json
 from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
-                                       ParseImageUrl, download_subtitles, GeoBlockedError
+                                       ParseImageUrl, download_subtitles, GeoBlockedError, \
+                                       PostJson
 from resources.lib import ipwww_resume
 
 import xbmc
@@ -978,6 +979,15 @@ def ListWatching():
     if data:
         for item_data in ipwww_resume.parse_watching(data):
             CheckAutoplay(**item_data)
+
+
+def RemoveWatching(episode_id):
+    """Remove an item from the 'continue watching' list.
+    Handler for the context menu option 'Remove' on list items in 'Continue watching'.
+    """
+    PostJson('https://user.ibl.api.bbc.co.uk/ibl/v1/user/hides',
+             {'id': episode_id})
+    xbmc.executebuiltin('Container.Refresh')
 
 
 def ListFavourites():

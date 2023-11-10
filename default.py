@@ -237,6 +237,11 @@ try:
 
     elif mode == 197:
         Video.ListUHDTrial()
+
+    # Modes 301 - 399: Context menu handlers
+    elif mode == 301:
+        Video.RemoveWatching(episode_id)
+
 except Common.IpwwwError as err:
     xbmcgui.Dialog().ok(Common.translation(30400), str(err))
     sys.exit(1)
