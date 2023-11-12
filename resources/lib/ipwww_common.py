@@ -400,7 +400,7 @@ def GetJWT(url):
         session.cookies = cookie_jar
         session.headers = headers
         try:
-            r = session.get(url, allow_redirects=False)
+            r = session.get(url, allow_redirects=True)
         except requests.exceptions.RequestException as e:
             dialog = xbmcgui.Dialog()
             dialog.ok(translation(30400), "%s" % e)
