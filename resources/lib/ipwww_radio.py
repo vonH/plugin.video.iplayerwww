@@ -5,7 +5,8 @@ import os
 import re
 from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
-                                       CheckLogin, CreateBaseDirectory, GetJWT
+                                       CheckLogin, CreateBaseDirectory, GetJWT, \
+                                       GeoBlockedError
 
 import xbmc
 import xbmcvfs
@@ -378,9 +379,7 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
         '<H1>Access Denied</H1>', html)
     if check_geo or not html:
         # print "Geoblock detected, raising error message"
-        dialog = xbmcgui.Dialog()
-        dialog.ok(translation(30400), translation(30401))
-        raise
+        raise GeoBlockedError(translation(30414))
     liz = xbmcgui.ListItem(name)
     liz.setArt({'icon':'DefaultVideo.png', 'thumb':iconimage})
 
@@ -874,9 +873,7 @@ def ParseStreams(stream_id, jwt):
             elif 'result' in json_data:
                 if json_data['result'] == 'geolocation':
                     # print "Geoblock detected, raising error message"
-                    dialog = xbmcgui.Dialog()
-                    dialog.ok(translation(30400), translation(30401))
-                    raise
+                    raise GeoBlockedError(translation(30414))
     return retlist
 
 
