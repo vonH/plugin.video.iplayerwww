@@ -396,32 +396,14 @@ def OpenURLPost(url, post_data):
 
 
 def GetJWT(url):
-    with requests.Session() as session:
-        session.cookies = cookie_jar
-        session.headers = headers
-        try:
-            r = session.get(url, allow_redirects=True)
-        except requests.exceptions.RequestException as e:
-            dialog = xbmcgui.Dialog()
-            dialog.ok(translation(30400), "%s" % e)
-            sys.exit(1)
-        try:
-            #Set ignore_discard to overcome issue of not having session
-            #as cookie_jar is reinitialised for each action.
-            # Refreshed token cookies are set on intermediate requests.
-            # Only save if there have been any.
-            if r.history:
-                cookie_jar.save(ignore_discard=True)
-            if r.text:
-                match = re.search(r'<script> window.__PRELOADED_STATE__ = (.*?);\s*</script>', r.text, re.DOTALL)
-                if match:
-                    json_data = json.loads(match[1])
-                    if 'smp' in json_data:
-                        if 'liveStreamJwt' in json_data['smp']:
-                            return json_data['smp']['liveStreamJwt']
-        except:
-            pass
-        return None
+    html_txt = OpenURL(url)
+    try:
+        match = re.search(r'<script> window.__PRELOADED_STATE__ = (.*?);\s*</script>', html_txt, re.DOTALL)
+        json_data = json.loads(match[1])
+        return json_data['smp']['liveStreamJwt']
+    except:
+        pass
+    return None
 
 
 def GetCookieJar():
