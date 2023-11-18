@@ -27,6 +27,14 @@ except:
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
 
+class IpwwwError(Exception):
+    pass
+
+
+class GeoBlockedError(IpwwwError):
+    pass
+
+
 def tp(path):
     return xbmcvfs.translatePath(path)
 
