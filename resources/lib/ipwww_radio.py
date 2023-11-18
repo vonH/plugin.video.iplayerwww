@@ -5,7 +5,7 @@ import os
 import re
 from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
-                                       CheckLogin, CreateBaseDirectory, GetJWT
+                                       CheckLogin, CreateBaseDirectory
 
 import xbmc
 import xbmcvfs
@@ -16,6 +16,21 @@ import random
 import json
 
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
+
+
+def GetJWT(url):
+    html = OpenURL(url)
+    try:
+        match = re.search(r'<script> window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+        if match:
+            json_data = json.loads(match[1])
+            if 'smp' in json_data:
+                if 'liveStreamJwt' in json_data['smp']:
+                   return json_data['smp']['liveStreamJwt']
+    except:
+        pass
+    return None
+
 
 def GetAtoZPage(page_url, just_episodes=False):
     """   Generic Radio page scraper.   """
