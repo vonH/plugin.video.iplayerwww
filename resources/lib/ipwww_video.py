@@ -8,11 +8,14 @@ import re
 import datetime
 import time
 import json
+
+from datetime import timedelta
 from operator import itemgetter
-from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
+
+from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, OpenRequest, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
                                        ParseImageUrl, download_subtitles, GeoBlockedError, \
-                                       iso_duration_2_seconds, PostJson
+                                       iso_duration_2_seconds, PostJson, strptime
 from resources.lib import ipwww_progress
 
 import xbmc
@@ -129,46 +132,49 @@ def AddAvailableUHDTrialItem(name, channelname):
 # ListLive creates menu entries for all live channels.
 def ListLive():
     channel_list = [
-        ('bbc_one_hd',                       'BBC One'),
-        ('bbc_two_england',                  'BBC Two'),
-        ('bbc_three_hd',                     'BBC Three'),
-        ('bbc_four_hd',                      'BBC Four'),
-        ('cbbc_hd',                          'CBBC'),
-        ('cbeebies_hd',                      'CBeebies'),
-        ('bbc_news24',                       'BBC News Channel'),
-        ('bbc_parliament',                   'BBC Parliament'),
-        ('bbc_alba',                         'Alba'),
-        ('bbc_scotland_hd',                  'BBC Scotland',),
-        ('s4cpbs',                           'S4C'),
-        ('bbc_one_london',                   'BBC One London'),
-        ('bbc_one_scotland_hd',              'BBC One Scotland'),
-        ('bbc_one_northern_ireland_hd',      'BBC One Northern Ireland'),
-        ('bbc_one_wales_hd',                 'BBC One Wales'),
-        ('bbc_two_scotland',                 'BBC Two Scotland'),
-        ('bbc_two_northern_ireland_digital', 'BBC Two Northern Ireland'),
-        ('bbc_two_wales_digital',            'BBC Two Wales'),
-        ('bbc_two_england',                  'BBC Two England',),
-        ('bbc_one_cambridge',                'BBC One Cambridge',),
-        ('bbc_one_channel_islands',          'BBC One Channel Islands',),
-        ('bbc_one_east',                     'BBC One East',),
-        ('bbc_one_east_midlands',            'BBC One East Midlands',),
-        ('bbc_one_east_yorkshire',           'BBC One East Yorkshire',),
-        ('bbc_one_north_east',               'BBC One North East',),
-        ('bbc_one_north_west',               'BBC One North West',),
-        ('bbc_one_oxford',                   'BBC One Oxford',),
-        ('bbc_one_south',                    'BBC One South',),
-        ('bbc_one_south_east',               'BBC One South East',),
-        ('bbc_one_south_west',               'BBC One South West',),
-        ('bbc_one_west',                     'BBC One West',),
-        ('bbc_one_west_midlands',            'BBC One West Midlands',),
-        ('bbc_one_yorks',                    'BBC One Yorks',),
+        ('bbc_one_hd',                       'BBC One',                  'bbc_one_london'),
+        ('bbc_two_england',                  'BBC Two',                  'bbc_two_england'),
+        ('bbc_three_hd',                     'BBC Three',                'bbc_three'),
+        ('bbc_four_hd',                      'BBC Four',                 'bbc_four'),
+        ('cbbc_hd',                          'CBBC',                     'cbbc'),
+        ('cbeebies_hd',                      'CBeebies',                 'cbeebies'),
+        ('bbc_news24',                       'BBC News Channel',         'bbc_news24'),
+        ('bbc_parliament',                   'BBC Parliament',           'bbc_parliament'),
+        ('bbc_alba',                         'Alba',                     'bbc_alba'),
+        ('bbc_scotland_hd',                  'BBC Scotland',             'bbc_scotland'),
+        ('s4cpbs',                           'S4C',                      's4cpbs'),
+        ('bbc_one_london',                   'BBC One London',           'bbc_one_london'),
+        ('bbc_one_scotland_hd',              'BBC One Scotland',         'bbc_one_london'),
+        ('bbc_one_northern_ireland_hd',      'BBC One Northern Ireland', 'bbc_one_london'),
+        ('bbc_one_wales_hd',                 'BBC One Wales',            'bbc_one_london'),
+        ('bbc_two_scotland',                 'BBC Two Scotland',         'bbc_two_england'),
+        ('bbc_two_northern_ireland_digital', 'BBC Two Northern Ireland', 'bbc_two_northern_ireland_digital'),
+        ('bbc_two_wales_digital',            'BBC Two Wales',            'bbc_two_wales_digital'),
+        ('bbc_two_england',                  'BBC Two England',          'bbc_two_england'),
+        ('bbc_one_cambridge',                'BBC One Cambridge',        'bbc_one_london'),
+        ('bbc_one_channel_islands',          'BBC One Channel Islands',  'bbc_one_london'),
+        ('bbc_one_east',                     'BBC One East',             'bbc_one_london'),
+        ('bbc_one_east_midlands',            'BBC One East Midlands',    'bbc_one_london'),
+        ('bbc_one_east_yorkshire',           'BBC One East Yorkshire',   'bbc_one_london'),
+        ('bbc_one_north_east',               'BBC One North East',       'bbc_one_london'),
+        ('bbc_one_north_west',               'BBC One North West',       'bbc_one_london'),
+        ('bbc_one_oxford',                   'BBC One Oxford',           'bbc_one_london'),
+        ('bbc_one_south',                    'BBC One South',            'bbc_one_london'),
+        ('bbc_one_south_east',               'BBC One South East',       'bbc_one_london'),
+        ('bbc_one_south_west',               'BBC One South West',       'bbc_one_london'),
+        ('bbc_one_west',                     'BBC One West',             'bbc_one_london'),
+        ('bbc_one_west_midlands',            'BBC One West Midlands',    'bbc_one_london'),
+        ('bbc_one_yorks',                    'BBC One Yorks',            'bbc_one_london'),
     ]
-    for id, name in channel_list:
+    schedules = GetSchedules(channel_list)
+    for id, name, schedule_chan_id in channel_list:
+        now_on, schedule = schedules.get(schedule_chan_id, ('', ''))
+        title = '{}    [COLOR orange]{}[/COLOR]'.format(name, now_on)
         iconimage = 'resource://resource.images.iplayerwww/media/'+id+'.png'
         if ADDON.getSetting('streams_autoplay') == 'true':
-            AddMenuEntry(name, id, 203, iconimage, '', '')
+            AddMenuEntry(title, id, 203, iconimage, schedule, '')
         else:
-            AddMenuEntry(name, id, 123, iconimage, '', '')
+            AddMenuEntry(title, id, 123, iconimage, schedule, '')
 
 
 def ListAtoZ():
@@ -1334,3 +1340,74 @@ def CheckAutoplay(name, url, iconimage, description, aired=None, resume_time="",
         mode = 122
     AddMenuEntry(name, url, mode, iconimage, description, '', aired=aired,
                  resume_time=resume_time, total_time=total_time, context_mnu=context_mnu)
+
+
+def GetSchedules(channel_list):
+    """Obtain the schedule for each channel in channel_list.
+
+    :param channel_list: A list of tuples like defined in ListLive().
+        The third item of each tuple is to be the channel_id used to obtain the schedule.
+    :returns: A mapping of channel_id's to schedules.
+
+    The schedules of the regional BBC one channels only differ in the title of the
+    regional news. This function renames this titel of BBC One London to a more
+    generic "BBC News where you are". This way the schedules of BBC One London can be
+    used for all regional BBC One channels, which will greatly reduce the number of
+    HTTP request.
+
+    Schedules for each channel is a tuple with two elements. The first is the title of the
+    programme that is now on, the second is single multi-line string, with the
+    time and name of each programme on a separate line. These strings are intended
+    to be used in the info fields of the ListItems of live channels.
+
+    """
+    import pytz
+    from concurrent import futures
+
+    utc_tz = pytz.utc
+    utc_now = datetime.datetime.now(utc_tz)
+    utc_tomorrow = utc_now + timedelta(hours=20)
+
+    try:
+        # Get local timezone from Kodi's settings
+        cmd_str = '{"jsonrpc": "2.0", "method": "Settings.GetSettingValue", "params": ["locale.timezone"], "id": 1}'
+        resp_data = json.loads(xbmc.executeJSONRPC(cmd_str))
+        local_tz = pytz.timezone(resp_data['result']['value'])
+    except(KeyError, json.JSONDecodeError):
+        # Get from tzlocal as fallback if something fails.
+        from tzlocal import get_localzone
+        local_tz = get_localzone()
+
+    # Use the user's local time format without seconds. Fix weird kodi formatting for 12-hour clock.
+    local_time_format = xbmc.getRegion('time').replace(':%S', '').replace('%I%I:', '%I:')
+
+    def get_schedule(channel):
+        try:
+            url = ''.join(('https://ibl.api.bbc.co.uk/ibl/v1/channels/',
+                          channel,
+                          '/broadcasts?per_page=12&from_date=',
+                          utc_now.strftime('%Y-%m-%dT%H:%M')))
+            resp = OpenRequest('get', url)
+            schedule_list = json.loads(resp)['broadcasts']['elements']
+            text_items = []
+            now_on = schedule_list[0]['episode']['title']
+            for item in schedule_list:
+                start_t = utc_tz.localize(strptime(item['scheduled_start'], '%Y-%m-%dT%H:%M:%S.%fZ'))
+                if start_t >= utc_tomorrow:
+                    break
+                title = item['episode']['title']
+                subtitle = item['episode'].get('subtitle', '')
+                if title == 'BBC London' and 'News' in subtitle:
+                    title = 'BBC News where You Are'
+                text_items.append(' - '.join((start_t.astimezone(local_tz).strftime(local_time_format), title)))
+            return now_on, '\n'.join(text_items)
+        except Exception as e:
+            xbmc.log(f"Failed to get schedule of channel {channel}: {e!r}")
+            return '', ''
+
+    schedule_channels = list({item[2] for item in channel_list})
+
+    with futures.ThreadPoolExecutor(max_workers=16) as executor:
+        res = [executor.submit(get_schedule, chan) for chan in schedule_channels]
+        futures.wait(res)
+    return dict(zip(schedule_channels, (r.result() for r in res)))
