@@ -3,6 +3,8 @@
 import sys
 import os
 import re
+from datetime import datetime
+
 import requests
 from requests.packages import urllib3
 #Below is required to get around an ssl issue
@@ -432,6 +434,11 @@ def utf8_quote_plus(unicode):
 # Gets a unicode string from a 'urlencoded' string
 def utf8_unquote_plus(str):
     return urllib.parse.unquote_plus(str)
+
+
+def strptime(dt_str: str, format: str):
+    """A bug free alternative to `datetime.datetime.strptime(...)`"""
+    return datetime(*(time.strptime(dt_str, format)[0:6]))
 
 
 def iso_duration_2_seconds(iso_str: str) -> int:
