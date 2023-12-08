@@ -1,4 +1,3 @@
-
 import time
 
 import requests
@@ -8,43 +7,60 @@ from resources.lib import ipwww_common
 from resources.lib import ipwww_video
 
 
+def resolve_urn(urn: str):
+    if urn.startswith('urn:bbc:tv:'):
+        url = '/'.join(('https://www.bbc.co.uk/iplayer', *urn[11:].split(':')))
+    else:
+        raise ValueError(f'Invalid URN format: {urn}')
+    return url
+
+
+def longest_synopsis(synopses):
+    if synopses is None:
+        return ''
+    return (synopses.get('large')
+            or synopses.get('medium')
+            or synopses.get('small')
+            or synopses.get('editorial', ''))
+
+
 def parse_watching(json_data):
     config = json_data.get('config')
     if not config:
         return
-    programme_list = json_data.get('items', [])
+    programme_list = json_data.get('items', {}).get('elements', [])
     for item in programme_list:
         yield parse_watching_item(item)
 
 
 def parse_watching_item(item_data):
-    props = item_data.get('props')
-    meta = item_data.get('meta')
-    if not (props and meta and 'href' in props):
+    episode = item_data['episode']
+    programme = item_data['programme']
+
+    if not (episode and programme):
         xbmc.log("[iPLayer WWW.parse_watching_item] Unparsable item: {}".format(item_data))
         return
 
-    url = 'https://www.bbc.co.uk' + props['href']
-    remaining_seconds = meta.get('remaining')
+    url = resolve_urn(item_data['urn'])
+    remaining_seconds = item_data.get('remaining')
     if remaining_seconds:
-        title = '{} - [I]{} min left[/I]'.format(props.get('title', ''), int(remaining_seconds / 60))
-        duration_str = props.get('durationSubLabel', '0').split()[0]
-        duration = int(duration_str) * 60
+        title = '{} - [I]{} min left[/I]'.format(episode.get('title', ''), int(remaining_seconds / 60))
+        duration = episode['versions'][0]['duration']['text'].split()[0]
         # Resume a little bit earlier, so you can easily recognise where you've left off.
-        resume_time = max(int(duration - meta.get('remaining', duration)) - 10, 0)
+        resume_time = max(item_data['offset'] - 10, 0)
     else:
-        title = '{} - [I]next episode[/I]'.format(props.get('title', ''))
+        title = '{} - [I]next episode[/I]'.format(episode.get('title', ''))
         duration = ''
         resume_time = ''
-    info = '\n'.join((props.get('title', ''), props.get('subtitle', ''), props.get('secondarySubLabel', '')))
-    image = props.get('imageTemplate', 'DefaultFolder.png').replace('{recipe}', '832x468')
+    info = '\n'.join((episode.get('title', ''), episode.get('subtitle', ''), longest_synopsis(episode.get('synopses'))))
+    image = episode.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468')
 
     ct_menus = []
-    all_episodes_link = meta.get('secondaryHref')
-    if all_episodes_link:
+    if programme.get('count', 0) > 1:
+        all_episodes_link = 'https://www.bbc.co.uk/iplayer/episode/' + programme['id']
         ct_menus.append(('View all episodes',
                          f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url=https://www.bbc.co.uk{all_episodes_link})'))
-    programme_id = meta.get('programmeId')
+    programme_id = episode.get('tleo_id')
     if programme_id:
         ct_menus.append(('Remove',
                          f'RunPlugin(plugin://plugin.video.iplayerwww?mode=301&episode_id={programme_id}&url=url)'))
@@ -182,7 +198,8 @@ class FileProgress(xbmc.Player):
         if self._event_errors > 3:
             # No point in going on if events continue to have errors.
             self._status = PlayState.STOPPED
-            xbmc.log(f"[iPlayer WWW.FileProgress] Multiple consecutive event errors - monitoring aborted. Last error: {repr(error)}.")
+            xbmc.log(
+                f"[iPlayer WWW.FileProgress] Multiple consecutive event errors - monitoring aborted. Last error: {repr(error)}.")
             return True
 
     def _handle_http_error(self, http_error, action):
@@ -212,4 +229,5 @@ def monitor_progress(episode_id, stream_id):
                 return
             play_monitor.monitor_progress()
     except Exception as e:
-        xbmc.log(f"[iPlayer WWW.monitor_progress] Play progress monitoring aborted due to unhandled exception: {repr(e)}")
+        xbmc.log(
+            f"[iPlayer WWW.monitor_progress] Play progress monitoring aborted due to unhandled exception: {repr(e)}")
