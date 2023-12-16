@@ -416,6 +416,25 @@ def utf8_unquote_plus(str):
     return urllib.parse.unquote_plus(str)
 
 
+def iso_duration_2_seconds(iso_str: str) -> int:
+    """Convert an ISO 8601 duration string into seconds.
+
+    Simple parser to match durations found in films and tv episodes.
+    Handles only hours, minutes and seconds.
+
+    """
+    try:
+        if len(iso_str) > 3:
+            import re
+            match = re.match(r'^PT(?:([\d.]+)H)?(?:([\d.]+)M)?(?:([\d.]+)S)?$', iso_str)
+            if match:
+                hours, minutes, seconds = match.groups(default=0)
+                return int(float(hours) * 3600 + float(minutes) * 60 + float(seconds))
+    except (ValueError, AttributeError, TypeError):
+        pass
+    return None
+
+
 def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.

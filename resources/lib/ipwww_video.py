@@ -11,7 +11,8 @@ import json
 from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
-                                       ParseImageUrl, download_subtitles, GeoBlockedError
+                                       ParseImageUrl, download_subtitles, GeoBlockedError, \
+                                       iso_duration_2_seconds
 
 import xbmc
 import xbmcvfs
@@ -820,6 +821,39 @@ def ParseJSON(programme_data, current_url):
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
+
+
+def select_synopsis(synopses):
+    if synopses is None:
+        return ''
+    return (synopses.get('editorial')
+            or synopses.get('medium')
+            or synopses.get('large')
+            or synopses.get('small', ''))
+
+
+def ParseEpisode(episode_data):
+    epsiode_id = episode_data['id']
+    title = episode_data.get('title')
+    subtitle = episode_data.get('subtitle', '')
+    if subtitle:
+        title = ' - '.join((title, subtitle))
+    version_data = episode_data['versions'][0]
+    description = ''.join((title,
+                           '\n\n',
+                           select_synopsis(episode_data.get('synopses')),
+                           '\n\n[I]',
+                           version_data['availability']['remaining']['text'],
+                           '[/I]'))
+
+    return {
+        'url': 'https://www.bbc.co.uk/iplayer/episode/' + epsiode_id,
+        'name': title,
+        'iconimage': episode_data.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468'),
+        'description': description,
+        'aired': episode_data.get('release_date_time', '').split('T')[0],
+        'total_time': str(iso_duration_2_seconds(version_data['duration']['value']))
+    }
 
 
 def ListHighlights(highlights_url):
