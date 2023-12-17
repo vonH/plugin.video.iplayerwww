@@ -1011,6 +1011,7 @@ def ListWatching():
 
     for watching_item in data['items']['elements']:
         episode = watching_item['episode']
+        programme = watching_item['programme']
         item_data = ParseEpisode(episode)
 
         full_title =  item_data['name']
@@ -1022,6 +1023,12 @@ def ListWatching():
             item_data['resume_time'] = str(max(watching_item['offset'] - 10, 0))
         else:
             item_data['name'] = '{} - [I]next episode[/I]'.format(episode.get('title', ''))
+
+        item_data['context_mnu'] = ct_menus = []
+        if programme.get('count', 0) > 1:
+            all_episodes_link = 'https://www.bbc.co.uk/iplayer/episodes/' + programme['id']
+            ct_menus.append(('View all episodes',
+                             f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url={all_episodes_link})'))
 
         CheckAutoplay(**item_data)
 
@@ -1261,10 +1268,10 @@ def ScrapeJSON(html):
     return json_data
 
 
-def CheckAutoplay(name, url, iconimage, description, aired=None, resume_time="", total_time=""):
+def CheckAutoplay(name, url, iconimage, description, aired=None, resume_time="", total_time="", context_mnu=None):
     if ADDON.getSetting('streams_autoplay') == 'true':
         mode = 202
     else:
         mode = 122
     AddMenuEntry(name, url, mode, iconimage, description, '', aired=aired,
-                 resume_time=resume_time, total_time=total_time)
+                 resume_time=resume_time, total_time=total_time, context_mnu=context_mnu)
