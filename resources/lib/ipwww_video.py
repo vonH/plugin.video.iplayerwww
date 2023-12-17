@@ -12,7 +12,7 @@ from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
                                        ParseImageUrl, download_subtitles, GeoBlockedError, \
-                                       iso_duration_2_seconds
+                                       iso_duration_2_seconds, PostJson
 from resources.lib import ipwww_progress
 
 import xbmc
@@ -1030,7 +1030,22 @@ def ListWatching():
             ct_menus.append(('View all episodes',
                              f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url={all_episodes_link})'))
 
+        programme_id = episode.get('tleo_id')
+        if programme_id:
+            ct_menus.append(('Remove',
+                             f'RunPlugin(plugin://plugin.video.iplayerwww?mode=301&episode_id={programme_id}&url=url)'))
+
         CheckAutoplay(**item_data)
+
+
+def RemoveWatching(episode_id):
+    """Remove an item from the 'Continue Watching' list.
+    Handler for the context menu option 'Remove' on list items in 'Continue watching'.
+
+    """
+    PostJson('https://user.ibl.api.bbc.co.uk/ibl/v1/user/hides',
+             {'id': episode_id})
+    xbmc.executebuiltin('Container.Refresh')
 
 
 def ListFavourites():
