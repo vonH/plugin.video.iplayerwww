@@ -87,6 +87,8 @@ try:
 except:
     pass
 
+episode_id = Common.utf8_unquote_plus(params.get('episode_id', ''))
+stream_id = Common.utf8_unquote_plus(params.get('stream_id', ''))
 resume_time = params.get('resume_time', '')
 total_time = params.get('total_time', '')
 
@@ -210,7 +212,7 @@ try:
 
     # Modes 201-299 will create a playable menu entry, not a directory
     elif mode == 201:
-        Video.PlayStream(name, url, iconimage, description, subtitles_url)
+        Video.PlayStream(name, url, iconimage, description, subtitles_url, episode_id, stream_id)
 
     elif mode == 202:
         Video.AddAvailableStreamItem(name, url, iconimage, description)

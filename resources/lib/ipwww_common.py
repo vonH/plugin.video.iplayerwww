@@ -436,7 +436,7 @@ def iso_duration_2_seconds(iso_str: str) -> int:
 
 
 def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None,
-                 resume_time = '', total_time = ''):
+                 resume_time='', total_time='', episode_id='', stream_id=''):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
@@ -451,6 +451,8 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         "&iconimage=", utf8_quote_plus(iconimage),
         "&description=", utf8_quote_plus(description),
         "&subtitles_url=", utf8_quote_plus(subtitles_url),
+        "&episode_id=", utf8_quote_plus(episode_id),
+        "&stream_id=", utf8_quote_plus(stream_id),
         "&resume_time=", resume_time,
         "&total_time=", total_time))
     if mode in (101,203,113,213):
