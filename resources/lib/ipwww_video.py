@@ -824,6 +824,17 @@ def ParseJSON(programme_data, current_url):
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
 
+def SetSortMethods(*additional_methods):
+    """Set a few standard sort methods and optional additional methods"""
+    sort_methods = [xbmcplugin.SORT_METHOD_UNSORTED,
+                    xbmcplugin.SORT_METHOD_TITLE,
+                    xbmcplugin.SORT_METHOD_TITLE_IGNORE_THE]
+    sort_methods.extend(additional_methods)
+    handle = int(sys.argv[1])
+    for method in sort_methods:
+        xbmcplugin.addSortMethod(handle, method)
+
+
 def SelectSynopsis(synopses):
     if synopses is None:
         return ''
