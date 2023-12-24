@@ -1066,6 +1066,25 @@ def ListFavourites():
         ParseJSON(data, url)
 
 
+def ListRecommendations():
+    data = GetJsonDataWithBBCid('https://www.bbc.co.uk/iplayer/recommendations')
+    if not data:
+        return
+    for recommended_item in data['items']['elements']:
+        episode = recommended_item['episode']
+        item_data = ParseEpisode(episode)
+        if not item_data:
+            continue
+        tleo_id = episode['tleo_id']
+        if tleo_id != episode['id']:
+            all_episodes_link = 'https://www.bbc.co.uk/iplayer/episodes/' + tleo_id
+            item_data['context_mnu'] = [
+                ('View all episodes',
+                 f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url={all_episodes_link})')]
+        CheckAutoplay(**item_data)
+    SetSortMethods(xbmcplugin.SORT_METHOD_DATE)
+
+
 def PlayStream(name, url, iconimage, description, subtitles_url, episode_id=None, stream_id=None):
     if iconimage == '':
         iconimage = 'DefaultVideo.png'
