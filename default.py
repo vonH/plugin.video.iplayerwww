@@ -87,6 +87,11 @@ try:
 except:
     pass
 
+episode_id = Common.utf8_unquote_plus(params.get('episode_id', ''))
+stream_id = Common.utf8_unquote_plus(params.get('stream_id', ''))
+resume_time = params.get('resume_time', '')
+total_time = params.get('total_time', '')
+
 try:
     # These are the modes which tell the plugin where to go.
     if mode == 1:
@@ -158,7 +163,7 @@ try:
         Video.GetEpisodes(url)
 
     elif mode == 122:
-        Video.GetAvailableStreams(name, url, iconimage, description)
+        Video.GetAvailableStreams(name, url, iconimage, description, resume_time, total_time)
 
     elif mode == 123:
         Video.AddAvailableLiveStreamsDirectory(name, url, iconimage)
@@ -207,7 +212,7 @@ try:
 
     # Modes 201-299 will create a playable menu entry, not a directory
     elif mode == 201:
-        Video.PlayStream(name, url, iconimage, description, subtitles_url)
+        Video.PlayStream(name, url, iconimage, description, subtitles_url, episode_id, stream_id)
 
     elif mode == 202:
         Video.AddAvailableStreamItem(name, url, iconimage, description)
@@ -232,6 +237,11 @@ try:
 
     elif mode == 197:
         Video.ListUHDTrial()
+
+    # Modes 301 - 399: Context menu handlers
+    elif mode == 301:
+        Video.RemoveWatching(episode_id)
+
 except Common.IpwwwError as err:
     xbmcgui.Dialog().ok(Common.translation(30400), str(err))
     sys.exit(1)

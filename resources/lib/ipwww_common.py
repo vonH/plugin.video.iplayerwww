@@ -402,6 +402,24 @@ def OpenURLPost(url, post_data):
     return r
 
 
+def PostJson(url, data):
+    with requests.Session() as session:
+        session.cookies = cookie_jar
+        session.headers = headers
+        try:
+            r = session.post(url, json=data)
+            r.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            dialog = xbmcgui.Dialog()
+            dialog.ok(translation(30400), "%s" % e)
+            sys.exit(1)
+        try:
+            if r.history:
+                cookie_jar.save(ignore_discard=True)
+        except:
+            pass
+
+
 def GetCookieJar():
     return cookie_jar
 
@@ -416,18 +434,45 @@ def utf8_unquote_plus(str):
     return urllib.parse.unquote_plus(str)
 
 
-def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None):
+def iso_duration_2_seconds(iso_str: str) -> int:
+    """Convert an ISO 8601 duration string into seconds.
+
+    Simple parser to match durations found in films and tv episodes.
+    Handles only hours, minutes and seconds.
+
+    """
+    try:
+        if len(iso_str) > 3:
+            import re
+            match = re.match(r'^PT(?:([\d.]+)H)?(?:([\d.]+)M)?(?:([\d.]+)S)?$', iso_str)
+            if match:
+                hours, minutes, seconds = match.groups(default=0)
+                return int(float(hours) * 3600 + float(minutes) * 60 + float(seconds))
+    except (ValueError, AttributeError, TypeError):
+        pass
+    return None
+
+
+def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None,
+                 resume_time='', total_time='', episode_id='', stream_id='', context_mnu=None):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
 
     if not iconimage:
         iconimage="DefaultFolder.png"
-    listitem_url = (sys.argv[0] + "?url=" + utf8_quote_plus(url) + "&mode=" + str(mode) +
-                    "&name=" + utf8_quote_plus(name) +
-                    "&iconimage=" + utf8_quote_plus(iconimage) +
-                    "&description=" + utf8_quote_plus(description) +
-                    "&subtitles_url=" + utf8_quote_plus(subtitles_url))
+    listitem_url = ''.join((
+        sys.argv[0],
+        "?url=", utf8_quote_plus(url),
+        "&mode=", str(mode),
+        "&name=", utf8_quote_plus(name),
+        "&iconimage=", utf8_quote_plus(iconimage),
+        "&description=", utf8_quote_plus(description),
+        "&subtitles_url=", utf8_quote_plus(subtitles_url),
+        "&episode_id=", utf8_quote_plus(episode_id),
+        "&stream_id=", utf8_quote_plus(stream_id),
+        "&resume_time=", resume_time,
+        "&total_time=", total_time))
     if mode in (101,203,113,213):
         listitem_url = listitem_url + "&time=" + str(time.time())
     if aired:
@@ -463,6 +508,9 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
                 "plot": description,
                 "plotoutline": description,
                 "mediatype" : "episode"})
+        if resume_time:
+            listitem.setProperty('ResumeTime', resume_time)
+            listitem.setProperty('TotalTime', total_time if total_time else '7200')
     else:
         if aired:
             listitem.setInfo("video", {
@@ -476,6 +524,9 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
                 "title": name,
                 "plot": description,
                 "plotoutline": description})
+
+    if context_mnu:
+        listitem.addContextMenuItems(context_mnu)
 
     video_streaminfo = {'codec': 'h264'}
     if not isFolder:

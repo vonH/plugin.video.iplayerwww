@@ -11,7 +11,9 @@ import json
 from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
-                                       ParseImageUrl, download_subtitles, GeoBlockedError
+                                       ParseImageUrl, download_subtitles, GeoBlockedError, \
+                                       iso_duration_2_seconds, PostJson
+from resources.lib import ipwww_progress
 
 import xbmc
 import xbmcvfs
@@ -822,6 +824,36 @@ def ParseJSON(programme_data, current_url):
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
 
 
+def SelectSynopsis(synopses):
+    if synopses is None:
+        return ''
+    return (synopses.get('editorial')
+            or synopses.get('medium')
+            or synopses.get('large')
+            or synopses.get('small', ''))
+
+
+def ParseEpisode(episode_data):
+    title = episode_data.get('title', '')
+    subtitle = episode_data.get('subtitle')
+    if subtitle:
+        title = ' - '.join((title, subtitle))
+    version_data = episode_data['versions'][0]
+    description = ''.join((SelectSynopsis(episode_data.get('synopses')),
+                           '\n\n[I]',
+                           version_data['availability']['remaining']['text'],
+                           '[/I]'))
+
+    return {
+        'url': 'https://www.bbc.co.uk/iplayer/episode/' + episode_data['id'],
+        'name': title,
+        'iconimage': episode_data.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468'),
+        'description': description,
+        'aired': episode_data.get('release_date_time', '').split('T')[0],
+        'total_time': str(iso_duration_2_seconds(version_data['duration']['value']))
+    }
+
+
 def ListHighlights(highlights_url):
     """Creates a list of the programmes in the highlights section.
     """
@@ -855,10 +887,13 @@ def AddAvailableStreamItem(name, url, iconimage, description):
         description = stream_ids['description']
     if ((not stream_ids['stream_id_st']) or (ADDON.getSetting('search_ad') == 'true')) and stream_ids['stream_id_ad']:
         streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_ad'])
+        strm_id = stream_ids['stream_id_ad']
     elif ((not stream_ids['stream_id_st']) or (ADDON.getSetting('search_signed') == 'true')) and stream_ids['stream_id_sl']:
         streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_sl'])
+        strm_id = stream_ids['stream_id_sl']
     else:
         streams_all = ParseStreamsHLSDASH(stream_ids['stream_id_st'])
+        strm_id = stream_ids['stream_id_st']
     if streams_all[1]:
         # print "Setting subtitles URL"
         subtitles_url = streams_all[1][0][1]
@@ -873,10 +908,11 @@ def AddAvailableStreamItem(name, url, iconimage, description):
         match = [x for x in streams if (x[0] == source)]
     else:
         match = streams
-    PlayStream(name, match[0][2], iconimage, description, subtitles_url)
+    PlayStream(name, match[0][2], iconimage, description, subtitles_url,
+               episode_id=stream_ids['episode_id'], stream_id=strm_id)
 
 
-def GetAvailableStreams(name, url, iconimage, description):
+def GetAvailableStreams(name, url, iconimage, description, resume_time='', total_time=''):
     """Calls AddAvailableStreamsDirectory based on user settings"""
     #print url
     stream_ids = ScrapeAvailableStreams(url)
@@ -888,13 +924,16 @@ def GetAvailableStreams(name, url, iconimage, description):
         description = stream_ids['description']
     # If we found standard streams, append them to the list.
     if stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description)
+        AddAvailableStreamsDirectory(name, stream_ids['stream_id_st'], iconimage, description,
+                                     stream_ids['episode_id'], resume_time, total_time)
     # If we searched for Audio Described programmes and they have been found, append them to the list.
     if stream_ids['stream_id_ad'] or not stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage, description)
+        AddAvailableStreamsDirectory(name + ' - (Audio Described)', stream_ids['stream_id_ad'], iconimage,
+                                     description, stream_ids['episode_id'], resume_time, total_time)
     # If we search for Signed programmes and they have been found, append them to the list.
     if stream_ids['stream_id_sl'] or not stream_ids['stream_id_st']:
-        AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage, description)
+        AddAvailableStreamsDirectory(name + ' - (Signed)', stream_ids['stream_id_sl'], iconimage,
+                                     description, stream_ids['episode_id'], resume_time, total_time)
 
 
 def Search(search_entered):
@@ -967,8 +1006,46 @@ def GetJsonDataWithBBCid(url, retry=True):
 def ListWatching():
     url = "https://www.bbc.co.uk/iplayer/watching"
     data = GetJsonDataWithBBCid(url)
-    if data:
-        ParseJSON(data, url)
+    if not data:
+        return
+
+    for watching_item in data['items']['elements']:
+        episode = watching_item['episode']
+        programme = watching_item['programme']
+        item_data = ParseEpisode(episode)
+
+        full_title =  item_data['name']
+        item_data['description'] = '\n\n'.join((full_title, item_data['description']))
+        remaining_seconds = watching_item.get('remaining')
+        if remaining_seconds:
+            item_data['name'] = '{} - [I]{} min left[/I]'.format(episode.get('title', ''), int(remaining_seconds / 60))
+            # Resume a little bit earlier, so it's easier to recognise where you've left off.
+            item_data['resume_time'] = str(max(watching_item['offset'] - 10, 0))
+        else:
+            item_data['name'] = '{} - [I]next episode[/I]'.format(episode.get('title', ''))
+
+        item_data['context_mnu'] = ct_menus = []
+        if programme.get('count', 0) > 1:
+            all_episodes_link = 'https://www.bbc.co.uk/iplayer/episodes/' + programme['id']
+            ct_menus.append(('View all episodes',
+                             f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url={all_episodes_link})'))
+
+        programme_id = episode.get('tleo_id')
+        if programme_id:
+            ct_menus.append(('Remove',
+                             f'RunPlugin(plugin://plugin.video.iplayerwww?mode=301&episode_id={programme_id}&url=url)'))
+
+        CheckAutoplay(**item_data)
+
+
+def RemoveWatching(episode_id):
+    """Remove an item from the 'Continue Watching' list.
+    Handler for the context menu option 'Remove' on list items in 'Continue watching'.
+
+    """
+    PostJson('https://user.ibl.api.bbc.co.uk/ibl/v1/user/hides',
+             {'id': episode_id})
+    xbmc.executebuiltin('Container.Refresh')
 
 
 def ListFavourites():
@@ -978,7 +1055,7 @@ def ListFavourites():
         ParseJSON(data, url)
 
 
-def PlayStream(name, url, iconimage, description, subtitles_url):
+def PlayStream(name, url, iconimage, description, subtitles_url, episode_id=None, stream_id=None):
     if iconimage == '':
         iconimage = 'DefaultVideo.png'
     html = OpenURL(url)
@@ -999,9 +1076,10 @@ def PlayStream(name, url, iconimage, description, subtitles_url):
         subtitles_file = download_subtitles(subtitles_url)
         liz.setSubtitles([subtitles_file])
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
+    ipwww_progress.monitor_progress(episode_id, stream_id)
 
 
-def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
+def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, episode_id, resume_time="", total_time=""):
     """Will create one menu entry for each available stream of a particular stream_id"""
     # print("Stream ID: %s"%stream_id)
     streams = ParseStreamsHLSDASH(stream_id)
@@ -1015,7 +1093,8 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description):
     suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
     for supplier, bitrate, url, resolution, protocol in streams[0]:
         title = name + ' - [I][COLOR ffd3d3d3]%s[/COLOR][/I]' % (suppliers[supplier])
-        AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution)
+        AddMenuEntry(title, url, 201, iconimage, description, subtitles_url, resolution=resolution,
+                     episode_id=episode_id, stream_id=stream_id, resume_time=resume_time, total_time=total_time)
 
 
 def ParseMediaselector(stream_id):
@@ -1181,7 +1260,8 @@ def ScrapeAvailableStreams(url):
                 xbmc.log("iPlayer WWW warning: New stream kind: %s" % stream['kind'])
                 stream_id_st = stream['id']
 
-    return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad, 'name': name, 'image':image, 'description': description}
+    return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad,
+            'name': name, 'image':image, 'description': description, 'episode_id': json_data['episode'].get('id', '')}
 
 
 def ScrapeJSON(html):
@@ -1203,9 +1283,10 @@ def ScrapeJSON(html):
     return json_data
 
 
-def CheckAutoplay(name, url, iconimage, plot, aired=None):
+def CheckAutoplay(name, url, iconimage, description, aired=None, resume_time="", total_time="", context_mnu=None):
     if ADDON.getSetting('streams_autoplay') == 'true':
-        AddMenuEntry(name, url, 202, iconimage, plot, '', aired=aired)
+        mode = 202
     else:
-        AddMenuEntry(name, url, 122, iconimage, plot, '', aired=aired)
-
+        mode = 122
+    AddMenuEntry(name, url, mode, iconimage, description, '', aired=aired,
+                 resume_time=resume_time, total_time=total_time, context_mnu=context_mnu)
