@@ -513,7 +513,7 @@ def ListCategoryFilters(url):
 
 def GetFilteredCategory(url):
     """Parses the programmes available in the category view."""
-    NEW_URL = 'https://www.bbc.co.uk/iplayer/categories/%s/all?sort=atoz' % url
+    NEW_URL = 'https://www.bbc.co.uk/iplayer/categories/%s/a-z' % url
 
     ScrapeEpisodes(NEW_URL)
 
