@@ -238,6 +238,9 @@ try:
     elif mode == 197:
         Video.ListUHDTrial()
 
+    elif mode == 198:
+        Video.ListRecommendations()
+
     # Modes 301 - 399: Context menu handlers
     elif mode == 301:
         Video.RemoveWatching(episode_id)

@@ -612,6 +612,8 @@ def CreateBaseDirectory(content_type):
             AddMenuEntry(translation(30306), 'url', 107, icondir+'favourites.png', '', '')
         if ADDON.getSetting("menu_video_added") == 'true':
             AddMenuEntry(translation(30307), 'url', 108, icondir+'favourites.png', '', '')
+        if ADDON.getSetting("menu_video_recommendations") == 'true':
+            AddMenuEntry(translation(30336), 'url', 198, icondir+'top_rated.png', '', '')
         AddMenuEntry(translation(30325), 'url', 119, icondir+'settings.png',  '', '')
     elif content_type == "audio":
         if ADDON.getSetting("menu_radio_live") == 'true':
@@ -669,6 +671,9 @@ def CreateBaseDirectory(content_type):
         if ADDON.getSetting("menu_video_added") == 'true':
             AddMenuEntry((translation(30323)+translation(30307)), 'url', 108,
                          icondir+'favourites.png', '', '')
+        if ADDON.getSetting("menu_video_recommendations") == 'true':
+            AddMenuEntry(translation(30323)+translation(30336), 'url', 198,
+                         icondir+'top_rated.png', '', '')
 
         if ADDON.getSetting("menu_radio_live") == 'true':
             AddMenuEntry((translation(30324)+translation(30321)), 'url', 113,

@@ -336,6 +336,10 @@ msgctxt "#30335"
 msgid "UHD Trial Channels"
 msgstr ""
 
+msgctxt "#30336"
+msgid "Recommendations"
+msgstr ""
+
 msgctxt "#30400"
 msgid "Error"
 msgstr ""
@@ -478,4 +482,8 @@ msgstr ""
 
 msgctxt "#30529"
 msgid "iPlayer: UHD Trial Channels"
+msgstr ""
+
+msgctxt "#30530"
+msgid "iPlayer: Recommendations"
 msgstr ""
