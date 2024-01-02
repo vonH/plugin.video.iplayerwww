@@ -1038,12 +1038,12 @@ def ListWatching():
         item_data['context_mnu'] = ct_menus = []
         if programme.get('count', 0) > 1:
             all_episodes_link = 'https://www.bbc.co.uk/iplayer/episodes/' + programme['id']
-            ct_menus.append(('View all episodes',
+            ct_menus.append((translation(30600),
                              f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url={all_episodes_link})'))
 
         programme_id = episode.get('tleo_id')
         if programme_id:
-            ct_menus.append(('Remove',
+            ct_menus.append((translation(30601),
                              f'RunPlugin(plugin://plugin.video.iplayerwww?mode=301&episode_id={programme_id}&url=url)'))
 
         CheckAutoplay(**item_data)
@@ -1079,7 +1079,7 @@ def ListRecommendations():
         if tleo_id != episode['id']:
             all_episodes_link = 'https://www.bbc.co.uk/iplayer/episodes/' + tleo_id
             item_data['context_mnu'] = [
-                ('View all episodes',
+                (translation(30600),
                  f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url={all_episodes_link})')]
         CheckAutoplay(**item_data)
     SetSortMethods(xbmcplugin.SORT_METHOD_DATE)
