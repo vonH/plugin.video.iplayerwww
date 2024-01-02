@@ -487,3 +487,11 @@ msgstr ""
 msgctxt "#30530"
 msgid "iPlayer: Recommendations"
 msgstr ""
+
+msgctxt "#30600"
+msgid "View all episodes"
+msgstr ""
+
+msgctxt "#30601"
+msgid "Remove"
+msgstr ""
