@@ -400,6 +400,22 @@ msgctxt "#30414"
 msgid "This BBC Sounds programme is available to play in the UK only."
 msgstr ""
 
+msgctxt "#30415"
+msgid "The start position of the current programme is not available.\nPlaying live now."
+msgstr ""
+
+msgctxt "#30416"
+msgid "This programme started too long ago and cannot be played from the start anymore."
+msgstr ""
+
+msgctxt "#30417"
+msgid "Play from 2 hours back"
+msgstr ""
+
+msgctxt "#30418"
+msgid "Play live"
+msgstr ""
+
 msgctxt "#30500"
 msgid "Display"
 msgstr ""
@@ -494,4 +510,8 @@ msgstr ""
 
 msgctxt "#30601"
 msgid "Remove"
+msgstr ""
+
+msgctxt "#30603"
+msgid "Watch from the start"
 msgstr ""

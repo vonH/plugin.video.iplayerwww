@@ -15,7 +15,7 @@ from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, OpenRequest, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
                                        ParseImageUrl, download_subtitles, GeoBlockedError, \
-                                       iso_duration_2_seconds, PostJson, strptime
+                                       iso_duration_2_seconds, PostJson, strptime, addonid
 from resources.lib import ipwww_progress
 
 import xbmc
@@ -166,15 +166,28 @@ def ListLive():
         ('bbc_one_west_midlands',            'BBC One West Midlands',    'bbc_one_london'),
         ('bbc_one_yorks',                    'BBC One Yorks',            'bbc_one_london'),
     ]
+    from urllib.parse import urlencode
     schedules = GetSchedules(channel_list)
     for id, name, schedule_chan_id in channel_list:
         now_on, schedule = schedules.get(schedule_chan_id, ('', ''))
         title = '{}    [COLOR orange]{}[/COLOR]'.format(name, now_on)
         iconimage = 'resource://resource.images.iplayerwww/media/'+id+'.png'
+
         if ADDON.getSetting('streams_autoplay') == 'true':
-            AddMenuEntry(title, id, 203, iconimage, schedule, '')
+            mode = 203
+            restart_action = 'PlayMedia'
         else:
-            AddMenuEntry(title, id, 123, iconimage, schedule, '')
+            mode = 123
+            restart_action = "Container.Update"
+        querystring = urlencode({'name': name,
+                                 'url': id,
+                                 'mode': mode,
+                                 'iconimage': iconimage,
+                                 'watch_from_start': 'True'})
+        ctx_mnu = [(translation(30603),     # 'Watch from the start'
+                    ''.join((restart_action, '(plugin://', addonid, '?', querystring, ')'))
+                    )]
+        AddMenuEntry(title, id, mode, iconimage, schedule, '', context_mnu=ctx_mnu)
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
     sys.exit()
 
@@ -967,12 +980,11 @@ def Search(search_entered):
     ScrapeEpisodes(NEW_URL)
 
 
-def AddAvailableLiveStreamItemSelector(name, channelname, iconimage):
-    return AddAvailableLiveDASHStreamItem(name, channelname, iconimage)
+def AddAvailableLiveStreamItemSelector(name, channelname, iconimage, watch_from_start=False):
+    return AddAvailableLiveDASHStreamItem(name, channelname, iconimage, watch_from_start)
 
 
-def AddAvailableLiveDASHStreamItem(name, channelname, iconimage):
-
+def AddAvailableLiveDASHStreamItem(name, channelname, iconimage, watch_from_start=False):
     streams = ParseLiveDASHStreams(channelname)
 
     source = int(ADDON.getSetting('live_source'))
@@ -982,10 +994,13 @@ def AddAvailableLiveDASHStreamItem(name, channelname, iconimage):
             match = streams
     else:
         match = streams
-    PlayStream(name, match[0][2], iconimage, '', '')
+    if watch_from_start:
+        PlayStream(name, match[0][2], iconimage, '', '', replay_chan_id=channelname)
+    else:
+        PlayStream(name, match[0][2], iconimage, '', '')
 
 
-def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
+def AddAvailableLiveStreamsDirectory(name, channelname, iconimage, watch_from_start=False):
     """Retrieves the available live streams for a channel
 
     Args:
@@ -997,7 +1012,10 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
     suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
     for supplier, bitrate, url, resolution in streams:
         title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (suppliers[supplier])
-        AddMenuEntry(title, url, 201, iconimage, '', '')
+        if watch_from_start:
+            AddMenuEntry(title, url, 201, iconimage, '', '', replay_chan_id=channelname)
+        else:
+            AddMenuEntry(title, url, 201, iconimage, '', '')
 
 
 def GetJsonDataWithBBCid(url, retry=True):
@@ -1090,7 +1108,7 @@ def ListRecommendations():
     SetSortMethods(xbmcplugin.SORT_METHOD_DATE)
 
 
-def PlayStream(name, url, iconimage, description, subtitles_url, episode_id=None, stream_id=None):
+def PlayStream(name, url, iconimage, description, subtitles_url, episode_id=None, stream_id=None, replay_chan_id=''):
     if iconimage == '':
         iconimage = 'DefaultVideo.png'
     html = OpenURL(url)
@@ -1110,8 +1128,59 @@ def PlayStream(name, url, iconimage, description, subtitles_url, episode_id=None
         # print "Downloading subtitles"
         subtitles_file = download_subtitles(subtitles_url)
         liz.setSubtitles([subtitles_file])
+    if replay_chan_id:
+        resume_point = GetLiveStartPosition(replay_chan_id)
+        if resume_point is not None:
+            liz.setProperties({'ResumeTime': str(resume_point),
+                               'TotalTime': '7200',
+                               'inputstream.adaptive.play_timeshift_buffer': 'true'})
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, liz)
     ipwww_progress.monitor_progress(episode_id, stream_id)
+
+
+def GetLiveStartPosition(chan_id):
+    """Return the start position of the current programme relative to the beginning of the stream.
+
+    :returns: The start position in seconds, or None if the start position is not available.
+    """
+    if not chan_id:
+        return
+
+    from datetime import datetime, timezone
+
+    # Apart from bbc_one_hd, schedules from HD channels must be requested by their non-HD counterpart.
+    if chan_id.endswith('_hd') and not chan_id.startswith('bbc_one'):
+        chan_id = chan_id[:-3]
+
+    now = datetime.now(timezone.utc)
+    resp = None
+    try:
+        # Get schedules of the current channel to obtain the start time of the current programme.
+        url = (f'https://ibl.api.bbc.co.uk/ibl/v1/channels/{chan_id}/broadcasts?per_page=2&from_date=' +
+               now.strftime('%Y-%m-%dT%H:%M'))
+        resp = OpenRequest('get', url)
+        data = json.loads(resp)
+        cur_broadcast = data['broadcasts']['elements'][0]
+        # transmission_start is more accurate, but not always available.
+        start = cur_broadcast.get('transmission_start') or cur_broadcast['scheduled_start']
+        start_dt = strptime(start, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+    except Exception as e:
+        xbmcgui.Dialog().ok(translation(30400), translation(30415)) # Error msg start time not available.
+        xbmc.log(f'[ipwww_video] [Error] Failed to get live resume point: {e!r}\n{resp}')
+        return
+    # Need to get the start of the current programme relative to the start of the stream.
+    # Since a live stream has a 2 hrs timeshift window, the live edge is at 7200 seconds from the start.
+    start_position = 7200 - (now - start_dt).total_seconds()
+    if start_position < 0:
+        if xbmcgui.Dialog().yesno(
+                translation(30405),             # warning
+                translation(30416),             # msg program started too long ago
+                yeslabel=translation(30417),    # play from 2hrs back
+                nolabel=translation(30418)):    # play live
+            start_position = 0
+        else:
+            return
+    return start_position
 
 
 def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, episode_id, resume_time="", total_time=""):

@@ -436,11 +436,6 @@ def utf8_unquote_plus(str):
     return urllib.parse.unquote_plus(str)
 
 
-def strptime(dt_str: str, format: str):
-    """A bug free alternative to `datetime.datetime.strptime(...)`"""
-    return datetime(*(time.strptime(dt_str, format)[0:6]))
-
-
 def iso_duration_2_seconds(iso_str: str) -> int:
     """Convert an ISO 8601 duration string into seconds.
 
@@ -460,8 +455,13 @@ def iso_duration_2_seconds(iso_str: str) -> int:
     return None
 
 
-def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None,
-                 resume_time='', total_time='', episode_id='', stream_id='', context_mnu=None):
+def strptime(dt_str: str, format: str):
+    """A bug free alternative to `datetime.datetime.strptime(...)`"""
+    return datetime(*(time.strptime(dt_str, format)[0:6]))
+
+
+def AddMenuEntry(name, url, mode, iconimage, description='', subtitles_url='', aired=None, resolution=None,
+                 resume_time='', total_time='', episode_id='', stream_id='', context_mnu=None, replay_chan_id=''):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
@@ -479,7 +479,8 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         "&episode_id=", utf8_quote_plus(episode_id),
         "&stream_id=", utf8_quote_plus(stream_id),
         "&resume_time=", resume_time,
-        "&total_time=", total_time))
+        "&total_time=", total_time,
+        "&replay_chan_id=", replay_chan_id))
     if mode in (101,203,113,213):
         listitem_url = listitem_url + "&time=" + str(time.time())
     if aired:
@@ -552,6 +553,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
                                 url=listitem_url, listitem=listitem, isFolder=isFolder)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     return True
+
 
 def KidsMode():
     dialog = xbmcgui.Dialog()
