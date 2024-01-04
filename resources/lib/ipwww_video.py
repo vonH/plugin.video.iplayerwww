@@ -175,6 +175,8 @@ def ListLive():
             AddMenuEntry(title, id, 203, iconimage, schedule, '')
         else:
             AddMenuEntry(title, id, 123, iconimage, schedule, '')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+    sys.exit()
 
 
 def ListAtoZ():
