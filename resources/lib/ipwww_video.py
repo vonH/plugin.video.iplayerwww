@@ -185,9 +185,10 @@ def ListLive():
                                  'iconimage': iconimage,
                                  'watch_from_start': 'True'})
         ctx_mnu = [(translation(30603),     # 'Watch from the start'
-                    ''.join((restart_action, '(plugin://', addonid, '?', querystring, ')'))
+                    ''.join((restart_action, '(plugin://', addonid, '?', querystring,
+                             ', noresume)' if mode == 203 else ')'))
                     )]
-        AddMenuEntry(title, id, mode, iconimage, schedule, '', context_mnu=ctx_mnu)
+        AddMenuEntry(title, id, mode, iconimage, schedule, '', resume_time='0', context_mnu=ctx_mnu)
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
     sys.exit()
 
@@ -1007,15 +1008,16 @@ def AddAvailableLiveStreamsDirectory(name, channelname, iconimage, watch_from_st
         name: only used for displaying the channel.
         iconimage: only used for displaying the channel.
         channelname: determines which channel is queried.
+        watch_from_start: True if the current programme is to be played from the start.
     """
     streams = ParseLiveDASHStreams(channelname)
     suppliers = ['', 'Akamai', 'Limelight', 'Bidi','Cloudfront']
     for supplier, bitrate, url, resolution in streams:
         title = name + ' - [I][COLOR fff1f1f1]%s[/COLOR][/I]' % (suppliers[supplier])
         if watch_from_start:
-            AddMenuEntry(title, url, 201, iconimage, '', '', replay_chan_id=channelname)
+            AddMenuEntry(title, url, 201, iconimage, resume_time='0', replay_chan_id=channelname)
         else:
-            AddMenuEntry(title, url, 201, iconimage, '', '')
+            AddMenuEntry(title, url, 201, iconimage, resume_time='0')
 
 
 def GetJsonDataWithBBCid(url, retry=True):
@@ -1108,7 +1110,7 @@ def ListRecommendations():
     SetSortMethods(xbmcplugin.SORT_METHOD_DATE)
 
 
-def PlayStream(name, url, iconimage, description, subtitles_url, episode_id=None, stream_id=None, replay_chan_id=''):
+def PlayStream(name, url, iconimage, description='', subtitles_url='', episode_id=None, stream_id=None, replay_chan_id=''):
     if iconimage == '':
         iconimage = 'DefaultVideo.png'
     html = OpenURL(url)
