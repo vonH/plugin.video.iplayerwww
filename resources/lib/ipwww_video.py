@@ -13,7 +13,7 @@ from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
                                        ParseImageUrl, download_subtitles, GeoBlockedError, \
-                                       iso_duration_2_seconds, PostJson
+                                       iso_duration_2_seconds, PostJson, DeleteUrl
 from resources.lib import ipwww_progress
 
 import xbmc
@@ -1094,11 +1094,9 @@ def RemoveFavourite(programme_id):
     """Remove an item from the 'Added' list.
     Handler for the context menu option 'Remove' on list items in 'Added'.
 
+    Delete will never fail, even if programme_id is not on the list, or does not exist at all.
     """
-    from resources.lib.ipwww_common import headers as common_headers
-    requests.delete('https://user.ibl.api.bbc.co.uk/ibl/v1/user/adds/' + programme_id,
-                    headers=common_headers,
-                    cookies=GetCookieJar())
+    DeleteUrl('https://user.ibl.api.bbc.co.uk/ibl/v1/user/adds/' + programme_id)
     xbmc.executebuiltin('Container.Refresh')
 
 
