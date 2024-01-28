@@ -8,7 +8,6 @@ import re
 import datetime
 import time
 import json
-import requests
 from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
