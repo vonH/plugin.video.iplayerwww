@@ -844,18 +844,27 @@ def SelectSynopsis(synopses):
             or synopses.get('small', ''))
 
 
+def SelectImage(images):
+    if not images:
+        return 'DefaultFolder.png'
+    return(images.get('standard')
+           or images.get('promotional')
+           or images.get('promotional_with_logo')
+           or images.get('portrait', 'DefaultFolder.png')).replace('{recipe}', '832x468')
+
+
 def ParseEpisode(episode_data):
     title = episode_data.get('title', '')
     subtitle = episode_data.get('subtitle')
     if subtitle:
         title = ' - '.join((title, subtitle))
     version_data = episode_data['versions'][0]
-    description = ''.join((SelectSynopsis(episode_data.get('synopses'))))
+    description = SelectSynopsis(episode_data.get('synopses'))
 
     return {
         'url': 'https://www.bbc.co.uk/iplayer/episode/' + episode_data['id'],
         'name': title,
-        'iconimage': episode_data.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468'),
+        'iconimage': SelectImage(episode_data.get('images')),
         'description': description,
         'aired': episode_data.get('release_date_time', '').split('T')[0],
         # 'total_time': str(iso_duration_2_seconds(version_data['duration']['value']))
