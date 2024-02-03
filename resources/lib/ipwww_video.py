@@ -608,7 +608,7 @@ def ParseSingleJSON(meta, item, name, added_playables, added_directories):
             if url:
                 if meta == 'tleo-item':
                     episodes_url = 'https://www.bbc.co.uk' + url
-                    print(episodes_url)
+                    # print(episodes_url)
                 else:
                     main_url = 'https://www.bbc.co.uk' + url
 
@@ -1244,14 +1244,27 @@ def ScrapeAvailableStreams(url):
                 description = synopses['editorial']
         if 'standard' in json_data['episode']['images']:
             image = json_data['episode']['images']['standard'].replace('{recipe}','832x468')
+        st = []
+        ty = []
         for stream in json_data['versions']:
-            if ((stream['kind'] == 'original') or
-               (stream['kind'] == 'iplayer-version') or
-               (stream['kind'] == 'technical-replacement') or
-               (stream['kind'] == 'editorial') or
-               (stream['kind'] == 'shortened') or
-               (stream['kind'] == 'webcast')):
-                stream_id_st = stream['id']
+            if (stream['kind'] == 'original'):
+                st.append(stream['id'])
+                ty.append(1)
+            elif (stream['kind'] == 'iplayer-version'):
+                st.append(stream['id'])
+                ty.append(2)
+            elif (stream['kind'] == 'technical-replacement'):
+                st.append(stream['id'])
+                ty.append(0)
+            elif (stream['kind'] == 'editorial'):
+                st.append(stream['id'])
+                ty.append(2)
+            elif (stream['kind'] == 'shortened'):
+                st.append(stream['id'])
+                ty.append(3)
+            elif (stream['kind'] == 'webcast'):
+                st.append(stream['id'])
+                ty.append(2)
             elif (stream['kind'] == 'signed'):
                 stream_id_sl = stream['id']
             elif (stream['kind'] == 'audio-described'):
@@ -1259,6 +1272,10 @@ def ScrapeAvailableStreams(url):
             else:
                 xbmc.log("iPlayer WWW warning: New stream kind: %s" % stream['kind'])
                 stream_id_st = stream['id']
+
+            if st:
+                st_st = [x for _,x in sorted(zip(ty,st))]
+                stream_id_st = st_st[0]
 
     return {'stream_id_st': stream_id_st, 'stream_id_sl': stream_id_sl, 'stream_id_ad': stream_id_ad,
             'name': name, 'image':image, 'description': description, 'episode_id': json_data['episode'].get('id', '')}

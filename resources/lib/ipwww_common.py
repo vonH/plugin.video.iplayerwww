@@ -133,6 +133,9 @@ def download_subtitles(url):
                             styles.append((id, '#00ff00'))
                         else:
                             styles.append((id, match.group(1)))
+    else:
+        # In case no styles are found, we at least need to define the default (white).
+        styles = [('0', '#ffffff')]
     # print("Retrieved styles")
     # print(styles)
 
@@ -140,14 +143,14 @@ def download_subtitles(url):
     body = []
     body = re.search(r'<body.*?>(.+?)</body>', txt, re.DOTALL)
     if body:
-        # print "Located body"
-        # print body.group(1).encode('utf-8')
+        # print("Located body")
+        # print(body.group(1).encode('utf-8'))
         frames = re.findall(r'<p(.*?)>(.*?)</p>', body.group(1), re.DOTALL)
         # frames = re.findall(r'<p.*?begin=\"(.*?)".*?end=\"(.*?)".*?style="(.*?)".*?>(.*?)</p>', body.group(1), re.DOTALL)
         if frames:
             index = 1
-            # print "Found %s frames"%len(frames)
-            # print frames
+            # print("Found %s frames"%len(frames))
+            # print(frames)
             p = re.compile(r'<span(.*?)>(.*?)</span>')
             old_split = 999
             old_mil = 999
