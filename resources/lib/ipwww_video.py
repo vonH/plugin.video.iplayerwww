@@ -850,10 +850,7 @@ def ParseEpisode(episode_data):
     if subtitle:
         title = ' - '.join((title, subtitle))
     version_data = episode_data['versions'][0]
-    description = ''.join((SelectSynopsis(episode_data.get('synopses')),
-                           '\n\n[I]',
-                           version_data['availability']['remaining']['text'],
-                           '[/I]'))
+    description = ''.join((SelectSynopsis(episode_data.get('synopses'))))
 
     return {
         'url': 'https://www.bbc.co.uk/iplayer/episode/' + episode_data['id'],
@@ -861,7 +858,7 @@ def ParseEpisode(episode_data):
         'iconimage': episode_data.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468'),
         'description': description,
         'aired': episode_data.get('release_date_time', '').split('T')[0],
-        'total_time': str(iso_duration_2_seconds(version_data['duration']['value']))
+        # 'total_time': str(iso_duration_2_seconds(version_data['duration']['value']))
     }
 
 
@@ -1031,7 +1028,7 @@ def ListWatching():
         if remaining_seconds:
             item_data['name'] = '{} - [I]{} min left[/I]'.format(episode.get('title', ''), int(remaining_seconds / 60))
             # Resume a little bit earlier, so it's easier to recognise where you've left off.
-            item_data['resume_time'] = str(max(watching_item['offset'] - 10, 0))
+            item_data['resume_time'] = str(max(watching_item['progress'] - 10, 0))
         else:
             item_data['name'] = '{} - [I]next episode[/I]'.format(episode.get('title', ''))
 
