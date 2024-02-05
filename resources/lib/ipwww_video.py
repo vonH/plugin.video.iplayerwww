@@ -12,7 +12,7 @@ from operator import itemgetter
 from resources.lib.ipwww_common import translation, AddMenuEntry, OpenURL, \
                                        CheckLogin, CreateBaseDirectory, GetCookieJar, \
                                        ParseImageUrl, download_subtitles, GeoBlockedError, \
-                                       iso_duration_2_seconds, PostJson
+                                       iso_duration_2_seconds, PostJson, DeleteUrl
 from resources.lib import ipwww_progress
 
 import xbmc
@@ -844,6 +844,15 @@ def SelectSynopsis(synopses):
             or synopses.get('small', ''))
 
 
+def ParseProgramme(progr_data):
+    return {
+        'url': 'https://www.bbc.co.uk/iplayer/episodes/' + progr_data['id'],
+        'name': '[B]{}[/B] - {} episodes available'.format(progr_data['title'], progr_data['count']),
+        'iconimage': progr_data.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468'),
+        'description': SelectSynopsis(progr_data['synopses'])
+    }
+
+
 def ParseEpisode(episode_data):
     title = episode_data.get('title', '')
     subtitle = episode_data.get('subtitle')
@@ -1057,10 +1066,34 @@ def RemoveWatching(episode_id):
 
 
 def ListFavourites():
-    url = "https://www.bbc.co.uk/iplayer/added"
-    data = GetJsonDataWithBBCid(url)
-    if data:
-        ParseJSON(data, url)
+    """AKA Added"""
+    data = GetJsonDataWithBBCid("https://www.bbc.co.uk/iplayer/added")
+    if not data:
+        return
+    has_episodes = False
+    for added_item in data['items']['elements']:
+        programme = added_item['programme']
+        ct_mnu = [('Remove',
+                   f'RunPlugin(plugin://plugin.video.iplayerwww?mode=302&episode_id={programme["id"]}&url=url)')]
+        if programme['count'] == 1:
+            CheckAutoplay(context_mnu=ct_mnu, **ParseEpisode(programme['initial_children'][0]))
+            has_episodes = True
+        else:
+            AddMenuEntry(mode=128, subtitles_url='', context_mnu=ct_mnu, **ParseProgramme(programme))
+    if has_episodes:
+        SetSortMethods(xbmcplugin.SORT_METHOD_DATE)
+    else:
+        SetSortMethods()
+
+
+def RemoveFavourite(programme_id):
+    """Remove an item from the 'Added' list.
+    Handler for the context menu option 'Remove' on list items in 'Added'.
+
+    Delete will never fail, even if programme_id is not on the list, or does not exist at all.
+    """
+    DeleteUrl('https://user.ibl.api.bbc.co.uk/ibl/v1/user/adds/' + programme_id)
+    xbmc.executebuiltin('Container.Refresh')
 
 
 def ListRecommendations():
