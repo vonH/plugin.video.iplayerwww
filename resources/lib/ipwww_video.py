@@ -841,7 +841,8 @@ def SelectSynopsis(synopses):
     return (synopses.get('editorial')
             or synopses.get('medium')
             or synopses.get('large')
-            or synopses.get('small', ''))
+            or synopses.get('small')
+            or synopses.get('programme_small', ''))
 
 
 def SelectImage(images):
