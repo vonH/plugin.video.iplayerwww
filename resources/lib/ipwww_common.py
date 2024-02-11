@@ -3,6 +3,8 @@
 import sys
 import os
 import re
+from datetime import datetime
+
 import requests
 from requests.packages import urllib3
 #Below is required to get around an ssl issue
@@ -357,26 +359,37 @@ def CheckLogin():
     return False
 
 
-def OpenURL(url):
+def OpenRequest(method, url, *args, **kwargs):
     with requests.Session() as session:
         session.cookies = cookie_jar
         session.headers = headers
+        exit_on_error = kwargs.pop('exit_on_error', False)
         try:
-            r = session.get(url)
+            resp = session.request(method, url, *args, **kwargs)
+            resp.raise_for_status()
         except requests.exceptions.RequestException as e:
-            dialog = xbmcgui.Dialog()
-            dialog.ok(translation(30400), "%s" % e)
-            sys.exit(1)
+            if exit_on_error:
+                dialog = xbmcgui.Dialog()
+                dialog.ok(translation(30400), "%s" % e)
+                sys.exit(1)
+            else:
+                xbmc.log(f"'{method}' request to '{url}' failed: {e!r}")
+                raise
         try:
-            #Set ignore_discard to overcome issue of not having session
-            #as cookie_jar is reinitialised for each action.
+            # Set ignore_discard to overcome issue of not having session
+            # as cookie_jar is reinitialised for each action.
             # Refreshed token cookies are set on intermediate requests.
             # Only save if there have been any.
-            if r.history:
+            if resp.history:
                 cookie_jar.save(ignore_discard=True)
         except:
             pass
-        return unescape(r.content.decode('utf-8'))
+        return resp.content.decode('utf-8')
+
+
+def OpenURL(url):
+    r = OpenRequest('get', url, exit_on_error=True)
+    return unescape(r)
 
 
 def OpenURLPost(url, post_data):
@@ -406,21 +419,7 @@ def OpenURLPost(url, post_data):
 
 
 def PostJson(url, data):
-    with requests.Session() as session:
-        session.cookies = cookie_jar
-        session.headers = headers
-        try:
-            r = session.post(url, json=data)
-            r.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            dialog = xbmcgui.Dialog()
-            dialog.ok(translation(30400), "%s" % e)
-            sys.exit(1)
-        try:
-            if r.history:
-                cookie_jar.save(ignore_discard=True)
-        except:
-            pass
+    return OpenRequest('post', url, json=data, exit_on_error=True)
 
 
 def GetCookieJar():
@@ -456,8 +455,13 @@ def iso_duration_2_seconds(iso_str: str) -> int:
     return None
 
 
-def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=None, resolution=None,
-                 resume_time='', total_time='', episode_id='', stream_id='', context_mnu=None):
+def strptime(dt_str: str, format: str):
+    """A bug free alternative to `datetime.datetime.strptime(...)`"""
+    return datetime(*(time.strptime(dt_str, format)[0:6]))
+
+
+def AddMenuEntry(name, url, mode, iconimage, description='', subtitles_url='', aired=None, resolution=None,
+                 resume_time='', total_time='', episode_id='', stream_id='', context_mnu=None, replay_chan_id=''):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
     """
@@ -475,7 +479,8 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
         "&episode_id=", utf8_quote_plus(episode_id),
         "&stream_id=", utf8_quote_plus(stream_id),
         "&resume_time=", resume_time,
-        "&total_time=", total_time))
+        "&total_time=", total_time,
+        "&replay_chan_id=", replay_chan_id))
     if mode in (101,203,113,213):
         listitem_url = listitem_url + "&time=" + str(time.time())
     if aired:
@@ -548,6 +553,7 @@ def AddMenuEntry(name, url, mode, iconimage, description, subtitles_url, aired=N
                                 url=listitem_url, listitem=listitem, isFolder=isFolder)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     return True
+
 
 def KidsMode():
     dialog = xbmcgui.Dialog()
