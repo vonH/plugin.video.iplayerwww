@@ -1032,24 +1032,31 @@ def ListWatching():
         programme = watching_item['programme']
         item_data = ParseEpisode(episode)
 
-        full_title =  item_data['name']
-        item_data['description'] = '\n\n'.join((full_title, item_data['description']))
+        # Lacking a field synopses, a watching item's description is empty. Since the
+        # remaining playtime is presented in the title instead of the usual episode name,
+        # place the original title/sub-title in the description.
+        item_data['description'] = item_data['name']
         remaining_seconds = watching_item.get('remaining')
         if remaining_seconds:
+            total_seconds = int(remaining_seconds * 100 / (100 - watching_item['progress']))
             item_data['name'] = '{} - [I]{} min left[/I]'.format(episode.get('title', ''), int(remaining_seconds / 60))
             # Resume a little bit earlier, so it's easier to recognise where you've left off.
-            item_data['resume_time'] = str(max(watching_item['progress'] - 10, 0))
+            item_data['resume_time'] = str(max(total_seconds - remaining_seconds - 10, 0))
+            item_data['total_time'] = str(total_seconds)
         else:
             item_data['name'] = '{} - [I]next episode[/I]'.format(episode.get('title', ''))
 
         item_data['context_mnu'] = ct_menus = []
-        if programme.get('count', 0) > 1:
+        programme_id = episode.get('tleo_id')
+
+        if episode.get('id') != programme_id:
+            # A programme with multiple episodes; add a 'View all episodes' context menu item.
             all_episodes_link = 'https://www.bbc.co.uk/iplayer/episodes/' + programme['id']
             ct_menus.append((translation(30600),
                              f'Container.Update(plugin://plugin.video.iplayerwww/?mode=128&url={all_episodes_link})'))
 
-        programme_id = episode.get('tleo_id')
         if programme_id:
+            # Add a context menu item 'Remove'
             ct_menus.append((translation(30601),
                              f'RunPlugin(plugin://plugin.video.iplayerwww?mode=301&episode_id={programme_id}&url=url)'))
 
