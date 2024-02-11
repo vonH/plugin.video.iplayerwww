@@ -357,26 +357,37 @@ def CheckLogin():
     return False
 
 
-def OpenURL(url):
+def OpenRequest(method, url, *args, **kwargs):
     with requests.Session() as session:
         session.cookies = cookie_jar
         session.headers = headers
+        exit_on_error = kwargs.pop('exit_on_error', False)
         try:
-            r = session.get(url)
+            resp = session.request(method, url, *args, **kwargs)
+            resp.raise_for_status()
         except requests.exceptions.RequestException as e:
-            dialog = xbmcgui.Dialog()
-            dialog.ok(translation(30400), "%s" % e)
-            sys.exit(1)
+            if exit_on_error:
+                dialog = xbmcgui.Dialog()
+                dialog.ok(translation(30400), "%s" % e)
+                sys.exit(1)
+            else:
+                xbmc.log(f"'{method}' request to '{url}' failed: {e!r}")
+                raise
         try:
-            #Set ignore_discard to overcome issue of not having session
-            #as cookie_jar is reinitialised for each action.
+            # Set ignore_discard to overcome issue of not having session
+            # as cookie_jar is reinitialised for each action.
             # Refreshed token cookies are set on intermediate requests.
             # Only save if there have been any.
-            if r.history:
+            if resp.history:
                 cookie_jar.save(ignore_discard=True)
         except:
             pass
-        return unescape(r.content.decode('utf-8'))
+        return resp.content.decode('utf-8')
+
+
+def OpenURL(url):
+    r = OpenRequest('get', url, exit_on_error=True)
+    return unescape(r)
 
 
 def OpenURLPost(url, post_data):
@@ -406,21 +417,7 @@ def OpenURLPost(url, post_data):
 
 
 def PostJson(url, data):
-    with requests.Session() as session:
-        session.cookies = cookie_jar
-        session.headers = headers
-        try:
-            r = session.post(url, json=data)
-            r.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            dialog = xbmcgui.Dialog()
-            dialog.ok(translation(30400), "%s" % e)
-            sys.exit(1)
-        try:
-            if r.history:
-                cookie_jar.save(ignore_discard=True)
-        except:
-            pass
+    return OpenRequest('post', url, json=data, exit_on_error=True)
 
 
 def GetCookieJar():
