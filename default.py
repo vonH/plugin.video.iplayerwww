@@ -100,7 +100,7 @@ try:
     if mode == 1:
         Common.KidsMode()
 
-    elif mode is None or url is None or len(url) < 1:
+    elif mode is None:
         Common.CreateBaseDirectory(content_type)
 
     # Modes 101-119 will create a main directory menu entry
@@ -250,6 +250,15 @@ try:
 
     elif mode == 302:
         Video.RemoveFavourite(episode_id)
+
+    # Modes 401 - 499: Called as script, e.g. IPTV manager requesting channels
+    elif mode == 401:
+        from resources.lib.ipwww_iptv import channels
+        channels(params['port'])
+
+    elif mode == 402:
+        from resources.lib.ipwww_iptv import epg
+        epg(params['port'])
 
 except Exception as err:
     import traceback

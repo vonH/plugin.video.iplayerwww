@@ -32,6 +32,10 @@ msgctxt "#30103"
 msgid "Common settings"
 msgstr ""
 
+msgctxt "#30104"
+msgid "TV integration"
+msgstr ""
+
 msgctxt "#30110"
 msgid "Play Signed programmes when available"
 msgstr ""
@@ -190,6 +194,34 @@ msgstr ""
 
 msgctxt "#30240"
 msgid "Subtitle CDN source"
+msgstr ""
+
+msgctxt "#30250"
+msgid "IPTV Manager integration"
+msgstr ""
+
+msgctxt "#30251"
+msgid "Install 'IPTV manager' addon"
+msgstr ""
+
+msgctxt "#30252"
+msgid "Enable IPTV Manager integration"
+msgstr ""
+
+msgctxt "#30253"
+msgid "Select TV channels"
+msgstr ""
+
+msgctxt "#30254"
+msgid "Select radio stations"
+msgstr ""
+
+msgctxt "#30258"
+msgid "Go to IPTV manager settings..."
+msgstr ""
+
+msgctxt "#30259"
+msgid "It may take a few hours before these settings take effect.\nTo force an update, select 'Refresh channels and guide now' in IPTV Manager's settings and select 'clear data' in section 'Guide' of Kodi's 'PVR & Live TV' settings."
 msgstr ""
 
 msgctxt "#30300"
