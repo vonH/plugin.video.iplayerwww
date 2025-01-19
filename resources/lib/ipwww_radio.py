@@ -732,13 +732,7 @@ def ListMostPopular():
 
 def Search(search_entered):
     """Simply calls the online search function. The search is then evaluated in EvaluateSearch."""
-    if search_entered is None:
-        keyboard = xbmc.Keyboard('', 'Search iPlayer')
-        keyboard.doModal()
-        if keyboard.isConfirmed():
-            search_entered = keyboard.getText()
-
-    if search_entered is None:
+    if not search_entered:
         return False
 
     url = 'https://www.bbc.co.uk/sounds/search?q=%s' % search_entered
