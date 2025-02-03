@@ -15,7 +15,7 @@ from operator import itemgetter
 from resources.lib.ipwww_common import (
     translation, AddMenuEntry, OpenURL, OpenRequest, CheckLogin, CreateBaseDirectory,
     GetCookieJar, ParseImageUrl, download_subtitles, GeoBlockedError, WebRequestError,
-    iso_duration_2_seconds, PostJson, strptime, addonid, DeleteUrl, ProgressDlg)
+    iso_duration_2_seconds, PostJson, strptime, addonid, DeleteUrl, ProgressDlg, utf8_quote_plus)
 from resources.lib import ipwww_progress
 
 import xbmc
@@ -1023,16 +1023,10 @@ def GetAvailableStreams(name, url, iconimage, description, resume_time='', total
 
 def Search(search_entered):
     """Simply calls the online search function. The search is then evaluated in EvaluateSearch."""
-    if search_entered is None:
-        keyboard = xbmc.Keyboard('', 'Search iPlayer')
-        keyboard.doModal()
-        if keyboard.isConfirmed():
-            search_entered = keyboard.getText() .replace(' ', '%20')  # sometimes you need to replace spaces with + or %20
-
-    if search_entered is None:
+    if not search_entered:
         return False
 
-    NEW_URL = 'https://www.bbc.co.uk/iplayer/search?q=%s' % search_entered
+    NEW_URL = 'https://www.bbc.co.uk/iplayer/search?q=%s' % utf8_quote_plus(search_entered)
     ScrapeEpisodes(NEW_URL)
 
 

@@ -114,7 +114,8 @@ try:
         Video.ListCategories()
 
     elif mode == 104:
-        Video.Search(keyword)
+        from resources.lib.ipwww_search import list_search_terms
+        list_search_terms(url, 130 if url == 'video' else 140)
 
     elif mode == 105:
         Video.ListMostPopular()
@@ -139,9 +140,6 @@ try:
 
     elif mode == 114:
         Radio.ListGenres()
-
-    elif mode == 115:
-        Radio.Search(keyword)
 
     elif mode == 116:
         Radio.ListMostPopular()
@@ -189,6 +187,9 @@ try:
     elif mode == 129:
         Video.AddAvailableRedButtonDirectory(name, url)
 
+    elif mode == 130:
+        Video.Search(url)
+
     elif mode == 131:
         Radio.GetEpisodes(url)
 
@@ -212,6 +213,13 @@ try:
 
     elif mode == 139:
         Video.ScrapeEpisodes(url)
+
+    elif mode == 140:
+        Radio.Search(url)
+
+    elif mode == 190:
+        from resources.lib.ipwww_search import new_search
+        new_search(content_type=url, mode=130 if url == 'video' else 140)
 
     # Modes 201-299 will create a playable menu entry, not a directory
     elif mode == 201:
@@ -250,6 +258,13 @@ try:
 
     elif mode == 302:
         Video.RemoveFavourite(episode_id)
+
+    # Reserved mode 303 for AddFavourite
+
+    elif mode == 304:
+        from resources.lib.ipwww_search import context_menu
+        context_menu(content_type, url, keyword)
+
 
 except Exception as err:
     import traceback

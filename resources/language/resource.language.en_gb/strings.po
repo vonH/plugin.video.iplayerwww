@@ -515,3 +515,11 @@ msgstr ""
 msgctxt "#30603"
 msgid "Watch from the start"
 msgstr ""
+
+msgctxt "#30604"
+msgid "Edit"
+msgstr ""
+
+msgctxt "#30605"
+msgid "Clear search history"
+msgstr ""
