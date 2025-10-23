@@ -1302,10 +1302,11 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, episod
                      episode_id=episode_id, stream_id=stream_id, resume_time=resume_time, total_time=total_time)
 
 
-def GetURLIfUp(url):
+def GetMediaSelectorJSON(media_selector_url):
     try:
-        OpenURL(url)
-        return url
+        html = OpenURL(media_selector_url)
+        json_data = json.loads(html)
+        return json_data
     except Exception:
         return None
 
@@ -1315,7 +1316,7 @@ def ParseMediaselector(stream_id, live_stream):
     # print("Parsing streams for PID: %s"%stream_id)
     supports_hevc = False
     supports_hevc_uhd = supports_hevc and False
-    media_selector_url = None
+    json_data = None
     # Attempt to load UHD/FHD VOD streams
     if not live_stream and GetBBCiPlayerPemPath():
         secure_url_template = 'https://%s/mediaselector/6/select/version/2.0/vpid/%s/format/json/mediaset/%s/proto/https'
@@ -1325,22 +1326,19 @@ def ParseMediaselector(stream_id, live_stream):
         media_sets.append('iptv-bvq')  # 1080p h264 VOD
         for mediator in secure_mediators:
             for media_set in media_sets:
-                media_selector_url = GetURLIfUp(secure_url_template % (mediator, stream_id, media_set))
-                if media_selector_url:
+                json_data = GetMediaSelectorJSON(secure_url_template % (mediator, stream_id, media_set))
+                if json_data:
                     break
-            if media_selector_url:
+            if json_data:
                 break
     url_template = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/%s/vpid/%s/format/json/cors/1'
     if live_stream and supports_hevc:
         # 1080p HEVC live with multiple audio tracks. It also supports 720p h264 VOD but just use pc for non-live
         media_set = 'iptv-mse'
-        media_selector_url = GetURLIfUp(url_template % (media_set, stream_id))
-    if media_selector_url is None:
+        json_data = GetMediaSelectorJSON(url_template % (media_set, stream_id))
+    if json_data is None:
         media_set = 'pc'  # 720p h264
-        media_selector_url = url_template % (media_set, stream_id)
-    # Open the page with the actual straem information and display the various available streams.
-    html = OpenURL(media_selector_url)
-    json_data = json.loads(html)
+        json_data = GetMediaSelectorJSON(url_template % (media_set, stream_id))
     if json_data:
         # print(json.dumps(json_data, sort_keys=True, indent=2))
         if 'media' in json_data:
