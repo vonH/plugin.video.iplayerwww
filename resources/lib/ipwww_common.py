@@ -6,6 +6,8 @@ import re
 from datetime import datetime
 
 import requests
+import ssl
+from requests.adapters import HTTPAdapter
 from requests.packages import urllib3
 #Below is required to get around an ssl issue
 urllib3.disable_warnings()
@@ -71,7 +73,7 @@ icondir = 'resource://resource.images.iplayerwww/media/'
 cookie_jar = None
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0'
 headers = {'User-Agent': user_agent}
-
+secure_mediators = ['securegate.iplayer.bbc.co.uk', 'ipsecure.stage.bbc.co.uk']
 
 if(not os.path.exists(DIR_USERDATA)):
     os.makedirs(DIR_USERDATA)
@@ -368,12 +370,40 @@ def CheckLogin():
     return False
 
 
+def GetBBCiPlayerPemPath():
+    pem_file_name = 'bbciplayer.pem'
+    for dir in [addoninfo["path"], DIR_USERDATA]:
+        pem_path = os.path.join(dir, pem_file_name)
+        if os.path.exists(pem_path):
+            return pem_path
+    return None
+
+class SecLevel0SSLAdapter(HTTPAdapter):
+    _shared_ssl_context = ssl.create_default_context()
+    # SECLEVEL 1 does not suppress CA_MD_TOO_WEAK on some devices
+    _shared_ssl_context.set_ciphers("DEFAULT:@SECLEVEL=0")
+
+    def init_poolmanager(self, connections, maxsize, block=False, **kwargs):
+        kwargs['ssl_context'] = self._shared_ssl_context
+        return super().init_poolmanager(connections, maxsize, block=block, **kwargs)
+
+    def proxy_manager_for(self, *args, **kwargs):
+        kwargs['ssl_context'] = self._shared_ssl_context
+        return super().proxy_manager_for(*args, **kwargs)
+
 def OpenRequest(method, url, *args, **kwargs):
     with requests.Session() as session:
         session.cookies = cookie_jar
         session.headers = headers
         exit_on_error = kwargs.pop('exit_on_error', False)
         kwargs.setdefault('timeout', (4, 10))
+
+        if any(secure_mediator in url for secure_mediator in secure_mediators):
+            bbc_i_player_pem = GetBBCiPlayerPemPath()
+            if bbc_i_player_pem:
+                session.cert = bbc_i_player_pem
+                session.mount("https://", SecLevel0SSLAdapter())
+
         try:
             resp = session.request(method, url, *args, **kwargs)
             resp.raise_for_status()
