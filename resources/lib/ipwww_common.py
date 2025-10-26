@@ -73,7 +73,7 @@ icondir = 'resource://resource.images.iplayerwww/media/'
 cookie_jar = None
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0'
 headers = {'User-Agent': user_agent}
-secure_mediators = ['securegate.iplayer.bbc.co.uk', 'ipsecure.stage.bbc.co.uk']
+
 
 if(not os.path.exists(DIR_USERDATA)):
     os.makedirs(DIR_USERDATA)
@@ -380,7 +380,7 @@ def GetBBCiPlayerPemPath():
 
 class SecLevel0SSLAdapter(HTTPAdapter):
     _shared_ssl_context = ssl.create_default_context()
-    # SECLEVEL 1 does not suppress CA_MD_TOO_WEAK on some devices
+    # SECLEVEL=1 does not suppress CA_MD_TOO_WEAK on some devices
     _shared_ssl_context.set_ciphers("DEFAULT:@SECLEVEL=0")
 
     def init_poolmanager(self, connections, maxsize, block=False, **kwargs):
@@ -398,20 +398,36 @@ def OpenRequest(method, url, *args, **kwargs):
         exit_on_error = kwargs.pop('exit_on_error', False)
         kwargs.setdefault('timeout', (4, 10))
 
-        if any(secure_mediator in url for secure_mediator in secure_mediators):
-            bbc_i_player_pem = GetBBCiPlayerPemPath()
-            if bbc_i_player_pem:
-                session.cert = bbc_i_player_pem
-                session.mount("https://", SecLevel0SSLAdapter())
+        if 'securegate.iplayer.bbc.co.uk' in url:
+            bbc_i_player_pem_path = GetBBCiPlayerPemPath()
+            if bbc_i_player_pem_path:
+                session.cert = bbc_i_player_pem_path
+                xbmc.log(f"Using {session.cert} for '{url}'", xbmc.LOGINFO)
 
         try:
             resp = session.request(method, url, *args, **kwargs)
             resp.raise_for_status()
         except requests.exceptions.RequestException as e:
-            xbmc.log(f"'{method}' request to '{url}' failed: {e!r}")
-            if isinstance(e, requests.HTTPError):
-                e = WebRequestError(str(e), e.response)
-            raise e
+            ca_md_too_weak = 'CA_MD_TOO_WEAK'
+            if session.cert and isinstance(e, requests.exceptions.SSLError) and ca_md_too_weak in str(e):
+                xbmc.log(f"Got {ca_md_too_weak} using {session.cert} for '{url}', retrying with SECLEVEL=0",
+                         xbmc.LOGWARNING)
+                try:
+                    session.mount("https://", SecLevel0SSLAdapter())
+                    resp = session.request(method, url, *args, **kwargs)
+                    resp.raise_for_status()
+                except requests.exceptions.RequestException as sec_level_0_exception:
+                    xbmc.log(
+                        f"'{method}' request to '{url}' (after SECLEVEL=0 retry) failed: {sec_level_0_exception!r}")
+                    if isinstance(sec_level_0_exception, requests.HTTPError):
+                        sec_level_0_exception = WebRequestError(str(sec_level_0_exception),
+                                                                sec_level_0_exception.response)
+                    raise sec_level_0_exception
+            else:
+                xbmc.log(f"'{method}' request to '{url}' failed: {e!r}")
+                if isinstance(e, requests.HTTPError):
+                    e = WebRequestError(str(e), e.response)
+                raise e
         try:
             # Refreshed token cookies are set on intermediate requests.
             # Only save if there have been any.

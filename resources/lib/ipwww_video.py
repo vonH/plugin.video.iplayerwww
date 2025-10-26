@@ -15,7 +15,7 @@ from operator import itemgetter
 from resources.lib.ipwww_common import (
     translation, AddMenuEntry, OpenURL, OpenRequest, CheckLogin, CreateBaseDirectory,
     GetCookieJar, ParseImageUrl, download_subtitles, GeoBlockedError, WebRequestError,
-    iso_duration_2_seconds, PostJson, strptime, addonid, DeleteUrl, ProgressDlg, GetBBCiPlayerPemPath, secure_mediators)
+    iso_duration_2_seconds, PostJson, strptime, addonid, DeleteUrl, ProgressDlg, GetBBCiPlayerPemPath)
 from resources.lib import ipwww_progress
 
 import xbmc
@@ -1310,35 +1310,34 @@ def GetMediaSelectorJSON(media_selector_url):
     except Exception:
         return None
 
+
 def ParseMediaselector(stream_id, live_stream):
     streams = []
     subtitles = []
     # print("Parsing streams for PID: %s"%stream_id)
     supports_hevc = False
-    supports_hevc_uhd = supports_hevc and False
-    json_data = None
+    media_selector_urls = []
     # Attempt to load UHD/FHD VOD streams
     if not live_stream and GetBBCiPlayerPemPath():
-        secure_url_template = 'https://%s/mediaselector/6/select/version/2.0/vpid/%s/format/json/mediaset/%s/proto/https'
+        secure_url_template = 'https://securegate.iplayer.bbc.co.uk/mediaselector/6/select/version/2.0/vpid/%s/format/json/mediaset/%s/proto/https'
         media_sets = []
-        if supports_hevc_uhd:
+        if supports_hevc:
             media_sets.append('iptv-uhd')  # 2160p hevc VOD
         media_sets.append('iptv-bvq')  # 1080p h264 VOD
-        for mediator in secure_mediators:
-            for media_set in media_sets:
-                json_data = GetMediaSelectorJSON(secure_url_template % (mediator, stream_id, media_set))
-                if json_data:
-                    break
-            if json_data:
-                break
+        for media_set in media_sets:
+            media_selector_urls.append(secure_url_template % (stream_id, media_set))
     url_template = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/%s/vpid/%s/format/json/cors/1'
     if live_stream and supports_hevc:
-        # 1080p HEVC live with multiple audio tracks. It also supports 720p h264 VOD but just use pc for non-live
+        # 1080p HEVC live with audio & audio descriptions tracks. It also supports 720p h264 VOD but just use pc for non-live
         media_set = 'iptv-mse'
-        json_data = GetMediaSelectorJSON(url_template % (media_set, stream_id))
-    if json_data is None:
-        media_set = 'pc'  # 720p h264
-        json_data = GetMediaSelectorJSON(url_template % (media_set, stream_id))
+        media_selector_urls.append(url_template % (media_set, stream_id))
+    media_set = 'pc'  # 720p h264
+    media_selector_urls.append(url_template % (media_set, stream_id))
+    json_data = None
+    for url in media_selector_urls:
+        json_data = GetMediaSelectorJSON(url)
+        if json_data:
+            break
     if json_data:
         # print(json.dumps(json_data, sort_keys=True, indent=2))
         if 'media' in json_data:
