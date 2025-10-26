@@ -6,6 +6,8 @@ import re
 from datetime import datetime
 
 import requests
+import ssl
+from requests.adapters import HTTPAdapter
 from requests.packages import urllib3
 #Below is required to get around an ssl issue
 urllib3.disable_warnings()
@@ -368,20 +370,64 @@ def CheckLogin():
     return False
 
 
+def GetBBCiPlayerPemPath():
+    pem_file_name = 'bbciplayer.pem'
+    for dir in [addoninfo["path"], DIR_USERDATA]:
+        pem_path = os.path.join(dir, pem_file_name)
+        if os.path.exists(pem_path):
+            return pem_path
+    return None
+
+class SecLevel0SSLAdapter(HTTPAdapter):
+    _shared_ssl_context = ssl.create_default_context()
+    # SECLEVEL=1 does not suppress CA_MD_TOO_WEAK on some devices
+    _shared_ssl_context.set_ciphers("DEFAULT:@SECLEVEL=0")
+
+    def init_poolmanager(self, connections, maxsize, block=False, **kwargs):
+        kwargs['ssl_context'] = self._shared_ssl_context
+        return super().init_poolmanager(connections, maxsize, block=block, **kwargs)
+
+    def proxy_manager_for(self, *args, **kwargs):
+        kwargs['ssl_context'] = self._shared_ssl_context
+        return super().proxy_manager_for(*args, **kwargs)
+
 def OpenRequest(method, url, *args, **kwargs):
     with requests.Session() as session:
         session.cookies = cookie_jar
         session.headers = headers
         exit_on_error = kwargs.pop('exit_on_error', False)
         kwargs.setdefault('timeout', (4, 10))
+
+        if 'securegate.iplayer.bbc.co.uk' in url:
+            bbc_i_player_pem_path = GetBBCiPlayerPemPath()
+            if bbc_i_player_pem_path:
+                session.cert = bbc_i_player_pem_path
+                xbmc.log(f"Using {session.cert} for '{url}'", xbmc.LOGINFO)
+
         try:
             resp = session.request(method, url, *args, **kwargs)
             resp.raise_for_status()
         except requests.exceptions.RequestException as e:
-            xbmc.log(f"'{method}' request to '{url}' failed: {e!r}")
-            if isinstance(e, requests.HTTPError):
-                e = WebRequestError(str(e), e.response)
-            raise e
+            ca_md_too_weak = 'CA_MD_TOO_WEAK'
+            if session.cert and isinstance(e, requests.exceptions.SSLError) and ca_md_too_weak in str(e):
+                xbmc.log(f"Got {ca_md_too_weak} using {session.cert} for '{url}', retrying with SECLEVEL=0",
+                         xbmc.LOGWARNING)
+                try:
+                    session.mount("https://", SecLevel0SSLAdapter())
+                    resp = session.request(method, url, *args, **kwargs)
+                    resp.raise_for_status()
+                except requests.exceptions.RequestException as sec_level_0_exception:
+                    xbmc.log(
+                        f"'{method}' request to '{url}' (after SECLEVEL=0 retry) failed: {sec_level_0_exception!r}")
+                    if isinstance(sec_level_0_exception, requests.HTTPError):
+                        sec_level_0_exception = WebRequestError(str(sec_level_0_exception),
+                                                                sec_level_0_exception.response)
+                    raise sec_level_0_exception
+            else:
+                xbmc.log(f"'{method}' request to '{url}' failed: {e!r}")
+                if isinstance(e, requests.HTTPError):
+                    e = WebRequestError(str(e), e.response)
+                raise e
         try:
             # Refreshed token cookies are set on intermediate requests.
             # Only save if there have been any.

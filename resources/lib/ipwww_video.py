@@ -15,7 +15,7 @@ from operator import itemgetter
 from resources.lib.ipwww_common import (
     translation, AddMenuEntry, OpenURL, OpenRequest, CheckLogin, CreateBaseDirectory,
     GetCookieJar, ParseImageUrl, download_subtitles, GeoBlockedError, WebRequestError,
-    iso_duration_2_seconds, PostJson, strptime, addonid, DeleteUrl, ProgressDlg)
+    iso_duration_2_seconds, PostJson, strptime, addonid, DeleteUrl, ProgressDlg, GetBBCiPlayerPemPath)
 from resources.lib import ipwww_progress
 
 import xbmc
@@ -1302,14 +1302,42 @@ def AddAvailableStreamsDirectory(name, stream_id, iconimage, description, episod
                      episode_id=episode_id, stream_id=stream_id, resume_time=resume_time, total_time=total_time)
 
 
-def ParseMediaselector(stream_id):
+def GetMediaSelectorJSON(media_selector_url):
+    try:
+        html = OpenURL(media_selector_url)
+        json_data = json.loads(html)
+        return json_data
+    except Exception:
+        return None
+
+
+def ParseMediaselector(stream_id, live_stream):
     streams = []
     subtitles = []
     # print("Parsing streams for PID: %s"%stream_id)
-    # Open the page with the actual strem information and display the various available streams.
-    NEW_URL = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/pc/vpid/%s/format/json/cors/1' % stream_id 
-    html = OpenURL(NEW_URL)
-    json_data = json.loads(html)
+    supports_hevc = False
+    media_selector_urls = []
+    # Attempt to load UHD/FHD VOD streams
+    if not live_stream and GetBBCiPlayerPemPath():
+        secure_url_template = 'https://securegate.iplayer.bbc.co.uk/mediaselector/6/select/version/2.0/vpid/%s/format/json/mediaset/%s/proto/https'
+        media_sets = []
+        if supports_hevc:
+            media_sets.append('iptv-uhd')  # 2160p hevc VOD
+        media_sets.append('iptv-bvq')  # 1080p h264 VOD
+        for media_set in media_sets:
+            media_selector_urls.append(secure_url_template % (stream_id, media_set))
+    url_template = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/%s/vpid/%s/format/json/cors/1'
+    if live_stream and supports_hevc:
+        # 1080p HEVC live with audio & audio descriptions tracks. It also supports 720p h264 VOD but just use pc for non-live
+        media_set = 'iptv-mse'
+        media_selector_urls.append(url_template % (media_set, stream_id))
+    media_set = 'pc'  # 720p h264
+    media_selector_urls.append(url_template % (media_set, stream_id))
+    json_data = None
+    for url in media_selector_urls:
+        json_data = GetMediaSelectorJSON(url)
+        if json_data:
+            break
     if json_data:
         # print(json.dumps(json_data, sort_keys=True, indent=2))
         if 'media' in json_data:
@@ -1364,8 +1392,8 @@ def ParseDASHStreams(stream_id):
     streams = []
     subtitles = []
     # print "Parsing streams for PID: %s"%stream_id
-    mediaselector = ParseMediaselector(stream_id)
-    # Open the page with the actual strem information and display the various available streams.
+    mediaselector = ParseMediaselector(stream_id, False)
+    # Open the page with the actual stream information and display the various available streams.
     source = int(ADDON.getSetting('catchup_source'))
     for url, protocol, supplier, transfer_format in mediaselector[0]:
         tmp_sup = 0
@@ -1407,7 +1435,7 @@ def ParseDASHStreams(stream_id):
 
 def ParseLiveDASHStreams(channelname):
     streams = []
-    mediaselector = ParseMediaselector(channelname)
+    mediaselector = ParseMediaselector(channelname, True)
     # print mediaselector
     for provider_url, protocol, provider_name, transfer_format in mediaselector[0]:
         if transfer_format == 'dash':
