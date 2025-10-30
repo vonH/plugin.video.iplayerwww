@@ -21,12 +21,10 @@ ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 def GetJWT(url):
     html = OpenURL(url)
     try:
-        match = re.search(r'<script> window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+        match = re.search(r'<script\s+id="__NEXT_DATA__"\s+type="application/json">(.*?)</script>', html, re.DOTALL)
         if match:
             json_data = json.loads(match[1])
-            if 'smp' in json_data:
-                if 'liveStreamJwt' in json_data['smp']:
-                   return json_data['smp']['liveStreamJwt']
+            return json_data.get('props', {}).get('pageProps', {}).get('jwtToken')
     except:
         pass
     return None
@@ -882,11 +880,19 @@ def ScrapeAvailableStreams(url):
     # Search for standard programmes.
     stream_id_st = re.compile('"vpid":"(.+?)"').findall(html)
     if not stream_id_st:
-        match = re.search(r'window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+        match = re.search(r'<script\s+id="__NEXT_DATA__"\s+type="application/json">(.*?)</script>', html, re.DOTALL)
         if match:
             data = match.group(1)
             json_data = json.loads(data)
-            stream_id_st = json_data['programmes']['current']['id']
+            queries = json_data.get('props', {}).get('pageProps', {}).get('dehydratedState', {}).get('queries', [])
+            for query in queries:
+                state_data = query.get('state', {}).get('data', {})
+                modules = state_data.get('data', [])
+                for module in modules:
+                    if module.get('type') == 'inline_display_module' and module.get('title') == 'Player':
+                        for item in module.get('data', []):
+                            if item.get('type') == 'playable_item':
+                                stream_id_st = item.get('id')
             # print json.dumps(json_data, indent=2, sort_keys=True)
         else:
             dialog = xbmcgui.Dialog()
