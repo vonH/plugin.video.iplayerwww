@@ -21,12 +21,10 @@ ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 def GetJWT(url):
     html = OpenURL(url)
     try:
-        match = re.search(r'<script> window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+        match = re.search(r'<script\s+id="__NEXT_DATA__"\s+type="application/json">(.*?)</script>', html, re.DOTALL)
         if match:
             json_data = json.loads(match[1])
-            if 'smp' in json_data:
-                if 'liveStreamJwt' in json_data['smp']:
-                   return json_data['smp']['liveStreamJwt']
+            return json_data.get('props', {}).get('pageProps', {}).get('jwtToken')
     except:
         pass
     return None
@@ -255,15 +253,13 @@ def GetCategoryPage(category, just_episodes=False):
         total_pages = 1
         current_page = 1
         page_range = list(range(1))
-        paginate = re.search(r'pagination-button__number',html)
+        paginate = re.search(r'page-number', html)
         next_page = 1
         if paginate:
-            pages = re.findall(r'class="sc-c-pagination-button__number.*?</li>', html, flags=(re.DOTALL | re.MULTILINE))
+            pages = re.findall(r'<a\b[^>]*\bdata-bbc-content-label="page-number"[^>]*>(.*?)</a>', html)
             if pages:
-                last = pages[-1]
-                last_page = re.search(r'<span>(.*?)</span>',last)
-                total_pages = int(last_page.group(1))
-                page_range = list(range(1, total_pages+1))
+                total_pages = int(pages[-1])
+                page_range = list(range(1, total_pages + 1))
 
         for page in page_range:
             # print('Processing page '+str(page))
@@ -271,68 +267,68 @@ def GetCategoryPage(category, just_episodes=False):
                 page_url = page_base_url+'?page='+str(page)+'&sort=title'
                 # print(page_url)
                 html = OpenURL(page_url)
-            match = re.search(r'window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+            match = re.search(r'<script\s+id="__NEXT_DATA__"\s+type="application/json">(.*?)</script>', html, re.DOTALL)
             if match:
                 data = match.group(1)
                 json_data = json.loads(data)
                 # print(json_data)
-                if 'modules' in json_data:
-                    # print('Has modules')
-                    if 'data' in json_data['modules']:
-                        # print('Has data')
-                        for data in json_data['modules']['data']:
-                            # print('Data-ID: '+data['id'])
-                            if ('id' in data and data['id'] == 'container_list'):
-                                if 'data' in data:
-                                   for programme in data['data']:
-                                       # print(programme)
-                                       pro_name = []
-                                       pro_url = []
-                                       pro_icon = []
-                                       pro_syn = []
-                                       pro_brand = []
-                                       pro_brand_url = []
-                                       pro_brand_syn = []
-                                       if 'titles' in programme:
-                                           pro_name = programme['titles']['primary']
-                                       if ('secondary' in programme['titles'] and programme['titles']['secondary'] is not None):
-                                           pro_name += ' - '+programme['titles']['secondary']
-                                       if ('tertiary' in programme['titles'] and programme['titles']['tertiary'] is not None):
-                                           pro_name += ' - '+programme['titles']['tertiary']
-                                       if 'image_url' in programme:
-                                           pro_icon = programme['image_url'].replace("{recipe}","624x624")
-                                       if 'urn' in programme:
-                                           pro_url = 'https://www.bbc.co.uk/sounds/play/'+programme['urn'][-8:]
-                                       if 'synopses' in programme:
-                                           if ('long' in programme['synopses'] and programme['synopses']['long'] is not None):
-                                               pro_syn = programme['synopses']['long']
-                                           elif ('medium' in programme['synopses'] and programme['synopses']['medium'] is not None):
-                                               pro_syn = programme['synopses']['medium']
-                                           elif ('short' in programme['synopses'] and programme['synopses']['short'] is not None):
-                                               pro_syn = programme['synopses']['short']
-                                       # print(pro_name)
-                                       # print(pro_icon)
-                                       # print(pro_url)
-                                       # print(pro_syn)
-                                       CheckAutoplay(pro_name, pro_url, pro_icon, pro_syn, '')
-                                       if ('container' in programme and programme['container'] is not None):
-                                           # print('Has container')
-                                           if programme['container']['type'] == 'brand':
-                                               pro_brand = '[B]'+programme['container']['title']+'[/B]'
-                                               pro_brand_url = 'https://www.bbc.co.uk/sounds/brand/'+programme['container']['id']
-                                               # print(pro_brand_url)
-                                               if 'synopses' in programme['container']:
-                                                   if ('long' in programme['container']['synopses'] and
-                                                       programme['container']['synopses']['long'] is not None):
+                queries = json_data.get('props', {}).get('pageProps', {}).get('dehydratedState', {}).get('queries', [])
+                if queries:
+                    for query in queries:
+                        data = query.get("state", {}).get("data", {}).get("data", [])
+                        if isinstance(data, list):
+                            for l in data:
+                                programmes = l.get('data', [])
+                                for programme in programmes:
+                                    if isinstance(programme, dict) and programme.get('type') == 'playable_item':
+                                        # print(programme)
+                                        pro_name = []
+                                        pro_url = []
+                                        pro_icon = []
+                                        pro_syn = []
+                                        pro_brand = []
+                                        pro_brand_url = []
+                                        pro_brand_syn = []
+                                        if 'titles' in programme:
+                                            pro_name = programme['titles']['primary']
+                                        if ('secondary' in programme['titles'] and programme['titles']['secondary'] is not None):
+                                            pro_name += ' - '+programme['titles']['secondary']
+                                        if ('tertiary' in programme['titles'] and programme['titles']['tertiary'] is not None):
+                                            pro_name += ' - '+programme['titles']['tertiary']
+                                        if 'image_url' in programme:
+                                            pro_icon = programme['image_url'].replace("{recipe}","624x624")
+                                        if 'urn' in programme:
+                                            pro_url = 'https://www.bbc.co.uk/sounds/play/'+programme['urn'][-8:]
+                                        if 'synopses' in programme:
+                                            if ('long' in programme['synopses'] and programme['synopses']['long'] is not None):
+                                                pro_syn = programme['synopses']['long']
+                                            elif ('medium' in programme['synopses'] and programme['synopses']['medium'] is not None):
+                                                pro_syn = programme['synopses']['medium']
+                                            elif ('short' in programme['synopses'] and programme['synopses']['short'] is not None):
+                                                pro_syn = programme['synopses']['short']
+                                        # print(pro_name)
+                                        # print(pro_icon)
+                                        # print(pro_url)
+                                        # print(pro_syn)
+                                        CheckAutoplay(pro_name, pro_url, pro_icon, pro_syn, '')
+                                        if ('container' in programme and programme['container'] is not None):
+                                            # print('Has container')
+                                            if programme['container']['type'] == 'brand':
+                                                pro_brand = '[B]'+programme['container']['title']+'[/B]'
+                                                pro_brand_url = 'https://www.bbc.co.uk/sounds/brand/'+programme['container']['id']
+                                                # print(pro_brand_url)
+                                                if 'synopses' in programme['container']:
+                                                    if ('long' in programme['container']['synopses'] and
+                                                            programme['container']['synopses']['long'] is not None):
                                                         pro_brand_syn = programme['container']['synopses']['long']
-                                                   elif ('medium' in programme['container']['synopses'] and
-                                                         programme['container']['synopses']['medium'] is not None):
+                                                    elif ('medium' in programme['container']['synopses'] and
+                                                          programme['container']['synopses']['medium'] is not None):
                                                         pro_brand_syn = programme['container']['synopses']['medium']
-                                                   elif ('short' in programme['container']['synopses'] and
-                                                         programme['container']['synopses']['short'] is not None):
-                                                       pro_brand_syn = programme['container']['synopses']['short']
-                                               if not(page_base_url.startswith(pro_brand_url)):
-                                                   AddMenuEntry(pro_brand, pro_brand_url, 137, pro_icon, pro_brand_syn, '')
+                                                    elif ('short' in programme['container']['synopses'] and
+                                                          programme['container']['synopses']['short'] is not None):
+                                                        pro_brand_syn = programme['container']['synopses']['short']
+                                                if not(page_base_url.startswith(pro_brand_url)):
+                                                    AddMenuEntry(pro_brand, pro_brand_url, 137, pro_icon, pro_brand_syn,'')
             percent = int(100*page/total_pages)
             pDialog.update(percent,translation(30319))
 
@@ -452,17 +448,19 @@ def ListGenres():
     """
     genres = []
     html = OpenURL('https://www.bbc.co.uk/sounds/categories')
-    match = re.search(r'window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+    match = re.search(r'<script\s+id="__NEXT_DATA__"\s+type="application/json">(.*?)</script>', html, re.DOTALL)
     if match:
         data = match.group(1)
         json_data = json.loads(data)
         # print(json_data)
-        if 'modules' in json_data:
-            if 'data' in json_data['modules']:
-                for type_id in json_data['modules']['data']:
-                    # print(type_id)
-                    if 'data' in type_id:
-                        for category in type_id['data']:
+        queries = json_data.get("props", {}).get("pageProps", {}).get("dehydratedState", {}).get("queries", [])
+        for query in queries:
+            modules = query.get("state", {}).get("data", {}).get("data", [])
+            if isinstance(modules, list):
+                for module in modules:
+                    module_data = module.get("data", [])
+                    if isinstance(module_data, list):
+                        for category in module_data:
                             # print(category)
                             cat_name = []
                             cat_image = []
@@ -748,7 +746,7 @@ def Search(search_entered):
         total_pages = 1
         current_page = 1
         page_range = list(range(1))
-        pages = re.findall(r'<div class="ssrcss-16didf7-StyledButtonContent e1b2sq420">(.+?)</div>',html)
+        pages = None
         next_page = 1
         if pages:
             total_pages = int(pages[-2])
@@ -761,42 +759,52 @@ def Search(search_entered):
                 page_url = page_base_url + str(page)
                 html = OpenURL(page_url)
 
-            match = re.search(r'window.__INITIAL_DATA__=(.*?);\s*</script>', html, re.DOTALL)
+            match = re.search(r'<script\s+id="__NEXT_DATA__"\s+type="application/json">(.*?)</script>', html, re.DOTALL)
 
             if match:
                 data = match.group(1)
                 json_data = json.loads(data)
                 # print(json_data)
-                if 'data' in json_data:
-                    # print('Has data')
-                    for data in json_data['data']:
-                        if data.startswith('search-results'):
-                            data = json_data['data'][data]
-                        # print(data)
-                        if ('name' in data and data['name'] == 'search-results'):
-                            # print(data['name'])
-                            if 'data' in data:
-                               if 'initialResults' in data['data']:
-                                   if 'items' in data['data']['initialResults']:
-                                       for programme in data['data']['initialResults']['items']:
-                                           pro_name = []
-                                           pro_url = []
-                                           pro_icon = []
-                                           pro_syn = []
-                                           if 'headline' in programme:
-                                               pro_name = programme['headline']
-                                           if 'image' in programme:
-                                               if 'src' in programme['image']:
-                                                   pro_icon = programme['image']['src'].replace("314x176","416x234")
-                                           if 'url' in programme:
-                                               pro_url = 'https://www.bbc.co.uk/sounds/play/'+programme['url'][-8:]
-                                           if 'description' in programme:
-                                               pro_syn = programme['description']
-                                           # print(pro_name)
-                                           # print(pro_icon)
-                                           # print(pro_url)
-                                           # print(pro_syn)
-                                           CheckAutoplay(pro_name, pro_url, pro_icon, pro_syn, '')
+                queries = json_data.get('props', {}).get('pageProps', {}).get('dehydratedState', {}).get('queries', [])
+                if queries:
+                    for query in queries:
+                        state_data = query.get('state', {}).get('data', {})
+                        modules = state_data.get('data', [])
+                        if modules:
+                            for module in modules:
+                                module_data = module.get("data", [])
+                                if isinstance(module_data, list):
+                                    for programme in module_data:
+                                        if programme.get('type') == 'playable_item':
+                                            pro_id = programme.get('id')
+                                            pro_name = []
+                                            pro_url = []
+                                            pro_icon = []
+                                            pro_syn = []
+                                            titles = programme.get('titles', {})
+                                            pro_name = (
+                                                    titles.get('primary') or
+                                                    titles.get('secondary') or
+                                                    titles.get('tertiary') or
+                                                    None
+                                            )
+                                            image_url = programme.get('image_url')
+                                            if image_url:
+                                                pro_icon = image_url.replace("{recipe}", "416x234")
+                                            if programme['urn']:
+                                                pro_url = 'https://www.bbc.co.uk/sounds/play/'+programme['urn'][-8:]
+                                            synopses = programme.get('synopses', {})
+                                            pro_syn = (
+                                                    synopses.get('long') or
+                                                    synopses.get('medium') or
+                                                    synopses.get('short') or
+                                                    None
+                                            )
+                                            # print(pro_name)
+                                            # print(pro_icon)
+                                            # print(pro_url)
+                                            # print(pro_syn)
+                                            CheckAutoplay(pro_name, pro_url, pro_icon, pro_syn, '')
 
             percent = int(100*page/total_pages)
             pDialog.update(percent,translation(30319))
@@ -882,11 +890,19 @@ def ScrapeAvailableStreams(url):
     # Search for standard programmes.
     stream_id_st = re.compile('"vpid":"(.+?)"').findall(html)
     if not stream_id_st:
-        match = re.search(r'window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+        match = re.search(r'<script\s+id="__NEXT_DATA__"\s+type="application/json">(.*?)</script>', html, re.DOTALL)
         if match:
             data = match.group(1)
             json_data = json.loads(data)
-            stream_id_st = json_data['programmes']['current']['id']
+            queries = json_data.get('props', {}).get('pageProps', {}).get('dehydratedState', {}).get('queries', [])
+            for query in queries:
+                state_data = query.get('state', {}).get('data', {})
+                modules = state_data.get('data', [])
+                for module in modules:
+                    if module.get('type') == 'inline_display_module' and module.get('title') == 'Player':
+                        for item in module.get('data', []):
+                            if item.get('type') == 'playable_item':
+                                stream_id_st = item.get('id')
             # print json.dumps(json_data, indent=2, sort_keys=True)
         else:
             dialog = xbmcgui.Dialog()
