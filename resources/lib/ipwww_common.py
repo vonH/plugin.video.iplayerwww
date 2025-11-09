@@ -518,7 +518,7 @@ def AddMenuEntry(name, url, mode, iconimage, description='', subtitles_url='', a
     else:
         isFolder = True
 
-    listitem = xbmcgui.ListItem(label=name, label2=description)
+    listitem = xbmcgui.ListItem(label=name, label2=description, offscreen=True)
     listitem.setArt({'icon':'DefaultFolder.png', 'thumb':iconimage})
 
     if mode in (201, 202, 203, 204, 205, 211, 212, 213):
