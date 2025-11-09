@@ -126,7 +126,7 @@
                                     <default>true</default>
                                     <control type="toggle"/>
                                 </setting>
-                                <setting id="menu_video_channel_highlighty" type="boolean" label="30512" help="">
+                                <setting id="menu_video_channel_highlights" type="boolean" label="30512" help="">
                                     <level>0</level>
                                     <default>true</default>
                                     <control type="toggle"/>
