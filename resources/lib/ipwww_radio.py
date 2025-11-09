@@ -21,12 +21,10 @@ ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 def GetJWT(url):
     html = OpenURL(url)
     try:
-        match = re.search(r'<script> window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+        match = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', html, re.DOTALL)
         if match:
             json_data = json.loads(match[1])
-            if 'smp' in json_data:
-                if 'liveStreamJwt' in json_data['smp']:
-                   return json_data['smp']['liveStreamJwt']
+            return json_data['props']['pageProps']['jwtToken']
     except:
         pass
     return None
