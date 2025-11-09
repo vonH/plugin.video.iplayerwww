@@ -21,12 +21,10 @@ ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 def GetJWT(url):
     html = OpenURL(url)
     try:
-        match = re.search(r'<script> window.__PRELOADED_STATE__ = (.*?);\s*</script>', html, re.DOTALL)
+        match = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', html, re.DOTALL)
         if match:
             json_data = json.loads(match[1])
-            if 'smp' in json_data:
-                if 'liveStreamJwt' in json_data['smp']:
-                   return json_data['smp']['liveStreamJwt']
+            return json_data['props']['pageProps']['jwtToken']
     except:
         pass
     return None
@@ -347,7 +345,7 @@ def GetEpisodes(url):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    URL = 'https://www.bbc.co.uk/sounds/play/live:'+channelname
+    URL = 'https://www.bbc.co.uk/sounds/play/live/'+channelname
     jwt = GetJWT(URL)
     streams = ParseStreams(channelname, jwt)
     # print('Located live streams')
@@ -367,7 +365,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
 
 
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
-    URL = 'https://www.bbc.co.uk/sounds/play/live:'+channelname
+    URL = 'https://www.bbc.co.uk/sounds/play/live/'+channelname
     jwt = GetJWT(URL)
     streams = ParseStreams(channelname, jwt)
     suppliers = ['', 'Akamai', 'Limelight', 'Cloudfront']
