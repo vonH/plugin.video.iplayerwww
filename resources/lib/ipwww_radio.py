@@ -347,7 +347,7 @@ def GetEpisodes(url):
 
 def AddAvailableLiveStreamItem(name, channelname, iconimage):
     """Play a live stream based on settings for preferred live source and bitrate."""
-    URL = 'https://www.bbc.co.uk/sounds/play/live:'+channelname
+    URL = 'https://www.bbc.co.uk/sounds/play/live/'+channelname
     jwt = GetJWT(URL)
     streams = ParseStreams(channelname, jwt)
     # print('Located live streams')
@@ -367,7 +367,7 @@ def AddAvailableLiveStreamItem(name, channelname, iconimage):
 
 
 def AddAvailableLiveStreamsDirectory(name, channelname, iconimage):
-    URL = 'https://www.bbc.co.uk/sounds/play/live:'+channelname
+    URL = 'https://www.bbc.co.uk/sounds/play/live/'+channelname
     jwt = GetJWT(URL)
     streams = ParseStreams(channelname, jwt)
     suppliers = ['', 'Akamai', 'Limelight', 'Cloudfront']
