@@ -34,7 +34,13 @@ class IpwwwError(Exception):
 
 
 class GeoBlockedError(IpwwwError):
-    pass
+    def __init__(self, url):
+        super().__init__()
+        self.url = url
+    def __str__(self):
+        return translation(30401)
+    def __repr__(self):
+        return ''.join(("GeoBlockedError for url '",  self.url, '."'))
 
 
 class WebRequestError(IpwwwError):
@@ -380,7 +386,10 @@ def OpenRequest(method, url, *args, **kwargs):
         except requests.exceptions.RequestException as e:
             xbmc.log(f"'{method}' request to '{url}' failed: {e!r}")
             if isinstance(e, requests.HTTPError):
-                e = WebRequestError(str(e), e.response)
+                if e.response.status_code == 403:
+                    e = GeoBlockedError(url)
+                else:
+                    e = WebRequestError(str(e), e.response)
             raise e
         try:
             # Refreshed token cookies are set on intermediate requests.
