@@ -312,7 +312,10 @@ def SignOutBBCiD():
     let's be nice and inform the Beeb as well.
     """
     sign_out_url="https://account.bbc.com/signout"
-    OpenURL(sign_out_url)
+    try:
+        OpenURL(sign_out_url)
+    except:
+        pass
     cookie_jar.clear()
     cookie_jar.save()
     xbmcgui.Dialog().notification(translation(30326), translation(30309))
