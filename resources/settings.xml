@@ -106,6 +106,53 @@
                                     <default>true</default>
                                     <control type="toggle"/>
                                 </setting>
+                                <setting id="enabled_tv_channels" type="list[string]" label="30191" help="30192">
+                                    <level>0</level>
+                                    <default>bbc_one_hd;bbc_two_england;bbc_three_hd;bbc_four_hd;cbbc_hd;cbeebies_hd;bbc_news24;bbc_parliament;bbc_alba;bbc_scotland_hd;s4cpbs;bbc_one_london;bbc_one_scotland_hd;bbc_one_northern_ireland_hd;bbc_one_wales_hd;bbc_two_scotland;bbc_two_northern_ireland_digital;bbc_two_wales_digital;bbc_one_cambridge;bbc_one_channel_islands;bbc_one_east;bbc_one_east_midlands;bbc_one_east_yorkshire;bbc_one_north_east;bbc_one_north_west;bbc_one_oxford;bbc_one_south;bbc_one_south_east;bbc_one_south_west;bbc_one_west;bbc_one_west_midlands;bbc_one_yorks</default>
+                                    <constraints>
+                                        <options>
+                                            <option label="BBC One">bbc_one_hd</option>
+                                            <option label="BBC Two">bbc_two_england</option>
+                                            <option label="BBC Three">bbc_three_hd</option>
+                                            <option label="BBC Four">bbc_four_hd</option>
+                                            <option label="CBBC">cbbc_hd</option>
+                                            <option label="CBeebies">cbeebies_hd</option>
+                                            <option label="BBC News Channel">bbc_news24</option>
+                                            <option label="BBC Parliament">bbc_parliament</option>
+                                            <option label="Alba">bbc_alba</option>
+                                            <option label="BBC Scotland">bbc_scotland_hd</option>
+                                            <option label="S4C">s4cpbs</option>
+                                            <option label="BBC One London">bbc_one_london</option>
+                                            <option label="BBC One Scotland">bbc_one_scotland_hd</option>
+                                            <option label="BBC One Northern Ireland">bbc_one_northern_ireland_hd</option>
+                                            <option label="BBC One Wales">bbc_one_wales_hd</option>
+                                            <option label="BBC Two Scotland">bbc_two_scotland</option>
+                                            <option label="BBC Two Northern Ireland">bbc_two_northern_ireland_digital</option>
+                                            <option label="BBC Two Wales">bbc_two_wales_digital</option>
+                                            <option label="BBC One Cambridge">bbc_one_cambridge</option>
+                                            <option label="BBC One Channel Islands">bbc_one_channel_islands</option>
+                                            <option label="BBC One East">bbc_one_east</option>
+                                            <option label="BBC One East Midlands">bbc_one_east_midlands</option>
+                                            <option label="BBC One East Yorkshire">bbc_one_east_yorkshire</option>
+                                            <option label="BBC One North East">bbc_one_north_east</option>
+                                            <option label="BBC One North West">bbc_one_north_west</option>
+                                            <option label="BBC One Oxford">bbc_one_oxford</option>
+                                            <option label="BBC One South">bbc_one_south</option>
+                                            <option label="BBC One South East">bbc_one_south_east</option>
+                                            <option label="BBC One South West">bbc_one_south_west</option>
+                                            <option label="BBC One West">bbc_one_west</option>
+                                            <option label="BBC One West Midlands">bbc_one_west_midlands</option>
+                                            <option label="BBC One Yorks">bbc_one_yorks</option>
+                                        </options>
+                                        <allowempty>true</allowempty>
+                                        <delimiter>;</delimiter>
+                                    </constraints>
+                                    <control type="list" format="string">
+                                        <heading>30191</heading>
+                                        <multiselect>true</multiselect>
+                                        <hidevalue>true</hidevalue>
+                                    </control>
+                                </setting>
 			</group>
 			<group id="2" label="30102">
                                 <setting id="radio_paginate_episodes" type="integer" label="30170" help="">
@@ -118,6 +165,88 @@
                                        </options>
                                     </constraints>
                                     <control type="spinner" format="string"/>
+                                </setting>
+                                <setting id="enabled_radio_stations" type="list[string]" label="30173" help="30174">
+                                    <level>0</level>
+                                    <default>bbc_radio_one;bbc_radio_one_dance;bbc_radio_one_relax;bbc_1xtra;bbc_radio_two;bbc_radio_three;bbc_radio_fourfm;bbc_radio_fourlw;bbc_radio_four_extra;bbc_radio_five_live;bbc_radio_five_live_sports_extra;bbc_6music;bbc_asian_network;bbc_world_service;bbc_radio_scotland_fm;bbc_radio_scotland_mw;bbc_radio_orkney;bbc_radio_shetland;bbc_radio_nan_gaidheal;bbc_radio_ulster;bbc_radio_foyle;bbc_radio_wales_fm;bbc_radio_wales_am;bbc_radio_cymru;bc_radio_cymru_2;cbeebies_radio;bbc_radio_berkshire;bbc_radio_bristol;bbc_radio_cambridge;bbc_radio_cornwall;bbc_radio_coventry_warwickshire;bbc_radio_cumbria;bbc_radio_derby;bbc_radio_devon;bbc_radio_essex;bbc_radio_gloucestershire;bbc_radio_guernsey;bbc_radio_hereford_worcester;bbc_radio_humberside;bbc_radio_jersey;bbc_radio_kent;bbc_radio_lancashire;bbc_radio_leeds;bbc_radio_leicester;bbc_radio_lincolnshire;bbc_london;bbc_radio_manchester;bbc_radio_merseyside;bbc_radio_newcastle;bbc_radio_norfolk;bbc_radio_northampton;bbc_radio_nottingham;bbc_radio_oxford;bbc_radio_sheffield;bbc_radio_shropshire;bbc_radio_solent;bbc_radio_solent_west_dorset;bbc_radio_somerset_sound;bbc_radio_stoke;bbc_radio_suffolk;bbc_radio_surrey;bbc_radio_sussex;bbc_tees;bbc_three_counties_radio;bbc_radio_wiltshire;bbc_wm;bbc_radio_york</default>
+                                    <constraints>
+                                        <options>
+                                            <option label="BBC Radio 1">bbc_radio_one</option>
+                                            <option label="BBC Radio 1 Dance">bbc_radio_one_dance</option>
+                                            <option label="BBC Radio 1 Relax">bbc_radio_one_relax</option>
+                                            <option label="BBC Radio 1Xtra">bbc_1xtra</option>
+                                            <option label="BBC Radio 2">bbc_radio_two</option>
+                                            <option label="BBC Radio 3">bbc_radio_three</option>
+                                            <option label="BBC Radio 4">bbc_radio_fourfm</option>
+                                            <option label="BBC Radio 4 LW">bbc_radio_fourlw</option>
+                                            <option label="BBC Radio 4 Extra">bbc_radio_four_extra</option>
+                                            <option label="BBC Radio 5 Live">bbc_radio_five_live</option>
+                                            <option label="BBC Radio 5 Sports Extra">bbc_radio_five_live_sports_extra</option>
+                                            <option label="BBC Radio 6 Music">bbc_6music</option>
+                                            <option label="BBC Asian Network">bbc_asian_network</option>
+                                            <option label="BBC World Service">bbc_world_service</option>
+                                            <option label="BBC Radio Scotland">bbc_radio_scotland_fm</option>
+                                            <option label="BBC Radio Scotland Extra">bbc_radio_scotland_mw</option>
+                                            <option label="BBC Radio Orkney">bbc_radio_orkney</option>
+                                            <option label="BBC Radio Shetland">bbc_radio_shetland</option>
+                                            <option label="BBC Radio nan Gàidheal">bbc_radio_nan_gaidheal</option>
+                                            <option label="BBC Radio Ulster">bbc_radio_ulster</option>
+                                            <option label="BBC Radio Foyle">bbc_radio_foyle</option>
+                                            <option label="BBC Radio Wales">bbc_radio_wales_fm</option>
+                                            <option label="BBC Radio Wales Extra">bbc_radio_wales_am</option>
+                                            <option label="BBC Radio Cymru">bbc_radio_cymru</option>
+                                            <option label="BBC Radio Cymru 2">bc_radio_cymru_2</option>
+                                            <option label="CBeebies Radio">cbeebies_radio</option>
+                                            <option label="BBC Radio Berkshire">bbc_radio_berkshire</option>
+                                            <option label="BBC Radio Bristol">bbc_radio_bristol</option>
+                                            <option label="BBC Radio Cambridgeshire">bbc_radio_cambridge</option>
+                                            <option label="BBC Radio Cornwall">bbc_radio_cornwall</option>
+                                            <option label="BBC Coventry &amp; Warwickshire">bbc_radio_coventry_warwickshire</option>
+                                            <option label="BBC Radio Cumbria">bbc_radio_cumbria</option>
+                                            <option label="BBC Radio Derby">bbc_radio_derby</option>
+                                            <option label="BBC Radio Devon">bbc_radio_devon</option>
+                                            <option label="BBC Essex">bbc_radio_essex</option>
+                                            <option label="BBC Radio Gloucestershire">bbc_radio_gloucestershire</option>
+                                            <option label="BBC Radio Guernsey">bbc_radio_guernsey</option>
+                                            <option label="BBC Hereford &amp; Worcester">bbc_radio_hereford_worcester</option>
+                                            <option label="BBC Radio Humberside">bbc_radio_humberside</option>
+                                            <option label="BBC Radio Jersey">bbc_radio_jersey</option>
+                                            <option label="BBC Radio Kent">bbc_radio_kent</option>
+                                            <option label="BBC Radio Lancashire">bbc_radio_lancashire</option>
+                                            <option label="BBC Radio Leeds">bbc_radio_leeds</option>
+                                            <option label="BBC Radio Leicester">bbc_radio_leicester</option>
+                                            <option label="BBC Radio Lincolnshire">bbc_radio_lincolnshire</option>
+                                            '<option label="BBC Radio London">bbc_london</option>
+                                            <option label="BBC Radio Manchester">bbc_radio_manchester</option>
+                                            <option label="BBC Radio Merseyside">bbc_radio_merseyside</option>
+                                            <option label="BBC Newcastle">bbc_radio_newcastle</option>
+                                            <option label="BBC Radio Norfolk">bbc_radio_norfolk</option>
+                                            <option label="BBC Radio Northampton">bbc_radio_northampton</option>
+                                            <option label="BBC Radio Nottingham">bbc_radio_nottingham</option>
+                                            <option label="BBC Radio Oxford">bbc_radio_oxford</option>
+                                            <option label="BBC Radio Sheffield">bbc_radio_sheffield</option>
+                                            <option label="BBC Radio Shropshire">bbc_radio_shropshire</option>
+                                            <option label="BBC Radio Solent">bbc_radio_solent</option>
+                                            <option label="BBC Radio Solent Dorset">bbc_radio_solent_west_dorset</option>
+                                            <option label="BBC Somerset">bbc_radio_somerset_sound</option>
+                                            <option label="BBC Radio Stoke">bbc_radio_stoke</option>
+                                            <option label="BBC Radio Suffolk">bbc_radio_suffolk</option>
+                                            <option label="BBC Surrey">bbc_radio_surrey</option>
+                                            <option label="BBC Sussex">bbc_radio_sussex</option>
+                                            <option label="BBC Tees">bbc_tees</option>
+                                            <option label="BBC Three Counties Radio">bbc_three_counties_radio</option>
+                                            <option label="BBC Wiltshire">bbc_radio_wiltshire</option>
+                                            <option label="BBC WM">bbc_wm</option>
+                                            <option label="BBC Radio York">bbc_radio_york</option>
+                                        </options>
+                                        <allowempty>true</allowempty>
+                                        <delimiter>;</delimiter>
+                                    </constraints>
+                                    <control type="list" format="string">
+                                        <heading>30191</heading>
+                                        <multiselect>true</multiselect>
+                                        <hidevalue>true</hidevalue>
+                                    </control>
                                 </setting>
 			</group>
 			<group id="3" label="30510">
