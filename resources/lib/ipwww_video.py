@@ -129,9 +129,7 @@ def AddAvailableUHDTrialItem(name, channelname):
     PlayStream(name, url, "", "", "")
 
 
-# ListLive creates menu entries for all live channels.
-def ListLive():
-    channel_list = [
+channel_list = [
         ('bbc_one_hd',                       'BBC One',                  'bbc_one_london'),
         ('bbc_two_england',                  'BBC Two',                  'bbc_two_england'),
         ('bbc_three_hd',                     'BBC Three',                'bbc_three'),
@@ -166,7 +164,12 @@ def ListLive():
         ('bbc_one_west_midlands',            'BBC One West Midlands',    'bbc_one_london'),
         ('bbc_one_yorks',                    'BBC One Yorks',            'bbc_one_london'),
     ]
+
+
+# ListLive creates menu entries for all live channels.
+def ListLive():
     from urllib.parse import urlencode
+
     schedules = GetSchedules(channel_list)
     for id, name, schedule_chan_id in channel_list:
         now_on, schedule = schedules.get(schedule_chan_id, ('', ''))
