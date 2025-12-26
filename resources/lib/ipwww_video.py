@@ -167,8 +167,10 @@ def ListLive():
         ('bbc_one_yorks',                    'BBC One Yorks',            'bbc_one_london'),
     ]
     from urllib.parse import urlencode
-    schedules = GetSchedules(channel_list)
-    for id, name, schedule_chan_id in channel_list:
+    enabled_chans = ADDON.getSetting('enabled_tv_channels').split(';')
+    enabled_chan_list = [chan for chan in channel_list if chan[0] in enabled_chans]
+    schedules = GetSchedules(enabled_chan_list)
+    for id, name, schedule_chan_id in enabled_chan_list:
         now_on, schedule = schedules.get(schedule_chan_id, ('', ''))
         title = '{}    [COLOR orange]{}[/COLOR]'.format(name, now_on)
         iconimage = 'resource://resource.images.iplayerwww/media/'+id+'.png'

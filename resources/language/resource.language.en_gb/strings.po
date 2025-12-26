@@ -88,6 +88,14 @@ msgctxt "#30172"
 msgid "All at once"
 msgstr ""
 
+msgctxt "#30173"
+msgid "Select live radio stations"
+msgstr ""
+
+msgctxt "#30174"
+msgid "Select live radio stations"
+msgstr "Select the radio stations to appear in folder 'Listen live'."
+
 msgctxt "#30180"
 msgid "Switch CBeebies/CBBC only mode on/off"
 msgstr ""
@@ -102,6 +110,14 @@ msgstr ""
 
 msgctxt "#30190"
 msgid "Show Red Button warning"
+msgstr ""
+
+msgctxt "#30191"
+msgid "Select live channels"
+msgstr ""
+
+msgctxt "#30192"
+msgid "Select the live channels to appear in folder 'Watch live'."
 msgstr ""
 
 msgctxt "#30200"

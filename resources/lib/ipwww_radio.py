@@ -553,7 +553,9 @@ def ListLive():
         ('bbc_wm', 'BBC WM'),
         ('bbc_radio_york', 'BBC Radio York'),
     ]
-    for id, name in channel_list:
+    enabled_chans = ADDON.getSetting('enabled_radio_stations').split(';')
+    enabled_chan_list = [chan for chan in channel_list if chan[0] in enabled_chans]
+    for id, name in enabled_chan_list:
         iconimage = 'resource://resource.images.iplayerwww/media/'+id+'.png'
         if ADDON.getSetting('streams_autoplay') == 'true':
             AddMenuEntry(name, id, 213, iconimage, '', '')
