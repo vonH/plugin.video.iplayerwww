@@ -23,6 +23,7 @@ class FileProgress(xbmc.Player):
         self._episode_id = episode_id
         self._stream_id = stream_id
         self._playtime = 0
+        self._totaltime = 0
         self.sys_monitor = xbmc.Monitor()
         self._cur_file = None
         self._status = PlayState.UNDEFINED
@@ -52,6 +53,7 @@ class FileProgress(xbmc.Player):
         try:
             self._cur_file = self.getPlayingFile()
             self._playtime = self.getTime()
+            self._totaltime = self.getTotalTime()
             self._status = PlayState.PLAYING
             self.post_event('started')
         except Exception as err:
@@ -80,6 +82,15 @@ class FileProgress(xbmc.Player):
     def onPlayBackError(self) -> None:
         self.onPlayBackStopped()
 
+    def onPlayBackSeek(self, time: int, seekOffset: int) -> None:
+        progress = time / 1000
+        if progress > self._totaltime - 10:
+            # Skipped right up to or beyond the end of the stream.
+            self._playtime = self._totaltime
+            self.onPlayBackStopped()
+        else:
+            self._playtime = progress
+
     def wait_until_playing(self, timeout) -> bool:
         """Wait and return `True` when the player has started playing.
         Return `False` when `timeout` expires, or when play has been aborted before
@@ -92,7 +103,7 @@ class FileProgress(xbmc.Player):
                 return False
             if self.sys_monitor.waitForAbort(0.2):
                 return False
-        return not self._status is PlayState.STOPPED
+        return self._status is not PlayState.STOPPED
 
     def monitor_progress(self) -> None:
         """Post heartbeat events at regular intervals while the file is playing.
