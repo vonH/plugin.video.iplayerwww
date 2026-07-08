@@ -27,20 +27,6 @@ from random import randint
 
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
-def log_message(message, level=xbmc.LOGINFO):
-    """
-    Logs a message to the Kodi log file.
-    
-    :param message: The text to log
-    :param level: Kodi log level (default: LOGINFO)
-    """
-    try:
-        if not isinstance(message, str):
-            message = str(message)
-        xbmc.log(f"[BBC iPlayer] {message}", level)
-    except Exception as e:
-        xbmc.log(f"[BBC iPlayer] Logging failed: {e}", xbmc.LOGERROR)
-
 def tp(path):
     return xbmcvfs.translatePath(path)
 
@@ -1171,7 +1157,6 @@ def ListWatching():
             # Add a context menu item 'Remove'
             ct_menus.append((translation(30601),
                              f'RunPlugin(plugin://plugin.video.iplayerwww?mode=301&episode_id={programme_id}&url=url)'))
-        log_message('LW - item_data = ' + str(item_data))
         CheckAutoplay(**item_data)
 
 
@@ -1198,7 +1183,6 @@ def ListFavourites():
         if programme['count'] == 1:
             CheckAutoplay(context_mnu=ct_mnu, **ParseProgramme(programme, playable=True))
         else:
-            log_message('LF programme = ' + str(ParseProgramme(programme)))
             AddMenuEntry(mode=128, subtitles_url='', context_mnu=ct_mnu, **ParseProgramme(programme))
     SetSortMethods()
 
