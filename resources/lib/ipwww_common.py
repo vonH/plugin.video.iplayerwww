@@ -480,7 +480,7 @@ def strptime(dt_str: str, format: str):
     return datetime(*(time.strptime(dt_str, format)[0:6]))
 
 
-def AddMenuEntry(name, url, mode, iconimage, description='', subtitles_url='', aired=None, resolution=None,
+def AddMenuEntry(name, url, mode, iconimage, description='', fanart='', subtitles_url='', aired=None, resolution=None,
                  resume_time='', total_time='', episode_id='', stream_id='', context_mnu=None, replay_chan_id=''):
     """Adds a new line to the Kodi list of playables.
     It is used in multiple ways in the plugin, which are distinguished by modes.
@@ -519,7 +519,13 @@ def AddMenuEntry(name, url, mode, iconimage, description='', subtitles_url='', a
         isFolder = True
 
     listitem = xbmcgui.ListItem(label=name, label2=description)
-    listitem.setArt({'icon':'DefaultFolder.png', 'thumb':iconimage})
+    listitem.setArt({'icon':'DefaultFolder.png', 'thumb':iconimage})    
+    # Use fanart if relevant
+    if len(fanart) > 0: # Watchlist item
+        listitem.setArt({'landscape':iconimage})
+        listitem.setArt({'fanart': fanart})
+    elif mode in (128, 139, 202):
+        listitem.setArt({'fanart':iconimage})  
 
     if mode in (201, 202, 203, 204, 205, 211, 212, 213):
         if aired:

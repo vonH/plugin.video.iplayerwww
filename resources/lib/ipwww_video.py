@@ -27,6 +27,19 @@ from random import randint
 
 ADDON = xbmcaddon.Addon(id='plugin.video.iplayerwww')
 
+def log_message(message, level=xbmc.LOGINFO):
+    """
+    Logs a message to the Kodi log file.
+    
+    :param message: The text to log
+    :param level: Kodi log level (default: LOGINFO)
+    """
+    try:
+        if not isinstance(message, str):
+            message = str(message)
+        xbmc.log(f"[BBC iPlayer] {message}", level)
+    except Exception as e:
+        xbmc.log(f"[BBC iPlayer] Logging failed: {e}", xbmc.LOGERROR)
 
 def tp(path):
     return xbmcvfs.translatePath(path)
@@ -597,9 +610,11 @@ def ParseSingleJSON(meta, item, name, added_playables, added_directories):
         if subitem.get('synopsis'):
             if 'small' in subitem.get('synopsis'):
                 synopsis = subitem['synopsis'].get('small')
+        
         if subitem.get('image'):
-            if 'default' in subitem.get('image'):
-                icon = subitem['image'].get('default').replace("{recipe}","832x468")
+            images = subitem['image']
+            icon = SelectImage(images)
+          
     else:
         if 'count' in item:
             if item['count']>1:
@@ -681,7 +696,8 @@ def ParseSingleJSON(meta, item, name, added_playables, added_directories):
         if 'imageTemplate' in item:
             icon = item['imageTemplate'].replace("{recipe}","832x468")
         if 'images' in item:
-            icon = item['images']['standard'].replace("{recipe}","832x468")
+            images = item['images']    
+            icon = SelectImage(images)
         elif 'sources' in item:
             temp = item['sources'][0]['srcset'].split()[0]
             icon = re.sub(r'ic/.+?/','ic/832x468/',temp)
@@ -778,6 +794,10 @@ def ParseJSON(programme_data, current_url):
                 elif 'contentItemProps' in item:
                     meta = item.get('type')
                     item = item.get('contentItemProps')
+                # Use images with logo if they exist in 'item'  
+                if ADDON.getSetting('prefer_image_logo') == 'true':       
+                    if 'initial_children' in item:
+                        item['images'] = item['initial_children'][0]['images']    
                 ParseSingleJSON(meta, item, name, added_playables, added_directories)
 
         # The next section is for global and channel highlights. They are a bit tricky.
@@ -881,13 +901,21 @@ def SelectSynopsis(synopses):
 def SelectImage(images):
     if not images:
         return 'DefaultFolder.png'
-    return(images.get('standard')
-           or images.get('default')
-           or images.get('promotional')
-           or images.get('promotional_with_logo')
-           or images.get('portrait')
-           or 'DefaultFolder.png').replace('{recipe}', '832x468')
-
+    if ADDON.getSetting('prefer_image_logo') == 'false':    
+        return(images.get('standard')
+               or images.get('default')
+               or images.get('promotional')
+               or images.get('promotional_with_logo')
+               or images.get('portrait')
+               or 'DefaultFolder.png').replace('{recipe}', '832x468')
+    else:           
+        return(images.get('promotional_with_logo')
+               or images.get('promotionalWithLogo')
+               or images.get('promotional')
+               or images.get('standard')
+               or images.get('default')
+               or images.get('portrait')
+               or 'DefaultFolder.png').replace('{recipe}', '832x468') 
 
 def ParseProgramme(progr_data, playable=False):
     if playable:
@@ -901,9 +929,14 @@ def ParseProgramme(progr_data, playable=False):
             'name': '[B]{}[/B] - {} episodes available'.format(progr_data['title'], progr_data['count'])
         }
 
+    # Populate image if necessary
+    if not progr_data['initial_children'][0]['images']:
+        progr_data['initial_children'][0]['images']['promotional'] = progr_data['images']['standard'] 
+    
     programme.update({
-        'iconimage': progr_data.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468'),
-        'description': SelectSynopsis(progr_data['synopses'])
+        'iconimage': SelectImage(progr_data['initial_children'][0]['images']),
+        'fanart': progr_data['images']['standard'].replace('{recipe}', '832x468'),
+        'description': SelectSynopsis(progr_data['synopses']),  
     })
     return programme
 
@@ -1105,6 +1138,11 @@ def ListWatching():
         episode = watching_item['episode']
         programme = watching_item['programme']
         item_data = ParseEpisode(episode)
+        
+        # use image with logo if available           
+        images = episode['images']    
+        item_data['iconimage'] = SelectImage(images)
+        item_data['fanart'] = episode['images']['standard'].replace('{recipe}', '832x468')
 
         # Lacking a field synopses, a watching item's description is empty. Since the
         # remaining playtime is presented in the title instead of the usual episode name,
@@ -1133,7 +1171,7 @@ def ListWatching():
             # Add a context menu item 'Remove'
             ct_menus.append((translation(30601),
                              f'RunPlugin(plugin://plugin.video.iplayerwww?mode=301&episode_id={programme_id}&url=url)'))
-
+        log_message('LW - item_data = ' + str(item_data))
         CheckAutoplay(**item_data)
 
 
@@ -1160,6 +1198,7 @@ def ListFavourites():
         if programme['count'] == 1:
             CheckAutoplay(context_mnu=ct_mnu, **ParseProgramme(programme, playable=True))
         else:
+            log_message('LF programme = ' + str(ParseProgramme(programme)))
             AddMenuEntry(mode=128, subtitles_url='', context_mnu=ct_mnu, **ParseProgramme(programme))
     SetSortMethods()
 
@@ -1188,6 +1227,9 @@ def ListRecommendations(item_id=None):
                     item_data = ParseEpisode(episode)
                     if not item_data:
                         continue
+                    # Use image with logo if available                                          
+                    images = episode['image']
+                    item_data['iconimage'] = SelectImage(images)                           
                     tleo_id = episode.get('tleo', {}).get('id')
                     if tleo_id and tleo_id != episode['id']:
                         all_episodes_link = 'https://www.bbc.co.uk/iplayer/episodes/' + tleo_id
@@ -1513,12 +1555,12 @@ def ScrapeJSON(html):
     return json_data
 
 
-def CheckAutoplay(name, url, iconimage, description, aired=None, resume_time="", total_time="", context_mnu=None):
+def CheckAutoplay(name, url, iconimage, description, aired=None, fanart = '', resume_time="", total_time="", context_mnu=None):
     if ADDON.getSetting('streams_autoplay') == 'true':
         mode = 202
     else:
         mode = 122
-    AddMenuEntry(name, url, mode, iconimage, description, '', aired=aired,
+    AddMenuEntry(name, url, mode, iconimage, description, fanart, aired=aired,
                  resume_time=resume_time, total_time=total_time, context_mnu=context_mnu)
 
 
