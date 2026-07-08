@@ -104,10 +104,6 @@ msgctxt "#30190"
 msgid "Show Red Button warning"
 msgstr ""
 
-msgctxt "#30191"
-msgid "Prefer images with logo"
-msgstr ""
-
 msgctxt "#30200"
 msgid "Streams"
 msgstr ""
