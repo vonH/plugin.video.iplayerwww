@@ -106,7 +106,7 @@
                                     <default>true</default>
                                     <control type="toggle"/>
                                 </setting>
-                                <setting id="prefer_image_logo" type="boolean" label="30191" help="">
+                                <setting id="prefer_image_logo" type="boolean" label="30191" help="30192">
                                     <level>0</level>
                                     <default>false</default>
                                     <control type="toggle"/>
