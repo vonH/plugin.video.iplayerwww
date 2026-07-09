@@ -919,13 +919,18 @@ def ParseProgramme(progr_data, playable=False):
     if not progr_data['initial_children'][0]['images']:
         progr_data['initial_children'][0]['images']['promotional'] = progr_data['images']['standard'] 
     
-    programme.update({
-        'iconimage': SelectImage(progr_data['initial_children'][0]['images']),
-        'fanart': progr_data['images']['standard'].replace('{recipe}', '832x468'),
-        'description': SelectSynopsis(progr_data['synopses']),  
-    })
+    if ADDON.getSetting('prefer_image_logo') == 'false':
+        programme.update({
+            'iconimage': progr_data.get('images', {}).get('standard', 'DefaultFolder.png').replace('{recipe}', '832x468'),
+            'description': SelectSynopsis(progr_data['synopses'])
+        })
+    else:
+        programme.update({
+            'iconimage': SelectImage(progr_data['initial_children'][0]['images']),
+            'fanart': progr_data['images']['standard'].replace('{recipe}', '832x468'),
+            'description': SelectSynopsis(progr_data['synopses'])
+        }) 
     return programme
-
 
 def ParseEpisode(episode_data):
     title = episode_data.get('title', '')
@@ -1126,9 +1131,10 @@ def ListWatching():
         item_data = ParseEpisode(episode)
         
         # use image with logo if available           
-        images = episode['images']    
-        item_data['iconimage'] = SelectImage(images)
-        item_data['fanart'] = episode['images']['standard'].replace('{recipe}', '832x468')
+        if ADDON.getSetting('prefer_image_logo') == 'true':        
+            images = episode['images']    
+            item_data['iconimage'] = SelectImage(images)
+            item_data['fanart'] = episode['images']['standard'].replace('{recipe}', '832x468')
 
         # Lacking a field synopses, a watching item's description is empty. Since the
         # remaining playtime is presented in the title instead of the usual episode name,
